@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моё Портфолио</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container header-container">
+            <a href="#" class="logo">Портфо<span>лио</span></a>
+            <div class="header-controls">
+                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+                <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+            </div>
+            <nav>
+                <ul id="navMenu">
+                    <li><a href="#home">Главная</a></li>
+                    <li><a href="#about">Обо мне</a></li>
+                    <li><a href="#gallery">Галерея</a></li>
+                    <li><a href="#certificates">Сертификаты</a></li>
+                    <li><a href="#works">Мои работы</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero animate-on-scroll" id="home">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <h1 class="neon-text">Привет, я <span>Владислав</span><br>Студент и будущий специалист</h1>
+                <p>Я учусь на Администратора баз данных и активно развиваюсь в IT-сфере. Здесь вы найдете информацию о моих достижениях, проектах и сертификатах.</p>
+                <div class="typing-container"><h3>Моя цель: <span class="typing-text" id="typingText"></span><span class="cursor">|</span></h3></div>
+                <a href="#about" class="btn">Узнать больше</a>
+            </div>
+            <div class="hero-image">
+                <img src="{{ avatar }}" alt="Моя фотография" class="profile-img">
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="animate-on-scroll">
+        <div id="particles-js"></div>
+        <div class="container">
+            <h2 class="section-title">Обо мне</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>Я студент IT-направления, увлеченный программированием. За время обучения освоил несколько программ и технологий, которые помогают мне создавать интересные проекты.</p>
+                    <p>Мои сильные стороны: внимание к деталям, способность быстро осваивать новые технологии и работать в команде. Я постоянно стремлюсь к профессиональному развитию и принимаю участие в различных образовательных мероприятиях.</p>
+                    <p>В будущем планирую стать full-stack разработчиком и создавать полезные и инновационные продукты.</p>
+                    
+                    <div class="achievement-counter">
+                        <div class="counter-item"><i class="fas fa-certificate"></i><span class="counter" data-target="{{ certificates|length }}">0</span><p>Сертификатов</p></div>
+                        <div class="counter-item"><i class="fas fa-project-diagram"></i><span class="counter" data-target="{{ works|length }}">0</span><p>Проектов</p></div>
+                        <div class="counter-item"><i class="fas fa-code"></i><span class="counter" data-target="7">0</span><p>Навыков</p></div>
+                    </div>
+                    
+                    <div class="tech-stack">
+                        <h3>Мой технологический стек</h3>
+                        
+                        <div class="tech-category">
+                            <h4>Программирование и разработка</h4>
+                            <div class="tech-icons">
+                                <div class="tech-item"><i class="fab fa-python"></i><span>Python</span><div class="skill-percentage">20%</div><div class="percentage-bar"><div class="percentage-fill" data-width="20"></div></div></div>
+                                <div class="tech-item"><i class="fas fa-code"></i><span>HTML/CSS</span><div class="skill-percentage">35%</div><div class="percentage-bar"><div class="percentage-fill" data-width="35"></div></div></div>
+                                <div class="tech-item"><i class="fas fa-database"></i><span>Базы данных</span><div class="skill-percentage">30%</div><div class="percentage-bar"><div class="percentage-fill" data-width="30"></div></div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-category">
+                            <h4>Офисные приложения</h4>
+                            <div class="tech-icons">
+                                <div class="tech-item"><i class="fas fa-file-word"></i><span>MS Word</span><div class="skill-percentage">85%</div><div class="percentage-bar"><div class="percentage-fill" data-width="85"></div></div></div>
+                                <div class="tech-item"><i class="fas fa-file-excel"></i><span>MS Excel</span><div class="skill-percentage">80%</div><div class="percentage-bar"><div class="percentage-fill" data-width="80"></div></div></div>
+                                <div class="tech-item"><i class="fas fa-database"></i><span>MS Access</span><div class="skill-percentage">65%</div><div class="percentage-bar"><div class="percentage-fill" data-width="65"></div></div></div>
+                                <div class="tech-item"><i class="fas fa-file-powerpoint"></i><span>MS PowerPoint</span><div class="skill-percentage">75%</div><div class="percentage-bar"><div class="percentage-fill" data-width="75"></div></div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-category">
+                            <h4>Графика и дизайн</h4>
+                            <div class="tech-icons">
+                                <div class="tech-item">
+                                    <div class="combined-icons"><i class="fas fa-paint-brush"></i><i class="fas fa-image"></i></div>
+                                    <span>Графические редакторы</span><span class="software-subtitle">Photoshop & GIMP</span>
+                                    <div class="skill-percentage">70%</div><div class="percentage-bar"><div class="percentage-fill" data-width="70"></div></div>
+                                </div>
+                                <div class="tech-item"><i class="fas fa-vector-square"></i><span>Inkscape</span><div class="skill-percentage">65%</div><div class="percentage-bar"><div class="percentage-fill" data-width="65"></div></div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-category">
+                            <h4>Другие инструменты</h4>
+                            <div class="tech-icons">
+                                <div class="tech-item"><i class="fas fa-edit"></i><span>Текстовые редакторы</span><span class="software-subtitle">Блокнот • Notepad++</span><div class="skill-percentage">90%</div><div class="percentage-bar"><div class="percentage-fill" data-width="90"></div></div></div>
+                                <div class="tech-item"><i class="fas fa-brain"></i><span>Нейросети</span><span class="software-subtitle">ChatGPT • Midjourney</span><div class="skill-percentage">70%</div><div class="percentage-bar"><div class="percentage-fill" data-width="70"></div></div></div>
+                                <div class="tech-item"><i class="fas fa-search"></i><span>Интернет-поиск</span><div class="skill-percentage">85%</div><div class="percentage-bar"><div class="percentage-fill" data-width="85"></div></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about-stats">
+                    <h3>Мои навыки</h3>
+                    <div class="skill-progress"><div class="skill-name"><span>MS Office</span><span>80%</span></div><div class="progress-bar"><div class="progress-fill" id="officeProgress"></div></div></div>
+                    <div class="skill-progress"><div class="skill-name"><span>Adobe Photoshop</span><span>75%</span></div><div class="progress-bar"><div class="progress-fill" id="photoshopProgress"></div></div></div>
+                    <div class="skill-progress"><div class="skill-name"><span>Inkscape</span><span>65%</span></div><div class="progress-bar"><div class="progress-fill" id="inkscapeProgress"></div></div></div>
+                    <div class="skill-progress"><div class="skill-name"><span>Python</span><span>20%</span></div><div class="progress-bar"><div class="progress-fill" id="pythonProgress"></div></div></div>
+                    <div class="skill-progress"><div class="skill-name"><span>GIMP</span><span>35%</span></div><div class="progress-bar"><div class="progress-fill" id="gimpProgress"></div></div></div>
+                    <div class="skill-progress"><div class="skill-name"><span>Английский язык</span><span>50%</span></div><div class="progress-bar"><div class="progress-fill" id="englishProgress"></div></div></div>
+                    <div class="skill-progress"><div class="skill-name"><span>Нейросети</span><span>70%</span></div><div class="progress-bar"><div class="progress-fill" id="aiProgress"></div></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="gallery animate-on-scroll" id="gallery">
+        <div class="container">
+            <h2 class="section-title">Галерея фото</h2>
+            <div class="gallery-grid" id="galleryGrid">
+                {% for item in gallery %}
+                <div class="gallery-item"><img src="{{ item[1] }}" alt="{{ item[2] }}" data-full="{{ item[1] }}"><p>{{ item[2] }}</p></div>
+                {% endfor %}
+                {% if not gallery %}<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">Пока нет фото.</p>{% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section id="certificates" class="animate-on-scroll">
+        <div class="container">
+            <h2 class="section-title">Мои сертификаты</h2>
+            <div class="course-filter">
+                <button class="filter-btn active" data-course="all">Все курсы</button>
+                <button class="filter-btn" data-course="1">1 курс</button>
+                <button class="filter-btn" data-course="2">2 курс</button>
+                <button class="filter-btn" data-course="3">3 курс</button>
+                <button class="filter-btn" data-course="4">4 курс</button>
+            </div>
+            <div class="certificates-grid" id="certificatesGrid">
+                {% for cert in certificates %}
+                <div class="certificate-item" data-course="{{ cert[6] }}"><img src="{{ cert[1] }}" alt="{{ cert[2] }}" data-full="{{ cert[1] }}"><div class="certificate-info"><h3>{{ cert[2] }}</h3><p>{{ cert[3] }}</p><p><strong>Организация:</strong> {{ cert[4] }}</p><p><strong>Год:</strong> {{ cert[5] }}</p><span class="course-badge">{{ cert[6] }} курс</span></div></div>
+                {% endfor %}
+                {% if not certificates %}<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">Пока нет сертификатов.</p>{% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="works animate-on-scroll" id="works">
+        <div class="container">
+            <h2 class="section-title">Мои работы</h2>
+            <p class="works-intro">Здесь я размещаю свои учебные и личные проекты.</p>
+            <div class="works-grid">
+                {% for work in works %}
+                <div class="work-item"><div class="work-icon"><i class="fas {{ work[3] }}"></i></div><h3>{{ work[1] }}</h3><p>{{ work[2] }}</p>{% if work[4] %}<a href="/{{ work[4] }}" class="btn" download>Скачать</a>{% endif %}</div>
+                {% endfor %}
+                {% if not works %}<div class="work-item"><div class="work-icon"><i class="fas fa-code"></i></div><h3>Пока нет работ</h3><p>Добавьте свои работы через админ-панель</p></div>{% endif %}
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column"><h3>Портфолио</h3><p>Здесь представлены мои достижения, сертификаты и проекты.</p><div class="social-icons"><a href="#"><i class="fab fa-vk"></i></a><a href="https://t.me/Id1vlad1"><i class="fab fa-telegram"></i></a><a href="#"><i class="fab fa-instagram"></i></a></div></div>
+                <div class="footer-column"><h3>Быстрые ссылки</h3><ul class="footer-links"><li><a href="#home">Главная</a></li><li><a href="#about">Обо мне</a></li><li><a href="#gallery">Галерея</a></li><li><a href="#certificates">Сертификаты</a></li><li><a href="#works">Мои работы</a></li></ul></div>
+                <div class="footer-column"><h3>Контакты</h3><ul class="footer-links"><li><i class="fas fa-envelope"></i> vlad.kutolin@bk.ru</li><li><i class="fas fa-phone"></i> +7 (999) 166-39-38</li><li><i class="fas fa-map-marker-alt"></i> Россия, Благовещенск</li><li><i class="fas fa-university"></i> АПК</li></ul></div>
+            </div>
+            <div class="copyright"><p>&copy; 2025 Портфолио студента. Все права защищены.</p></div>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTop"><i class="fas fa-chevron-up"></i></button>
+
+    <!-- Просмотрщик фото -->
+    <div id="imageViewer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9999;">
+        <span id="closeViewer" style="position:absolute;top:20px;right:30px;color:white;font-size:40px;cursor:pointer;z-index:10000;">&times;</span>
+        <button id="prevBtn" style="position:absolute;left:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.2);color:white;border:none;font-size:30px;padding:15px;cursor:pointer;border-radius:50%;z-index:10000;">&#10094;</button>
+        <img id="viewerImage" src="" style="max-width:90%;max-height:80vh;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);object-fit:contain;">
+        <button id="nextBtn" style="position:absolute;right:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.2);color:white;border:none;font-size:30px;padding:15px;cursor:pointer;border-radius:50%;z-index:10000;">&#10095;</button>
+        <p id="viewerCaption" style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);color:white;font-size:18px;text-align:center;"></p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
