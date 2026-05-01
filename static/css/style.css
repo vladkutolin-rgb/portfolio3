@@ -496,9 +496,10 @@ section {
 }
 
 .tech-item:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 30px rgba(0,163,54,0.3);
+    transform: translateY(-8px) rotateY(5deg) rotateX(3deg) scale(1.08);
+    box-shadow: 0 20px 40px rgba(0,163,54,0.4);
     animation-play-state: paused;
+    border-color: var(--primary-color);
 }
 
 .tech-item i {
@@ -759,9 +760,45 @@ body.dark-theme .gallery {
     color: white;
 }
 
-/* Мои работы */
+/* Мои работы с анимированным фоном */
 .works {
-    background-color: var(--gray-color);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+body.dark-theme .works {
+    background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+}
+
+.works::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+        radial-gradient(circle at 30% 30%, rgba(0,163,54,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(0,163,54,0.08) 0%, transparent 50%);
+    animation: rotateBackground 30s linear infinite;
+    z-index: 0;
+}
+
+body.dark-theme .works::before {
+    background: 
+        radial-gradient(circle at 30% 30%, rgba(0,212,76,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(0,212,76,0.1) 0%, transparent 50%);
+}
+
+@keyframes rotateBackground {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.works > .container {
+    position: relative;
+    z-index: 1;
 }
 
 .works-intro {
@@ -785,6 +822,8 @@ body.dark-theme .gallery {
     background: var(--card-bg);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     transition: transform 0.5s ease, box-shadow 0.5s ease;
+    position: relative;
+    z-index: 1;
 }
 
 .work-item:hover {
@@ -955,6 +994,19 @@ body.dark-theme footer .footer-links a {
 @keyframes zoomIn {
     from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
     to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+#prevBtn:hover, #nextBtn:hover {
+    background: rgba(0, 163, 54, 1) !important;
+    box-shadow: 0 0 20px rgba(0, 163, 54, 0.5);
+}
+
+#zoomInBtn:hover, #zoomOutBtn:hover, #resetZoomBtn:hover {
+    background: rgba(0, 163, 54, 0.8) !important;
+}
+
+#closeViewer:hover {
+    background: rgba(255, 0, 0, 0.5) !important;
 }
 
 /* Адаптивность */

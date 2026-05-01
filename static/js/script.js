@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
 });
 
-// ПРОСМОТРЩИК ФОТО С ЛИСТАНИЕМ
+// ПРОСМОТРЩИК ФОТО С ЛИСТАНИЕМ И ЗУМОМ
 document.addEventListener('DOMContentLoaded', () => {
     const viewer=document.getElementById('imageViewer');
     const vImg=document.getElementById('viewerImage');
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextBtn=document.getElementById('nextBtn');
     if(!viewer||!vImg) return;
 
-    let allItems=[], curIdx=0;
+    let allItems=[], curIdx=0, zoomLevel=1;
 
     function getVisibleItems() {
         const gallery = document.querySelectorAll('#galleryGrid .gallery-item');
@@ -132,40 +132,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return [...g, ...c];
     }
 
+    function resetZoom() { zoomLevel=1; vImg.style.transform='translate(-50%, -50%) scale(1)'; }
+
     function openViewer(imgEl, idx) {
-        allItems = getVisibleItems();
-        curIdx = idx;
-        const img = imgEl.querySelector('img') || imgEl;
-        vImg.src = img.getAttribute('data-full') || img.src;
-        vCap.textContent = img.alt || '';
-        viewer.style.display = 'block';
-        document.body.style.overflow = 'hidden';
+        allItems=getVisibleItems(); curIdx=idx;
+        const img=imgEl.querySelector('img')||imgEl;
+        vImg.src=img.getAttribute('data-full')||img.src;
+        vCap.textContent=img.alt||'';
+        viewer.style.display='block'; document.body.style.overflow='hidden';
+        resetZoom();
     }
 
     function closeViewer() { viewer.style.display='none'; document.body.style.overflow='auto'; }
     function navigate(dir) {
-        allItems = getVisibleItems();
-        if(allItems.length===0) return;
-        curIdx = (curIdx+dir+allItems.length) % allItems.length;
-        const item = allItems[curIdx];
-        const img = item.querySelector('img');
-        vImg.src = img.getAttribute('data-full') || img.src;
-        vCap.textContent = img.alt || '';
+        allItems=getVisibleItems(); if(allItems.length===0) return;
+        curIdx=(curIdx+dir+allItems.length)%allItems.length;
+        const item=allItems[curIdx], img=item.querySelector('img');
+        vImg.src=img.getAttribute('data-full')||img.src;
+        vCap.textContent=img.alt||'';
+        resetZoom();
     }
+
+    // Зум
+    document.getElementById('zoomInBtn')?.addEventListener('click', e => {
+        e.stopPropagation(); if(zoomLevel<3){ zoomLevel+=0.2; vImg.style.transform=`translate(-50%, -50%) scale(${zoomLevel})`; }
+    });
+    document.getElementById('zoomOutBtn')?.addEventListener('click', e => {
+        e.stopPropagation(); if(zoomLevel>0.5){ zoomLevel-=0.2; vImg.style.transform=`translate(-50%, -50%) scale(${zoomLevel})`; }
+    });
+    document.getElementById('resetZoomBtn')?.addEventListener('click', e => {
+        e.stopPropagation(); resetZoom();
+    });
 
     // Клик по галерее
     document.getElementById('galleryGrid')?.addEventListener('click', function(e) {
-        const item = e.target.closest('.gallery-item');
-        if(item) openViewer(item, Array.from(this.querySelectorAll('.gallery-item')).indexOf(item));
+        const item=e.target.closest('.gallery-item'); if(item) openViewer(item, Array.from(this.querySelectorAll('.gallery-item')).indexOf(item));
     });
-
     // Клик по сертификатам
     document.getElementById('certificatesGrid')?.addEventListener('click', function(e) {
-        const item = e.target.closest('.certificate-item');
-        if(item) {
-            const allCerts = Array.from(this.querySelectorAll('.certificate-item')).filter(i => window.getComputedStyle(i).display !== 'none');
-            openViewer(item, getVisibleItems().indexOf(item));
-        }
+        const item=e.target.closest('.certificate-item'); if(item) openViewer(item, getVisibleItems().indexOf(item));
     });
 
     if(closeBtn) closeBtn.addEventListener('click', closeViewer);
