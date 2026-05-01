@@ -8,11 +8,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = 'tvoy-sekretnyy-klyuch-12345'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 МБ
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 
-                      'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 
-                      'txt', 'zip', 'rar', '7z', 'py', 'html', 'css', 'js', 
-                      'cpp', 'c', 'java', 'php', 'xml', 'json', 'csv'}
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -53,10 +49,53 @@ def init_db():
                  (key TEXT PRIMARY KEY,
                   value TEXT)''')
     
+    # Таблица для навыков (правая панель)
+    c.execute('''CREATE TABLE IF NOT EXISTS skills
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT NOT NULL,
+                  percent INTEGER DEFAULT 50)''')
+    
+    # Таблица для тех-стека
+    c.execute('''CREATE TABLE IF NOT EXISTS techstack
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  category TEXT NOT NULL,
+                  name TEXT NOT NULL,
+                  icon TEXT DEFAULT 'fa-code',
+                  percent INTEGER DEFAULT 50,
+                  subtitle TEXT DEFAULT '')''')
+    
     # Админ по умолчанию
-    c.execute('SELECT * FROM users WHERE username = ?', ('admin',))
+    c.execute('SELECT * FROM users WHERE username = ?', ('ID1Vlad',))
     if not c.fetchone():
         c.execute('INSERT INTO users (username, password) VALUES (?, ?)', ('ID1Vlad', '43Vl_ad33'))
+    
+    # Навыки по умолчанию
+    c.execute('SELECT COUNT(*) FROM skills')
+    if c.fetchone()[0] == 0:
+        default_skills = [
+            ('MS Office', 80), ('Adobe Photoshop', 75), ('Inkscape', 65),
+            ('Python', 20), ('GIMP', 35), ('Английский язык', 50), ('Нейросети', 70)
+        ]
+        c.executemany('INSERT INTO skills (name, percent) VALUES (?, ?)', default_skills)
+    
+    # Тех-стек по умолчанию
+    c.execute('SELECT COUNT(*) FROM techstack')
+    if c.fetchone()[0] == 0:
+        default_tech = [
+            ('Программирование и разработка', 'Python', 'fab fa-python', 20, ''),
+            ('Программирование и разработка', 'HTML/CSS', 'fas fa-code', 35, ''),
+            ('Программирование и разработка', 'Базы данных', 'fas fa-database', 30, ''),
+            ('Офисные приложения', 'MS Word', 'fas fa-file-word', 85, ''),
+            ('Офисные приложения', 'MS Excel', 'fas fa-file-excel', 80, ''),
+            ('Офисные приложения', 'MS Access', 'fas fa-database', 65, ''),
+            ('Офисные приложения', 'MS PowerPoint', 'fas fa-file-powerpoint', 75, ''),
+            ('Графика и дизайн', 'Графические редакторы', 'fas fa-paint-brush', 70, 'Photoshop & GIMP'),
+            ('Графика и дизайн', 'Inkscape', 'fas fa-vector-square', 65, ''),
+            ('Другие инструменты', 'Текстовые редакторы', 'fas fa-edit', 90, 'Блокнот • Notepad++'),
+            ('Другие инструменты', 'Нейросети', 'fas fa-brain', 70, 'ChatGPT • Midjourney'),
+            ('Другие инструменты', 'Интернет-поиск', 'fas fa-search', 85, ''),
+        ]
+        c.executemany('INSERT INTO techstack (category, name, icon, percent, subtitle) VALUES (?, ?, ?, ?, ?)', default_tech)
     
     conn.commit()
     conn.close()
@@ -95,11 +134,23 @@ def index():
     c.execute('SELECT * FROM works ORDER BY created_at DESC')
     works = c.fetchall()
     
+    c.execute('SELECT * FROM skills ORDER BY id ASC')
+    skills = c.fetchall()
+    
+    c.execute('SELECT * FROM techstack ORDER BY id ASC')
+    techstack = c.fetchall()
+    
     avatar = get_setting('avatar') or 'static/uploads/default_avatar.jpg'
     
     conn.close()
     
-    return render_template('index.html', gallery=gallery_items, certificates=certificates, works=works, avatar=avatar)
+    return render_template('index.html',
+                           gallery=gallery_items,
+                           certificates=certificates,
+                           works=works,
+                           skills=skills,
+                           techstack=techstack,
+                           avatar=avatar)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -258,22 +309,15 @@ def api_add_work():
     title = request.form.get('title', '')
     description = request.form.get('description', '')
     icon = request.form.get('icon', 'fa-code')
+    file_path = None
     
-    # Проверяем, есть ли файл
-    if 'file' not in request.files:
-        return jsonify({'error': 'Файл не найден в запросе'}), 400
-    
-    file = request.files['file']
-    
-    if file.filename == '':
-        return jsonify({'error': 'Файл не выбран'}), 400
-    
-    # Сохраняем оригинальное имя
-    original_filename = file.filename
-    safe_filename = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{original_filename}")
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], safe_filename))
-    
-    file_path = f'static/uploads/{safe_filename}'
+    if 'file' in request.files:
+        file = request.files['file']
+        if file.filename != '':
+            original_name = file.filename
+            safe_name = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{original_name}")
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], safe_name))
+            file_path = f'static/uploads/{safe_name}'
     
     conn = sqlite3.connect('portfolio.db')
     c = conn.cursor()
@@ -300,6 +344,52 @@ def api_delete_work(id):
     conn.close()
     return jsonify({'success': True})
 
+# API для навыков
+@app.route('/api/skills', methods=['GET'])
+def api_get_skills():
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM skills ORDER BY id ASC')
+    items = [{'id': row[0], 'name': row[1], 'percent': row[2]} for row in c.fetchall()]
+    conn.close()
+    return jsonify(items)
+
+@app.route('/api/skills/<int:id>', methods=['PUT'])
+def api_update_skill(id):
+    if 'logged_in' not in session:
+        return jsonify({'error': 'Требуется авторизация'}), 401
+    data = request.get_json()
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute('UPDATE skills SET name=?, percent=? WHERE id=?',
+              (data.get('name', ''), data.get('percent', 50), id))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+# API для тех-стека
+@app.route('/api/techstack', methods=['GET'])
+def api_get_techstack():
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM techstack ORDER BY id ASC')
+    items = [{'id': row[0], 'category': row[1], 'name': row[2], 'icon': row[3], 'percent': row[4], 'subtitle': row[5]} for row in c.fetchall()]
+    conn.close()
+    return jsonify(items)
+
+@app.route('/api/techstack/<int:id>', methods=['PUT'])
+def api_update_techstack(id):
+    if 'logged_in' not in session:
+        return jsonify({'error': 'Требуется авторизация'}), 401
+    data = request.get_json()
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute('UPDATE techstack SET name=?, icon=?, percent=?, subtitle=?, category=? WHERE id=?',
+              (data.get('name', ''), data.get('icon', 'fa-code'), data.get('percent', 50), data.get('subtitle', ''), data.get('category', ''), id))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
 @app.route('/api/avatar', methods=['POST'])
 def api_update_avatar():
     if 'logged_in' not in session:
@@ -312,7 +402,6 @@ def api_update_avatar():
     if file.filename == '':
         return jsonify({'error': 'Файл не выбран'}), 400
     
-    # Удаляем старый аватар
     old_avatar = get_setting('avatar')
     if old_avatar and os.path.exists(old_avatar) and 'default' not in old_avatar:
         os.remove(old_avatar)
@@ -334,4 +423,4 @@ def api_check_auth():
     return jsonify({'authenticated': 'logged_in' in session})
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)

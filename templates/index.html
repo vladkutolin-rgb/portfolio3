@@ -54,63 +54,44 @@
                     <div class="achievement-counter">
                         <div class="counter-item"><i class="fas fa-certificate"></i><span class="counter" data-target="{{ certificates|length }}">0</span><p>Сертификатов</p></div>
                         <div class="counter-item"><i class="fas fa-project-diagram"></i><span class="counter" data-target="{{ works|length }}">0</span><p>Проектов</p></div>
-                        <div class="counter-item"><i class="fas fa-code"></i><span class="counter" data-target="7">0</span><p>Навыков</p></div>
+                        <div class="counter-item"><i class="fas fa-code"></i><span class="counter" data-target="{{ skills|length }}">0</span><p>Навыков</p></div>
                     </div>
                     
                     <div class="tech-stack">
                         <h3>Мой технологический стек</h3>
-                        
-                        <div class="tech-category">
-                            <h4>Программирование и разработка</h4>
-                            <div class="tech-icons">
-                                <div class="tech-item"><i class="fab fa-python"></i><span>Python</span><div class="skill-percentage">20%</div><div class="percentage-bar"><div class="percentage-fill" data-width="20"></div></div></div>
-                                <div class="tech-item"><i class="fas fa-code"></i><span>HTML/CSS</span><div class="skill-percentage">35%</div><div class="percentage-bar"><div class="percentage-fill" data-width="35"></div></div></div>
-                                <div class="tech-item"><i class="fas fa-database"></i><span>Базы данных</span><div class="skill-percentage">30%</div><div class="percentage-bar"><div class="percentage-fill" data-width="30"></div></div></div>
-                            </div>
-                        </div>
-                        
-                        <div class="tech-category">
-                            <h4>Офисные приложения</h4>
-                            <div class="tech-icons">
-                                <div class="tech-item"><i class="fas fa-file-word"></i><span>MS Word</span><div class="skill-percentage">85%</div><div class="percentage-bar"><div class="percentage-fill" data-width="85"></div></div></div>
-                                <div class="tech-item"><i class="fas fa-file-excel"></i><span>MS Excel</span><div class="skill-percentage">80%</div><div class="percentage-bar"><div class="percentage-fill" data-width="80"></div></div></div>
-                                <div class="tech-item"><i class="fas fa-database"></i><span>MS Access</span><div class="skill-percentage">65%</div><div class="percentage-bar"><div class="percentage-fill" data-width="65"></div></div></div>
-                                <div class="tech-item"><i class="fas fa-file-powerpoint"></i><span>MS PowerPoint</span><div class="skill-percentage">75%</div><div class="percentage-bar"><div class="percentage-fill" data-width="75"></div></div></div>
-                            </div>
-                        </div>
-                        
-                        <div class="tech-category">
-                            <h4>Графика и дизайн</h4>
-                            <div class="tech-icons">
-                                <div class="tech-item">
-                                    <div class="combined-icons"><i class="fas fa-paint-brush"></i><i class="fas fa-image"></i></div>
-                                    <span>Графические редакторы</span><span class="software-subtitle">Photoshop & GIMP</span>
-                                    <div class="skill-percentage">70%</div><div class="percentage-bar"><div class="percentage-fill" data-width="70"></div></div>
+                        {% set categories = [] %}
+                        {% for item in techstack %}
+                            {% if item[1] not in categories %}
+                                {% set _ = categories.append(item[1]) %}
+                                <div class="tech-category">
+                                    <h4>{{ item[1] }}</h4>
+                                    <div class="tech-icons">
+                                        {% for t in techstack %}
+                                            {% if t[1] == item[1] %}
+                                            <div class="tech-item">
+                                                <i class="{{ t[3] }}"></i>
+                                                <span>{{ t[2] }}</span>
+                                                {% if t[5] %}<span class="software-subtitle">{{ t[5] }}</span>{% endif %}
+                                                <div class="skill-percentage">{{ t[4] }}%</div>
+                                                <div class="percentage-bar"><div class="percentage-fill" data-width="{{ t[4] }}"></div></div>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
                                 </div>
-                                <div class="tech-item"><i class="fas fa-vector-square"></i><span>Inkscape</span><div class="skill-percentage">65%</div><div class="percentage-bar"><div class="percentage-fill" data-width="65"></div></div></div>
-                            </div>
-                        </div>
-                        
-                        <div class="tech-category">
-                            <h4>Другие инструменты</h4>
-                            <div class="tech-icons">
-                                <div class="tech-item"><i class="fas fa-edit"></i><span>Текстовые редакторы</span><span class="software-subtitle">Блокнот • Notepad++</span><div class="skill-percentage">90%</div><div class="percentage-bar"><div class="percentage-fill" data-width="90"></div></div></div>
-                                <div class="tech-item"><i class="fas fa-brain"></i><span>Нейросети</span><span class="software-subtitle">ChatGPT • Midjourney</span><div class="skill-percentage">70%</div><div class="percentage-bar"><div class="percentage-fill" data-width="70"></div></div></div>
-                                <div class="tech-item"><i class="fas fa-search"></i><span>Интернет-поиск</span><div class="skill-percentage">85%</div><div class="percentage-bar"><div class="percentage-fill" data-width="85"></div></div></div>
-                            </div>
-                        </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
                 
                 <div class="about-stats">
                     <h3>Мои навыки</h3>
-                    <div class="skill-progress"><div class="skill-name"><span>MS Office</span><span>80%</span></div><div class="progress-bar"><div class="progress-fill" id="officeProgress"></div></div></div>
-                    <div class="skill-progress"><div class="skill-name"><span>Adobe Photoshop</span><span>75%</span></div><div class="progress-bar"><div class="progress-fill" id="photoshopProgress"></div></div></div>
-                    <div class="skill-progress"><div class="skill-name"><span>Inkscape</span><span>65%</span></div><div class="progress-bar"><div class="progress-fill" id="inkscapeProgress"></div></div></div>
-                    <div class="skill-progress"><div class="skill-name"><span>Python</span><span>20%</span></div><div class="progress-bar"><div class="progress-fill" id="pythonProgress"></div></div></div>
-                    <div class="skill-progress"><div class="skill-name"><span>GIMP</span><span>35%</span></div><div class="progress-bar"><div class="progress-fill" id="gimpProgress"></div></div></div>
-                    <div class="skill-progress"><div class="skill-name"><span>Английский язык</span><span>50%</span></div><div class="progress-bar"><div class="progress-fill" id="englishProgress"></div></div></div>
-                    <div class="skill-progress"><div class="skill-name"><span>Нейросети</span><span>70%</span></div><div class="progress-bar"><div class="progress-fill" id="aiProgress"></div></div></div>
+                    {% for skill in skills %}
+                    <div class="skill-progress">
+                        <div class="skill-name"><span>{{ skill[1] }}</span><span>{{ skill[2] }}%</span></div>
+                        <div class="progress-bar"><div class="progress-fill" data-skill-width="{{ skill[2] }}"></div></div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -123,7 +104,7 @@
                 {% for item in gallery %}
                 <div class="gallery-item"><img src="{{ item[1] }}" alt="{{ item[2] }}" data-full="{{ item[1] }}"><p>{{ item[2] }}</p></div>
                 {% endfor %}
-                {% if not gallery %}<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">Пока нет фото.</p>{% endif %}
+                {% if not gallery %}<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">Пока нет фото. Добавлю позже!</p>{% endif %}
             </div>
         </div>
     </section>
@@ -142,7 +123,7 @@
                 {% for cert in certificates %}
                 <div class="certificate-item" data-course="{{ cert[6] }}"><img src="{{ cert[1] }}" alt="{{ cert[2] }}" data-full="{{ cert[1] }}"><div class="certificate-info"><h3>{{ cert[2] }}</h3><p>{{ cert[3] }}</p><p><strong>Организация:</strong> {{ cert[4] }}</p><p><strong>Год:</strong> {{ cert[5] }}</p><span class="course-badge">{{ cert[6] }} курс</span></div></div>
                 {% endfor %}
-                {% if not certificates %}<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">Пока нет сертификатов.</p>{% endif %}
+                {% if not certificates %}<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">Пока нет сертификатов. Добавлю позже!</p>{% endif %}
             </div>
         </div>
     </section>
@@ -155,7 +136,7 @@
                 {% for work in works %}
                 <div class="work-item"><div class="work-icon"><i class="fas {{ work[3] }}"></i></div><h3>{{ work[1] }}</h3><p>{{ work[2] }}</p>{% if work[4] %}<a href="/{{ work[4] }}" class="btn" download="{{ work[1] }}">📥 Скачать</a>{% endif %}</div>
                 {% endfor %}
-                {% if not works %}<div class="work-item"><div class="work-icon"><i class="fas fa-code"></i></div><h3>Пока нет работ</h3><p>Добавьте свои работы через админ-панель</p></div>{% endif %}
+                {% if not works %}<div class="work-item"><div class="work-icon"><i class="fas fa-code"></i></div><h3>Пока нет работ</h3><p>Скоро здесь появятся мои проекты</p></div>{% endif %}
             </div>
         </div>
     </section>
@@ -163,9 +144,33 @@
     <footer>
         <div class="container">
             <div class="footer-content">
-                <div class="footer-column"><h3>Портфолио</h3><p>Здесь представлены мои достижения, сертификаты и проекты.</p><div class="social-icons"><a href="#"><i class="fab fa-vk"></i></a><a href="https://t.me/Id1vlad1"><i class="fab fa-telegram"></i></a><a href="#"><i class="fab fa-instagram"></i></a></div></div>
-                <div class="footer-column"><h3>Быстрые ссылки</h3><ul class="footer-links"><li><a href="#home">Главная</a></li><li><a href="#about">Обо мне</a></li><li><a href="#gallery">Галерея</a></li><li><a href="#certificates">Сертификаты</a></li><li><a href="#works">Мои работы</a></li></ul></div>
-                <div class="footer-column"><h3>Контакты</h3><ul class="footer-links"><li><i class="fas fa-envelope"></i> vlad.kutolin@bk.ru</li><li><i class="fas fa-phone"></i> +7 (999) 166-39-38</li><li><i class="fas fa-map-marker-alt"></i> Россия, Благовещенск</li><li><i class="fas fa-university"></i> АПК</li></ul></div>
+                <div class="footer-column">
+                    <h3>Портфолио</h3>
+                    <p>Здесь представлены мои достижения, сертификаты и проекты.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="https://t.me/Id1vlad1"><i class="fab fa-telegram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Быстрые ссылки</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Главная</a></li>
+                        <li><a href="#about">Обо мне</a></li>
+                        <li><a href="#gallery">Галерея</a></li>
+                        <li><a href="#certificates">Сертификаты</a></li>
+                        <li><a href="#works">Мои работы</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Контакты</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> vlad.kutolin@bk.ru</li>
+                        <li><i class="fas fa-phone"></i> +7 (999) 166-39-38</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Россия, Благовещенск</li>
+                        <li><i class="fas fa-university"></i> АПК</li>
+                    </ul>
+                </div>
             </div>
             <div class="copyright"><p>&copy; 2025 Портфолио студента. Все права защищены.</p></div>
         </div>
@@ -173,7 +178,7 @@
 
     <button class="scroll-to-top" id="scrollToTop"><i class="fas fa-chevron-up"></i></button>
 
-    <!-- Просмотрщик фото с квадратными кнопками и зумом -->
+    <!-- Просмотрщик фото -->
     <div id="imageViewer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9999;">
         <span id="closeViewer" style="position:absolute;top:20px;right:30px;color:white;font-size:35px;cursor:pointer;z-index:10000;background:rgba(255,255,255,0.1);width:45px;height:45px;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:all 0.3s;">&times;</span>
         <button id="prevBtn" style="position:absolute;left:25px;top:50%;transform:translateY(-50%);background:rgba(0,163,54,0.8);color:white;border:none;font-size:22px;width:50px;height:50px;border-radius:12px;cursor:pointer;z-index:10000;transition:all 0.3s;">&#10094;</button>
