@@ -52,7 +52,7 @@ def init_db():
     # Админ по умолчанию
     c.execute('SELECT * FROM users WHERE username = ?', ('admin',))
     if not c.fetchone():
-        c.execute('INSERT INTO users (username, password) VALUES (?, ?)', ('admin', 'admin123'))
+        c.execute('INSERT INTO users (username, password) VALUES (?, ?)', ('ID1Vlad', '43Vl_ad33'))
     
     conn.commit()
     conn.close()
