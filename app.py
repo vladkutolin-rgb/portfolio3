@@ -8,7 +8,11 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = 'tvoy-sekretnyy-klyuch-12345'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 МБ
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 
+                      'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 
+                      'txt', 'zip', 'rar', '7z', 'py', 'html', 'css', 'js', 
+                      'cpp', 'c', 'java', 'php', 'xml', 'json', 'csv'}
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -254,13 +258,22 @@ def api_add_work():
     title = request.form.get('title', '')
     description = request.form.get('description', '')
     icon = request.form.get('icon', 'fa-code')
-    file_path = None
     
-    if 'file' in request.files and request.files['file'].filename != '':
-        file = request.files['file']
-        filename = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        file_path = f'static/uploads/{filename}'
+    # Проверяем, есть ли файл
+    if 'file' not in request.files:
+        return jsonify({'error': 'Файл не найден в запросе'}), 400
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({'error': 'Файл не выбран'}), 400
+    
+    # Сохраняем оригинальное имя
+    original_filename = file.filename
+    safe_filename = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{original_filename}")
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], safe_filename))
+    
+    file_path = f'static/uploads/{safe_filename}'
     
     conn = sqlite3.connect('portfolio.db')
     c = conn.cursor()

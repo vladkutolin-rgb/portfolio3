@@ -153,7 +153,7 @@
             <p class="works-intro">Здесь я размещаю свои учебные и личные проекты.</p>
             <div class="works-grid">
                 {% for work in works %}
-                <div class="work-item"><div class="work-icon"><i class="fas {{ work[3] }}"></i></div><h3>{{ work[1] }}</h3><p>{{ work[2] }}</p>{% if work[4] %}<a href="/{{ work[4] }}" class="btn" download>Скачать</a>{% endif %}</div>
+                <div class="work-item"><div class="work-icon"><i class="fas {{ work[3] }}"></i></div><h3>{{ work[1] }}</h3><p>{{ work[2] }}</p>{% if work[4] %}<a href="/{{ work[4] }}" class="btn" download="{{ work[1] }}">📥 Скачать</a>{% endif %}</div>
                 {% endfor %}
                 {% if not works %}<div class="work-item"><div class="work-icon"><i class="fas fa-code"></i></div><h3>Пока нет работ</h3><p>Добавьте свои работы через админ-панель</p></div>{% endif %}
             </div>
