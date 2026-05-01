@@ -11,181 +11,67 @@
     <header>
         <div class="container header-container">
             <a href="#" class="logo">Портфо<span>лио</span></a>
-            <div class="header-controls">
-                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
-                <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
-            </div>
-            <nav>
-                <ul id="navMenu">
-                    <li><a href="#home">Главная</a></li>
-                    <li><a href="#about">Обо мне</a></li>
-                    <li><a href="#gallery">Галерея</a></li>
-                    <li><a href="#certificates">Сертификаты</a></li>
-                    <li><a href="#works">Мои работы</a></li>
-                </ul>
-            </nav>
+            <div class="header-controls"><button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button><button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button></div>
+            <nav><ul id="navMenu"><li><a href="#home">Главная</a></li><li><a href="#about">Обо мне</a></li><li><a href="#gallery">Галерея</a></li><li><a href="#certificates">Сертификаты</a></li><li><a href="#works">Мои работы</a></li></ul></nav>
         </div>
     </header>
 
     <section class="hero animate-on-scroll" id="home">
         <div class="container hero-content">
-            <div class="hero-text">
-                <h1 class="neon-text">Привет, я <span>Владислав</span><br>Студент и будущий специалист</h1>
-                <p>Я учусь на Администратора баз данных и активно развиваюсь в IT-сфере. Здесь вы найдете информацию о моих достижениях, проектах и сертификатах.</p>
-                <div class="typing-container"><h3>Моя цель: <span class="typing-text" id="typingText"></span><span class="cursor">|</span></h3></div>
-                <a href="#about" class="btn">Узнать больше</a>
-            </div>
-            <div class="hero-image">
-                <img src="{{ avatar }}" alt="Моя фотография" class="profile-img">
-            </div>
+            <div class="hero-text"><h1 class="neon-text">Привет, я <span>Владислав</span><br>Студент и будущий специалист</h1><p>Я учусь на Администратора баз данных и активно развиваюсь в IT-сфере.</p><div class="typing-container"><h3>Моя цель: <span class="typing-text" id="typingText"></span><span class="cursor">|</span></h3></div><a href="#about" class="btn">Узнать больше</a></div>
+            <div class="hero-image"><img src="{{ avatar }}" class="profile-img"></div>
         </div>
     </section>
 
     <section id="about" class="animate-on-scroll">
         <div id="particles-js"></div>
-        <div class="container">
-            <h2 class="section-title">Обо мне</h2>
+        <div class="container"><h2 class="section-title">Обо мне</h2>
             <div class="about-content">
                 <div class="about-text">
-                    <p>Я студент IT-направления, увлеченный программированием. За время обучения освоил несколько программ и технологий, которые помогают мне создавать интересные проекты.</p>
-                    <p>Мои сильные стороны: внимание к деталям, способность быстро осваивать новые технологии и работать в команде. Я постоянно стремлюсь к профессиональному развитию и принимаю участие в различных образовательных мероприятиях.</p>
-                    <p>В будущем планирую стать full-stack разработчиком и создавать полезные и инновационные продукты.</p>
-                    
+                    <p>Я студент IT-направления, увлеченный программированием.</p>
+                    <p>Мои сильные стороны: внимание к деталям, способность быстро осваивать новые технологии и работать в команде.</p>
+                    <p>В будущем планирую стать full-stack разработчиком.</p>
                     <div class="achievement-counter">
                         <div class="counter-item"><i class="fas fa-certificate"></i><span class="counter" data-target="{{ certificates|length }}">0</span><p>Сертификатов</p></div>
                         <div class="counter-item"><i class="fas fa-project-diagram"></i><span class="counter" data-target="{{ works|length }}">0</span><p>Проектов</p></div>
                         <div class="counter-item"><i class="fas fa-code"></i><span class="counter" data-target="{{ skills|length }}">0</span><p>Навыков</p></div>
                     </div>
-                    
-                                        <div class="tech-stack">
-                        <h3>Мой технологический стек</h3>
-                        {% set categories = ['Программирование и разработка', 'Офисные приложения', 'Графика и дизайн', 'Другие инструменты'] %}
+                    <div class="tech-stack"><h3>Технологический стек</h3>
                         {% for cat in categories %}
-                            <div class="tech-category">
-                                <h4>{{ cat }}</h4>
-                                <div class="tech-icons">
-                                    {% for t in techstack %}
-                                        {% if t[1] == cat %}
-                                        <div class="tech-item">
-                                            <i class="{{ t[3] }}"></i>
-                                            <span>{{ t[2] }}</span>
-                                            {% if t[5] %}<span class="software-subtitle">{{ t[5] }}</span>{% endif %}
-                                            <div class="skill-percentage">{{ t[4] }}%</div>
-                                            <div class="percentage-bar"><div class="percentage-fill" data-width="{{ t[4] }}"></div></div>
-                                        </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
+                        <div class="tech-category"><h4>{{ cat[1] }}</h4><div class="tech-icons">
+                            {% for t in techstack %}{% if t[1] == cat[1] %}
+                            <div class="tech-item"><i class="{{ t[3] }}"></i><span>{{ t[2] }}</span>{% if t[5] %}<span class="software-subtitle">{{ t[5] }}</span>{% endif %}<div class="skill-percentage">{{ t[4] }}%</div><div class="percentage-bar"><div class="percentage-fill" data-width="{{ t[4] }}"></div></div></div>
+                            {% endif %}{% endfor %}
+                        </div></div>
                         {% endfor %}
                     </div>
-                
-                <div class="about-stats">
-                    <h3>Мои навыки</h3>
-                    {% for skill in skills %}
-                    <div class="skill-progress">
-                        <div class="skill-name"><span>{{ skill[1] }}</span><span>{{ skill[2] }}%</span></div>
-                        <div class="progress-bar"><div class="progress-fill" data-skill-width="{{ skill[2] }}"></div></div>
-                    </div>
+                </div>
+                <div class="about-stats"><h3>Мои навыки</h3>
+                    {% for s in skills %}
+                    <div class="skill-progress"><div class="skill-name"><span>{{ s[1] }}</span><span>{{ s[2] }}%</span></div><div class="progress-bar"><div class="progress-fill skill-bar" data-width="{{ s[2] }}"></div></div></div>
                     {% endfor %}
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="gallery animate-on-scroll" id="gallery">
-        <div class="container">
-            <h2 class="section-title">Галерея фото</h2>
-            <div class="gallery-grid" id="galleryGrid">
-                {% for item in gallery %}
-                <div class="gallery-item"><img src="{{ item[1] }}" alt="{{ item[2] }}" data-full="{{ item[1] }}"><p>{{ item[2] }}</p></div>
-                {% endfor %}
-                {% if not gallery %}<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">Пока нет фото. Добавлю позже!</p>{% endif %}
-            </div>
-        </div>
-    </section>
+    <section class="gallery animate-on-scroll" id="gallery"><div class="container"><h2 class="section-title">Галерея</h2><div class="gallery-grid" id="galleryGrid">{% for i in gallery %}<div class="gallery-item"><img src="{{ i[1] }}" alt="{{ i[2] }}" data-full="{{ i[1] }}"><p>{{ i[2] }}</p></div>{% endfor %}</div></div></section>
 
-    <section id="certificates" class="animate-on-scroll">
-        <div class="container">
-            <h2 class="section-title">Мои сертификаты</h2>
-            <div class="course-filter">
-                <button class="filter-btn active" data-course="all">Все курсы</button>
-                <button class="filter-btn" data-course="1">1 курс</button>
-                <button class="filter-btn" data-course="2">2 курс</button>
-                <button class="filter-btn" data-course="3">3 курс</button>
-                <button class="filter-btn" data-course="4">4 курс</button>
-            </div>
-            <div class="certificates-grid" id="certificatesGrid">
-                {% for cert in certificates %}
-                <div class="certificate-item" data-course="{{ cert[6] }}"><img src="{{ cert[1] }}" alt="{{ cert[2] }}" data-full="{{ cert[1] }}"><div class="certificate-info"><h3>{{ cert[2] }}</h3><p>{{ cert[3] }}</p><p><strong>Организация:</strong> {{ cert[4] }}</p><p><strong>Год:</strong> {{ cert[5] }}</p><span class="course-badge">{{ cert[6] }} курс</span></div></div>
-                {% endfor %}
-                {% if not certificates %}<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">Пока нет сертификатов. Добавлю позже!</p>{% endif %}
-            </div>
-        </div>
-    </section>
+    <section id="certificates" class="animate-on-scroll"><div class="container"><h2 class="section-title">Сертификаты</h2><div class="course-filter"><button class="filter-btn active" data-course="all">Все</button><button class="filter-btn" data-course="1">1 курс</button><button class="filter-btn" data-course="2">2 курс</button><button class="filter-btn" data-course="3">3 курс</button><button class="filter-btn" data-course="4">4 курс</button></div><div class="certificates-grid" id="certificatesGrid">{% for c in certificates %}<div class="certificate-item" data-course="{{ c[6] }}"><img src="{{ c[1] }}" alt="{{ c[2] }}" data-full="{{ c[1] }}"><div class="certificate-info"><h3>{{ c[2] }}</h3><p>{{ c[3] }}</p><p><strong>{{ c[4] }}</strong></p><p>{{ c[5] }}</p><span class="course-badge">{{ c[6] }} курс</span></div></div>{% endfor %}</div></div></section>
 
-    <section class="works animate-on-scroll" id="works">
-        <div class="container">
-            <h2 class="section-title">Мои работы</h2>
-            <p class="works-intro">Здесь я размещаю свои учебные и личные проекты.</p>
-            <div class="works-grid">
-                {% for work in works %}
-                <div class="work-item"><div class="work-icon"><i class="fas {{ work[3] }}"></i></div><h3>{{ work[1] }}</h3><p>{{ work[2] }}</p>{% if work[4] %}<a href="/{{ work[4] }}" class="btn" download="{{ work[1] }}">📥 Скачать</a>{% endif %}</div>
-                {% endfor %}
-                {% if not works %}<div class="work-item"><div class="work-icon"><i class="fas fa-code"></i></div><h3>Пока нет работ</h3><p>Скоро здесь появятся мои проекты</p></div>{% endif %}
-            </div>
-        </div>
-    </section>
+    <section class="works animate-on-scroll" id="works"><div class="container"><h2 class="section-title">Мои работы</h2><p class="works-intro">Мои учебные и личные проекты.</p><div class="works-grid">{% for w in works %}<div class="work-item"><div class="work-icon"><i class="fas {{ w[3] }}"></i></div><h3>{{ w[1] }}</h3><p>{{ w[2] }}</p>{% if w[4] %}<a href="/{{ w[4] }}" class="btn" download>📥 Скачать</a>{% endif %}</div>{% endfor %}</div></div></section>
 
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-column">
-                    <h3>Портфолио</h3>
-                    <p>Здесь представлены мои достижения, сертификаты и проекты.</p>
-                    <div class="social-icons">
-                        <a href="#"><i class="fab fa-vk"></i></a>
-                        <a href="https://t.me/Id1vlad1"><i class="fab fa-telegram"></i></a>
-                    </div>
-                </div>
-                <div class="footer-column">
-                    <h3>Быстрые ссылки</h3>
-                    <ul class="footer-links">
-                        <li><a href="#home">Главная</a></li>
-                        <li><a href="#about">Обо мне</a></li>
-                        <li><a href="#gallery">Галерея</a></li>
-                        <li><a href="#certificates">Сертификаты</a></li>
-                        <li><a href="#works">Мои работы</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Контакты</h3>
-                    <ul class="footer-links">
-                        <li><i class="fas fa-envelope"></i> vlad.kutolin@bk.ru</li>
-                        <li><i class="fas fa-phone"></i> +7 (999) 166-39-38</li>
-                        <li><i class="fas fa-map-marker-alt"></i> Россия, Благовещенск</li>
-                        <li><i class="fas fa-university"></i> АПК</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="copyright"><p>&copy; 2025 Портфолио студента. Все права защищены.</p></div>
-        </div>
-    </footer>
+    <footer><div class="container"><div class="footer-content"><div class="footer-column"><h3>Портфолио</h3><p>Мои достижения и проекты.</p><div class="social-icons"><a href="#"><i class="fab fa-vk"></i></a><a href="https://t.me/Id1vlad1"><i class="fab fa-telegram"></i></a></div></div><div class="footer-column"><h3>Ссылки</h3><ul class="footer-links"><li><a href="#home">Главная</a></li><li><a href="#about">Обо мне</a></li><li><a href="#gallery">Галерея</a></li><li><a href="#certificates">Сертификаты</a></li><li><a href="#works">Работы</a></li></ul></div><div class="footer-column"><h3>Контакты</h3><ul class="footer-links"><li><i class="fas fa-envelope"></i> vlad.kutolin@bk.ru</li><li><i class="fas fa-phone"></i> +7 (999) 166-39-38</li><li><i class="fas fa-map-marker-alt"></i> Россия, Благовещенск</li></ul></div></div><div class="copyright">&copy; 2025 Портфолио студента.</div></div></footer>
 
     <button class="scroll-to-top" id="scrollToTop"><i class="fas fa-chevron-up"></i></button>
 
-    <!-- Просмотрщик фото -->
-    <div id="imageViewer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9999;">
-        <span id="closeViewer" style="position:absolute;top:20px;right:30px;color:white;font-size:35px;cursor:pointer;z-index:10000;background:rgba(255,255,255,0.1);width:45px;height:45px;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:all 0.3s;">&times;</span>
-        <button id="prevBtn" style="position:absolute;left:25px;top:50%;transform:translateY(-50%);background:rgba(0,163,54,0.8);color:white;border:none;font-size:22px;width:50px;height:50px;border-radius:12px;cursor:pointer;z-index:10000;transition:all 0.3s;">&#10094;</button>
-        <img id="viewerImage" src="" style="max-width:90%;max-height:80vh;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);object-fit:contain;transition:transform 0.3s ease;">
-        <button id="nextBtn" style="position:absolute;right:25px;top:50%;transform:translateY(-50%);background:rgba(0,163,54,0.8);color:white;border:none;font-size:22px;width:50px;height:50px;border-radius:12px;cursor:pointer;z-index:10000;transition:all 0.3s;">&#10095;</button>
-        <p id="viewerCaption" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:white;font-size:16px;text-align:center;background:rgba(0,0,0,0.6);padding:8px 20px;border-radius:20px;"></p>
-        <div style="position:absolute;bottom:80px;right:25px;display:flex;flex-direction:column;gap:8px;z-index:10000;">
-            <button id="zoomInBtn" style="background:rgba(255,255,255,0.2);color:white;border:none;width:40px;height:40px;border-radius:10px;font-size:20px;cursor:pointer;transition:all 0.3s;">+</button>
-            <button id="zoomOutBtn" style="background:rgba(255,255,255,0.2);color:white;border:none;width:40px;height:40px;border-radius:10px;font-size:20px;cursor:pointer;transition:all 0.3s;">−</button>
-            <button id="resetZoomBtn" style="background:rgba(255,255,255,0.2);color:white;border:none;width:40px;height:40px;border-radius:10px;font-size:14px;cursor:pointer;transition:all 0.3s;">↺</button>
-        </div>
+    <div id="imageViewer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.95);z-index:9999">
+        <span id="closeViewer" style="position:absolute;top:20px;right:30px;color:white;font-size:35px;cursor:pointer;z-index:10000;background:rgba(255,255,255,.1);width:45px;height:45px;border-radius:10px;display:flex;align-items:center;justify-content:center">&times;</span>
+        <button id="prevBtn" style="position:absolute;left:25px;top:50%;transform:translateY(-50%);background:rgba(0,163,54,.8);color:white;border:none;font-size:22px;width:50px;height:50px;border-radius:12px;cursor:pointer;z-index:10000">&#10094;</button>
+        <img id="viewerImage" src="" style="max-width:90%;max-height:80vh;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);object-fit:contain;transition:transform .3s">
+        <button id="nextBtn" style="position:absolute;right:25px;top:50%;transform:translateY(-50%);background:rgba(0,163,54,.8);color:white;border:none;font-size:22px;width:50px;height:50px;border-radius:12px;cursor:pointer;z-index:10000">&#10095;</button>
+        <p id="viewerCaption" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:white;font-size:16px;background:rgba(0,0,0,.6);padding:8px 20px;border-radius:20px"></p>
+        <div style="position:absolute;bottom:80px;right:25px;display:flex;flex-direction:column;gap:8px;z-index:10000"><button id="zoomInBtn" style="background:rgba(255,255,255,.2);color:white;border:none;width:40px;height:40px;border-radius:10px;font-size:20px;cursor:pointer">+</button><button id="zoomOutBtn" style="background:rgba(255,255,255,.2);color:white;border:none;width:40px;height:40px;border-radius:10px;font-size:20px;cursor:pointer">−</button><button id="resetZoomBtn" style="background:rgba(255,255,255,.2);color:white;border:none;width:40px;height:40px;border-radius:10px;font-size:14px;cursor:pointer">↺</button></div>
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
