@@ -502,8 +502,12 @@ section {
 
 @keyframes techFloat {
     0%, 100% { transform: translateY(0) rotateX(0) rotateY(0); }
-    25% { transform: translateY(-4px) rotateX(1deg) rotateY(1deg); }
-    75% { transform: translateY(2px) rotateX(-1deg) rotateY(-1deg); }
+    15% { transform: translateY(-6px) rotateX(2deg) rotateY(1deg); }
+    30% { transform: translateY(1px) rotateX(0deg) rotateY(-1deg); }
+    45% { transform: translateY(-3px) rotateX(-1deg) rotateY(2deg); }
+    60% { transform: translateY(4px) rotateX(1deg) rotateY(0deg); }
+    75% { transform: translateY(-1px) rotateX(-2deg) rotateY(-1deg); }
+    90% { transform: translateY(2px) rotateX(0deg) rotateY(1deg); }
 }
 
 .tech-item:hover {
@@ -622,7 +626,10 @@ section {
 
 @keyframes counterFloat {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+    20% { transform: translateY(-8px); }
+    40% { transform: translateY(2px); }
+    60% { transform: translateY(-5px); }
+    80% { transform: translateY(3px); }
 }
 
 .counter-item:hover {
