@@ -487,21 +487,241 @@ function initDogBoat(){
 }
 
 // ═══════════════════════════════════════════
-// ПУЗЫРИ
+// МАГИЧЕСКИЕ ПУЗЫРИ — GOD MODE
 // ═══════════════════════════════════════════
-function initBubbleGame(){
-    const canvas=document.getElementById('bubbleCanvas'),section=document.getElementById('certificates');
-    if(!canvas||!section)return;
-    const ctx=canvas.getContext('2d');
-    function resize(){canvas.width=section.offsetWidth;canvas.height=section.offsetHeight;}
-    resize();window.addEventListener('resize',resize);
-    const bubbles=[];let popCount=0;
-    function createBubble(fb=false){return{x:Math.random()*canvas.width,y:fb?canvas.height+40:Math.random()*canvas.height,size:8+Math.random()*22,speed:0.3+Math.random()*0.9,opacity:0.18+Math.random()*0.2,hue:185+Math.random()*30,wobble:Math.random()*Math.PI*2,wobbleSpeed:0.006+Math.random()*0.02,popped:false,popAnim:0,pieces:[],popStart:0};}
-    for(let i=0;i<22;i++)bubbles.push(createBubble());
-    function popBubble(b){if(b.popped)return;b.popped=true;b.popAnim=0;b.popStart=performance.now();b.pieces=[];for(let i=0;i<8;i++){const a=(Math.PI*2/8)*i;b.pieces.push({x:b.x,y:b.y,vx:Math.cos(a)*(2+Math.random()*4),vy:Math.sin(a)*(2+Math.random()*4),size:b.size*(0.1+Math.random()*0.2),life:1});}popCount++;const el=document.getElementById('bubbleCount');if(el)el.textContent=popCount;if(popCount%20===0&&window.triggerTsunami){window.triggerTsunami();const a=document.getElementById('tsunamiAlert');if(a){a.classList.add('show');setTimeout(()=>a.classList.remove('show'),2000);}}}
-    function drawBubbles(){const now=performance.now();bubbles.forEach(b=>{if(b.popped){const e=(now-b.popStart)/1000;if(e>1.5){Object.assign(b,createBubble(true));return;}b.pieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.1;p.life=Math.max(0,1-e/1.5);if(p.life>0){ctx.fillStyle=`rgba(120,200,255,${p.life*0.7})`;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();}});return;}b.y-=b.speed;b.x+=Math.sin(b.wobble)*0.5;b.wobble+=b.wobbleSpeed;if(b.y<-50)Object.assign(b,createBubble(true));const g=ctx.createRadialGradient(b.x-b.size*0.25,b.y-b.size*0.3,b.size*0.05,b.x,b.y,b.size);g.addColorStop(0,`hsla(${b.hue},50%,85%,${b.opacity+0.2})`);g.addColorStop(0.6,`hsla(${b.hue},50%,60%,${b.opacity+0.1})`);g.addColorStop(1,`hsla(${b.hue},45%,40%,${b.opacity*0.5})`);ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,b.size,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`rgba(255,255,255,${b.opacity*0.35})`;ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=`rgba(255,255,255,${b.opacity*0.5})`;ctx.beginPath();ctx.arc(b.x-b.size*0.2,b.y-b.size*0.25,b.size*0.18,0,Math.PI*2);ctx.fill();});}
-    canvas.addEventListener('mousemove',function(e){const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;for(let i=0;i<bubbles.length;i++)if(!bubbles[i].popped&&Math.hypot(mx-bubbles[i].x,my-bubbles[i].y)<bubbles[i].size)popBubble(bubbles[i]);});
-    function animate(){if(!canvas.isConnected)return;ctx.clearRect(0,0,canvas.width,canvas.height);drawBubbles();requestAnimationFrame(animate);}
+function initBubbleGame() {
+    const canvas = document.getElementById('bubbleCanvas');
+    const section = document.getElementById('certificates');
+    if (!canvas || !section) return;
+
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+        canvas.width = section.offsetWidth;
+        canvas.height = section.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const bubbles = [];
+    let popCount = 0;
+    let ambianceGlow = 0; // Общая атмосфера
+
+    function createBubble(fromBottom = false) {
+        const isGiant = Math.random() < 0.06;
+        return {
+            x: Math.random() * canvas.width,
+            y: fromBottom ? canvas.height + 60 : Math.random() * canvas.height,
+            size: isGiant ? 30 + Math.random() * 35 : 5 + Math.random() * 16,
+            speed: isGiant ? 0.12 + Math.random() * 0.35 : 0.25 + Math.random() * 0.9,
+            opacity: 0.18 + Math.random() * 0.28,
+            hue: 180 + Math.random() * 60,
+            wobble: Math.random() * Math.PI * 2,
+            wobbleSpeed: 0.004 + Math.random() * 0.022,
+            popped: false,
+            pieces: [],
+            popStart: 0,
+            isGiant: isGiant,
+            innerFire: Math.random() * Math.PI * 2,
+            sparkTimer: Math.random() * 100
+        };
+    }
+
+    for (let i = 0; i < 28; i++) bubbles.push(createBubble());
+
+    function popBubble(b) {
+        if (b.popped) return;
+        b.popped = true;
+        b.popStart = performance.now();
+
+        const count = b.isGiant ? 30 : 14;
+        b.pieces = [];
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 / count) * i;
+            const speed = b.isGiant ? 3 + Math.random() * 10 : 1.5 + Math.random() * 6;
+            b.pieces.push({
+                x: b.x, y: b.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: b.size * (0.06 + Math.random() * 0.25),
+                life: 1,
+                hue: b.hue + Math.random() * 80 - 40
+            });
+        }
+
+        popCount++;
+        const el = document.getElementById('bubbleCount');
+        if (el) el.textContent = popCount;
+
+        // Взрывная вспышка
+        ambianceGlow = 1;
+
+        if (popCount % 20 === 0 && window.triggerTsunami) {
+            window.triggerTsunami();
+            const a = document.getElementById('tsunamiAlert');
+            if (a) { a.classList.add('show'); setTimeout(() => a.classList.remove('show'), 2000); }
+        }
+    }
+
+    function drawBubbles() {
+        const now = performance.now();
+        const bass = smoothBass || 0;
+        const energy = bass * 0.7 + ambianceGlow * 0.3;
+
+        // Затухание вспышки
+        ambianceGlow *= 0.95;
+
+        // Фоновая магическая дымка
+        if (energy > 0.05) {
+            const haze = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width * 0.7);
+            haze.addColorStop(0, `rgba(0, 200, 255, ${energy * 0.06})`);
+            haze.addColorStop(1, 'rgba(0, 200, 255, 0)');
+            ctx.fillStyle = haze;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        bubbles.forEach(b => {
+            if (b.popped) {
+                const elapsed = (now - b.popStart) / 1000;
+                if (elapsed > 2) {
+                    Object.assign(b, createBubble(true));
+                    return;
+                }
+
+                // Осколки с магическим свечением
+                b.pieces.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.04;
+                    p.life = Math.max(0, 1 - elapsed / 2);
+                    if (p.life > 0) {
+                        // Свечение
+                        ctx.shadowColor = `hsla(${p.hue}, 80%, 60%, ${p.life * 0.8})`;
+                        ctx.shadowBlur = 6;
+                        ctx.fillStyle = `hsla(${p.hue}, 70%, 70%, ${p.life * 0.9})`;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+
+                        // Искорка внутри
+                        ctx.fillStyle = `rgba(255, 255, 255, ${p.life})`;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size * p.life * 0.4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+                return;
+            }
+
+            // Движение под музыку
+            const bassBoost = 1 + bass * 2.5;
+            b.y -= b.speed * bassBoost;
+            b.x += Math.sin(b.wobble) * (0.6 + bass * 2);
+            b.wobble += b.wobbleSpeed * (1 + bass * 3);
+            b.innerFire += 0.03;
+
+            if (b.y < -80) Object.assign(b, createBubble(true));
+            if (b.x < -30) b.x = canvas.width + 30;
+            if (b.x > canvas.width + 30) b.x = -30;
+
+            const hueShift = Math.sin(b.innerFire) * 25;
+            const currentHue = (b.hue + hueShift + 360) % 360;
+            const sizeBoost = 1 + Math.sin(b.innerFire * 1.3) * 0.1 * (bass + 1);
+
+            // Основной пузырь
+            const grad = ctx.createRadialGradient(
+                b.x - b.size * sizeBoost * 0.2, b.y - b.size * sizeBoost * 0.25, b.size * sizeBoost * 0.04,
+                b.x, b.y, b.size * sizeBoost
+            );
+            grad.addColorStop(0, `hsla(${currentHue}, 60%, 85%, ${b.opacity + 0.25 + bass * 0.2})`);
+            grad.addColorStop(0.5, `hsla(${currentHue}, 55%, 60%, ${b.opacity + 0.12 + bass * 0.1})`);
+            grad.addColorStop(1, `hsla(${currentHue}, 45%, 38%, ${b.opacity * 0.6})`);
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.size * sizeBoost, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Обводка с неоном
+            ctx.strokeStyle = `hsla(${currentHue}, 70%, 70%, ${b.opacity * 0.5 + bass * 0.4})`;
+            ctx.lineWidth = 1.5 + bass;
+            ctx.shadowColor = `hsla(${currentHue}, 80%, 65%, ${b.opacity * 0.6 + bass * 0.3})`;
+            ctx.shadowBlur = 4 + bass * 8;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Гигантский пузырь — внутреннее пламя
+            if (b.isGiant) {
+                const innerGrad = ctx.createRadialGradient(b.x, b.y, b.size * 0.1, b.x, b.y, b.size * 0.55);
+                innerGrad.addColorStop(0, `rgba(255, 255, 255, ${0.3 + Math.sin(b.innerFire * 2) * 0.2})`);
+                innerGrad.addColorStop(0.5, `hsla(${currentHue}, 70%, 70%, 0.2)`);
+                innerGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = innerGrad;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.size * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Искорки внутри гиганта
+                b.sparkTimer += 0.1;
+                if (b.sparkTimer > 1) {
+                    b.sparkTimer = 0;
+                }
+                for (let s = 0; s < 3; s++) {
+                    const sx = b.x + Math.cos(b.innerFire * 3 + s * 2) * b.size * 0.4;
+                    const sy = b.y + Math.sin(b.innerFire * 2.5 + s * 2) * b.size * 0.35;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Блик
+            const blinkAlpha = b.opacity * 0.55 + bass * 0.4;
+            ctx.fillStyle = `rgba(255, 255, 255, ${blinkAlpha})`;
+            ctx.beginPath();
+            ctx.arc(b.x - b.size * 0.18, b.y - b.size * 0.22, b.size * 0.16, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Второй блик
+            ctx.fillStyle = `rgba(255, 255, 255, ${blinkAlpha * 0.6})`;
+            ctx.beginPath();
+            ctx.arc(b.x + b.size * 0.1, b.y - b.size * 0.15, b.size * 0.08, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    // Лопание
+    canvas.addEventListener('mousemove', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        for (let i = 0; i < bubbles.length; i++) {
+            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 4) {
+                popBubble(bubbles[i]);
+            }
+        }
+    });
+
+    canvas.addEventListener('click', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        for (let i = 0; i < bubbles.length; i++) {
+            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 8) {
+                popBubble(bubbles[i]);
+                break;
+            }
+        }
+    });
+
+    function animate() {
+        if (!canvas.isConnected) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBubbles();
+        requestAnimationFrame(animate);
+    }
     animate();
 }
 
