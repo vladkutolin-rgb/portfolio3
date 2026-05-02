@@ -312,7 +312,6 @@ function initWaterfallGame() {
     resize();
     window.addEventListener('resize', resize);
     
-    // Частицы водопада
     const leftWaterfall = [];
     const rightWaterfall = [];
     const riverDrops = [];
@@ -330,31 +329,25 @@ function initWaterfallGame() {
         };
     }
     
-    // Инициализация капель
     for (let i = 0; i < maxDrops; i++) {
         leftWaterfall.push(createDrop('left'));
         rightWaterfall.push(createDrop('right'));
     }
     
-    // Волны реки
     let waveOffset = 0;
     
     function drawRiverWaves() {
-        const riverY = canvas.height * 0.75;
+        const riverY = canvas.height * 0.78;
         const waveHeight = 12;
-        const waveLength = 150;
         
         for (let x = 0; x < canvas.width; x += 2) {
-            const y = riverY + Math.sin((x + waveOffset) / waveLength) * waveHeight +
+            const y = riverY + Math.sin((x + waveOffset) / 150) * waveHeight +
                       Math.cos((x - waveOffset * 0.7) / 100) * waveHeight * 0.6;
-            
-            const alpha = 0.15 + Math.abs(Math.sin((x + waveOffset) / waveLength)) * 0.15;
-            
+            const alpha = 0.15 + Math.abs(Math.sin((x + waveOffset) / 150)) * 0.15;
             ctx.fillStyle = `rgba(0, 180, 220, ${alpha})`;
-            ctx.fillRect(x, y, 4, 2);
+            ctx.fillRect(x, y, 4, 3);
         }
         
-        // Отражения на реке
         for (let i = 0; i < 5; i++) {
             const rx = (waveOffset * 2 + i * canvas.width / 5) % canvas.width;
             const ry = riverY + 20 + Math.sin(rx / 80 + waveOffset / 50) * 8;
@@ -369,13 +362,12 @@ function initWaterfallGame() {
         particles.forEach((p, i) => {
             p.y += p.speed;
             
-            // Когда достигает реки — разбрызгивается
-            if (p.y > canvas.height * 0.75 && !p.splashed) {
+            if (p.y > canvas.height * 0.78 && !p.splashed) {
                 p.splashed = true;
                 for (let s = 0; s < 3; s++) {
                     riverDrops.push({
                         x: x + (Math.random() - 0.5) * width,
-                        y: canvas.height * 0.75,
+                        y: canvas.height * 0.78,
                         vx: (Math.random() - 0.5) * 3,
                         vy: -Math.random() * 5,
                         life: 1,
@@ -386,20 +378,17 @@ function initWaterfallGame() {
                 p.splashed = false;
             }
             
-            // Рисуем каплю
             ctx.fillStyle = `rgba(0, 180, 230, ${p.opacity})`;
             ctx.beginPath();
             ctx.ellipse(p.x, p.y, p.size, p.size * 1.6, 0, 0, Math.PI * 2);
             ctx.fill();
             
-            // Блик
             ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity * 0.6})`;
             ctx.beginPath();
             ctx.arc(p.x - p.size * 0.3, p.y - p.size * 0.5, p.size * 0.4, 0, Math.PI * 2);
             ctx.fill();
         });
         
-        // Верхний туман водопада
         const gradient = ctx.createLinearGradient(x - width/2, canvas.height * 0.1, x + width/2, canvas.height * 0.5);
         gradient.addColorStop(0, 'rgba(200, 230, 255, 0.15)');
         gradient.addColorStop(1, 'rgba(0, 180, 230, 0.05)');
@@ -407,14 +396,12 @@ function initWaterfallGame() {
         ctx.fillRect(x - width/2, canvas.height * 0.05, width, canvas.height * 0.5);
     }
     
-    // Брызги реки
     function drawRiverSplashes() {
-        riverDrops.forEach((d, i) => {
+        riverDrops.forEach((d) => {
             d.x += d.vx;
             d.y += d.vy;
             d.vy += 0.1;
             d.life -= 0.02;
-            
             if (d.life > 0) {
                 ctx.fillStyle = `rgba(255, 255, 255, ${d.life * 0.6})`;
                 ctx.beginPath();
@@ -422,30 +409,25 @@ function initWaterfallGame() {
                 ctx.fill();
             }
         });
-        
-        // Удаляем мёртвые брызги
         for (let i = riverDrops.length - 1; i >= 0; i--) {
             if (riverDrops[i].life <= 0) riverDrops.splice(i, 1);
         }
     }
     
-    // Скалы по бокам
     function drawRocks() {
-        // Левая скала
         ctx.fillStyle = 'rgba(60, 65, 70, 0.3)';
         ctx.beginPath();
         ctx.moveTo(0, canvas.height * 0.05);
         ctx.lineTo(canvas.width * 0.12, canvas.height * 0.15);
-        ctx.lineTo(canvas.width * 0.1, canvas.height * 0.8);
+        ctx.lineTo(canvas.width * 0.1, canvas.height * 0.85);
         ctx.lineTo(0, canvas.height);
         ctx.closePath();
         ctx.fill();
         
-        // Правая скала
         ctx.beginPath();
         ctx.moveTo(canvas.width, canvas.height * 0.05);
         ctx.lineTo(canvas.width * 0.88, canvas.height * 0.15);
-        ctx.lineTo(canvas.width * 0.9, canvas.height * 0.8);
+        ctx.lineTo(canvas.width * 0.9, canvas.height * 0.85);
         ctx.lineTo(canvas.width, canvas.height);
         ctx.closePath();
         ctx.fill();
@@ -454,18 +436,11 @@ function initWaterfallGame() {
     function animate() {
         if (!canvas.isConnected) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Скалы
         drawRocks();
-        
-        // Водопады
         drawWaterfall(leftWaterfall, canvas.width * 0.08, 40);
         drawWaterfall(rightWaterfall, canvas.width * 0.92, 40);
-        
-        // Река
         drawRiverWaves();
         drawRiverSplashes();
-        
         waveOffset += 1.5;
         requestAnimationFrame(animate);
     }
@@ -474,137 +449,245 @@ function initWaterfallGame() {
 }
 
 // ═══════════════════════════════════════════
-// СОБАЧКА В ЛОДКЕ — ИНТЕРАКТИВ
+// СОБАЧКА — КИДАЕТСЯ ПО ВСЕЙ СЕКЦИИ
 // ═══════════════════════════════════════════
 
 function initDogBoat() {
     const dogBoat = document.getElementById('dogBoat');
     const gallery = document.querySelector('.gallery');
-    const heartBubble = document.getElementById('heartBubble');
-    const petCount = document.getElementById('petCount');
     if (!dogBoat || !gallery) return;
     
-    let isDragging = false;
-    let offsetX, offsetY;
-    let petClicks = 0;
+    let isDragging = false, startX, startY, startLeft, startTop, velocityX = 0, velocityY = 0;
+    let animationId;
     
-    // Двойной клик — погладить
-    dogBoat.addEventListener('dblclick', function(e) {
-        e.preventDefault();
-        petClicks++;
-        petCount.textContent = petClicks;
+    function setPos(x, y) {
+        const rect = gallery.getBoundingClientRect();
+        x = Math.max(30, Math.min(x, rect.width - 80));
+        y = Math.max(30, Math.min(y, rect.height - 80));
+        dogBoat.style.left = x + 'px';
+        dogBoat.style.top = y + 'px';
+        dogBoat.style.bottom = 'auto';
+        dogBoat.style.transform = 'none';
+        return { x, y };
+    }
+    
+    function physics() {
+        const rect = gallery.getBoundingClientRect();
+        let x = parseFloat(dogBoat.style.left) || rect.width / 2;
+        let y = parseFloat(dogBoat.style.top) || rect.height - 120;
         
-        dogBoat.classList.add('petted');
-        heartBubble.classList.add('show');
+        x += velocityX;
+        y += velocityY;
+        velocityX *= 0.95;
+        velocityY *= 0.95;
         
-        setTimeout(() => {
-            dogBoat.classList.remove('petted');
-            heartBubble.classList.remove('show');
-        }, 600);
+        if (x <= 30 || x >= rect.width - 80) velocityX *= -0.5;
+        if (y <= 30 || y >= rect.height - 80) velocityY *= -0.5;
         
-        // Лабрадор лает!
-        if (petClicks % 5 === 0) {
-            const bark = document.createElement('div');
-            bark.textContent = 'Гав! 🐕';
-            bark.style.cssText = `
-                position: absolute;
-                top: -40px;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 16px;
-                z-index: 10;
-                animation: barkUp 1s forwards;
-                pointer-events: none;
-            `;
-            dogBoat.appendChild(bark);
-            setTimeout(() => bark.remove(), 1000);
+        const pos = setPos(x, y);
+        if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+            animationId = requestAnimationFrame(physics);
         }
-    });
+    }
     
-    // Перетаскивание
     dogBoat.addEventListener('mousedown', function(e) {
         isDragging = true;
+        cancelAnimationFrame(animationId);
         const rect = dogBoat.getBoundingClientRect();
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = parseFloat(dogBoat.style.left) || rect.left;
+        startTop = parseFloat(dogBoat.style.top) || rect.top;
         dogBoat.style.cursor = 'grabbing';
         e.preventDefault();
     });
     
     document.addEventListener('mousemove', function(e) {
         if (!isDragging) return;
-        const galleryRect = gallery.getBoundingClientRect();
-        let newX = e.clientX - galleryRect.left - offsetX;
-        let newY = e.clientY - galleryRect.top - offsetY;
-        
-        // Ограничиваем рекой (нижняя часть)
-        newX = Math.max(50, Math.min(newX, galleryRect.width - 100));
-        newY = Math.max(galleryRect.height * 0.7, Math.min(newY, galleryRect.height - 100));
-        
-        dogBoat.style.left = newX + 'px';
-        dogBoat.style.top = newY + 'px';
-        dogBoat.style.bottom = 'auto';
-        dogBoat.style.transform = 'none';
+        setPos(startLeft + e.clientX - startX, startTop + e.clientY - startY);
     });
     
-    document.addEventListener('mouseup', function() {
+    document.addEventListener('mouseup', function(e) {
+        if (!isDragging) return;
         isDragging = false;
         dogBoat.style.cursor = 'grab';
+        velocityX = e.movementX * 3;
+        velocityY = e.movementY * 3;
+        physics();
     });
     
-    // Тач для телефонов
+    // Тач
     dogBoat.addEventListener('touchstart', function(e) {
         isDragging = true;
+        cancelAnimationFrame(animationId);
         const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
         const rect = dogBoat.getBoundingClientRect();
-        offsetX = touch.clientX - rect.left;
-        offsetY = touch.clientY - rect.top;
+        startLeft = rect.left;
+        startTop = rect.top;
     });
     
     document.addEventListener('touchmove', function(e) {
         if (!isDragging) return;
         const touch = e.touches[0];
-        const galleryRect = gallery.getBoundingClientRect();
-        let newX = touch.clientX - galleryRect.left - offsetX;
-        let newY = touch.clientY - galleryRect.top - offsetY;
-        
-        newX = Math.max(50, Math.min(newX, galleryRect.width - 100));
-        newY = Math.max(galleryRect.height * 0.7, Math.min(newY, galleryRect.height - 100));
-        
-        dogBoat.style.left = newX + 'px';
-        dogBoat.style.top = newY + 'px';
-        dogBoat.style.bottom = 'auto';
-        dogBoat.style.transform = 'none';
+        setPos(startLeft + touch.clientX - startX, startTop + touch.clientY - startY);
     });
     
-    document.addEventListener('touchend', function() {
+    document.addEventListener('touchend', function(e) {
+        if (!isDragging) return;
         isDragging = false;
+        const lastTouch = e.changedTouches[0];
+        velocityX = (lastTouch.clientX - startX) * 0.5;
+        velocityY = (lastTouch.clientY - startY) * 0.5;
+        physics();
+    });
+    
+    // Двойной клик — погладить
+    dogBoat.addEventListener('dblclick', function() {
+        dogBoat.classList.add('petted');
+        setTimeout(() => dogBoat.classList.remove('petted'), 600);
     });
     
     // Авто-плавание
-    let autoFloatAngle = 0;
+    let autoAngle = 0;
     setInterval(() => {
-        if (!isDragging) {
-            autoFloatAngle += 0.02;
-            const floatX = Math.sin(autoFloatAngle) * 40;
-            const floatY = Math.cos(autoFloatAngle * 0.7) * 15;
-            dogBoat.style.transform = `translate(${floatX}px, ${floatY}px)`;
+        if (!isDragging && (!animationId || Math.abs(velocityX) < 0.1)) {
+            autoAngle += 0.02;
+            const rect = gallery.getBoundingClientRect();
+            const baseX = rect.width / 2;
+            const baseY = rect.height - 120;
+            setPos(baseX + Math.sin(autoAngle) * 80, baseY + Math.cos(autoAngle * 0.7) * 30);
         }
     }, 50);
+    
+    // Начальная позиция
+    const rect = gallery.getBoundingClientRect();
+    setPos(rect.width / 2, rect.height - 120);
 }
 
-// Добавляем стиль для лая
-const barkStyle = document.createElement('style');
-barkStyle.textContent = `
-    @keyframes barkUp {
-        0% { opacity: 1; top: -40px; }
-        100% { opacity: 0; top: -80px; }
-    }
-`;
-document.head.appendChild(barkStyle);
+// ═══════════════════════════════════════════
+// ПУЗЫРИ В СЕРТИФИКАТАХ
+// ═══════════════════════════════════════════
 
-// Запуск при загрузке
+function initBubbleGame() {
+    const canvas = document.getElementById('bubbleCanvas');
+    const section = document.getElementById('certificates');
+    if (!canvas || !section) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    function resize() {
+        canvas.width = section.offsetWidth;
+        canvas.height = section.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    
+    const bubbles = [];
+    const maxBubbles = 30;
+    let popCount = 0;
+    
+    function createBubble(fromBottom = false) {
+        return {
+            x: Math.random() * canvas.width,
+            y: fromBottom ? canvas.height + 20 : Math.random() * canvas.height,
+            size: 8 + Math.random() * 25,
+            speed: 1 + Math.random() * 2.5,
+            opacity: 0.4 + Math.random() * 0.4,
+            hue: 180 + Math.random() * 40,
+            popped: false,
+            popAnim: 0
+        };
+    }
+    
+    for (let i = 0; i < maxBubbles; i++) {
+        bubbles.push(createBubble());
+    }
+    
+    function drawBubbles() {
+        bubbles.forEach(b => {
+            if (b.popped) {
+                b.popAnim += 0.05;
+                if (b.popAnim > 1) {
+                    b.popped = false;
+                    b.popAnim = 0;
+                    Object.assign(b, createBubble(true));
+                }
+                return;
+            }
+            
+            b.y -= b.speed;
+            if (b.y < -30) {
+                Object.assign(b, createBubble(true));
+            }
+            
+            // Основной пузырь
+            const gradient = ctx.createRadialGradient(b.x - b.size * 0.3, b.y - b.size * 0.3, b.size * 0.1, b.x, b.y, b.size);
+            gradient.addColorStop(0, `hsla(${b.hue}, 70%, 75%, ${b.opacity + 0.2})`);
+            gradient.addColorStop(1, `hsla(${b.hue}, 70%, 50%, ${b.opacity})`);
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Блик
+            ctx.fillStyle = `rgba(255,255,255,${b.opacity * 0.6})`;
+            ctx.beginPath();
+            ctx.arc(b.x - b.size * 0.3, b.y - b.size * 0.3, b.size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+    
+    // Лопать пузыри
+    canvas.style.pointerEvents = 'auto';
+    canvas.addEventListener('mousemove', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        
+        bubbles.forEach(b => {
+            if (!b.popped) {
+                const dist = Math.hypot(mx - b.x, my - b.y);
+                if (dist < b.size + 5) {
+                    b.popped = true;
+                    b.popAnim = 0;
+                    popCount++;
+                    document.getElementById('bubbleCount').textContent = popCount;
+                }
+            }
+        });
+    });
+    
+    canvas.addEventListener('click', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        
+        bubbles.forEach(b => {
+            if (!b.popped && Math.hypot(mx - b.x, my - b.y) < b.size + 10) {
+                b.popped = true;
+                b.popAnim = 0;
+                popCount++;
+                document.getElementById('bubbleCount').textContent = popCount;
+            }
+        });
+    });
+    
+    function animate() {
+        if (!canvas.isConnected) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBubbles();
+        requestAnimationFrame(animate);
+    }
+    
+    animate();
+}
+
+// Запуск
 window.addEventListener('load', () => {
     initWaterfallGame();
     initDogBoat();
+    initBubbleGame();
 });

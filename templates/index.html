@@ -121,25 +121,17 @@
         </div>
     </section>
 
-        <!-- ═══════════════════════════════════════════ -->
-    <!-- ГАЛЕРЕЯ С ИГРОВЫМ ФОНОМ -->
+           <!-- ═══════════════════════════════════════════ -->
+    <!-- ГАЛЕРЕЯ С ВОДОПАДАМИ -->
     <!-- ═══════════════════════════════════════════ -->
     <section class="gallery animate-on-scroll" id="gallery">
-        <!-- Canvas для водопадов и реки -->
         <canvas id="waterfallCanvas"></canvas>
         
         <!-- Собачка в лодке -->
-        <div id="dogBoat" draggable="true">
+        <div id="dogBoat">
+            <div id="boatBack">⛵</div>
             <div id="dogEmoji">🐕</div>
-            <div id="boatEmoji">⛵</div>
-            <div class="heart-bubble" id="heartBubble">❤️</div>
         </div>
-        
-        <!-- Островок -->
-        <div id="island">🏝️</div>
-        
-        <!-- Счётчик поглаживаний -->
-        <div id="petCounter">🦴 Поглажено: <span id="petCount">0</span> раз</div>
         
         <div class="container" style="position:relative;z-index:2;">
             <h2 class="section-title">Галерея фото</h2>
@@ -160,11 +152,16 @@
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- СЕРТИФИКАТЫ -->
+       <!-- ═══════════════════════════════════════════ -->
+    <!-- СЕРТИФИКАТЫ С ПУЗЫРЯМИ -->
     <!-- ═══════════════════════════════════════════ -->
     <section id="certificates" class="animate-on-scroll">
-        <div class="container">
+        <canvas id="bubbleCanvas"></canvas>
+        
+        <!-- Счётчик пузырей -->
+        <div id="bubbleCounter">🫧 Лопнуто: <span id="bubbleCount">0</span></div>
+        
+        <div class="container" style="position:relative;z-index:2;">
             <h2 class="section-title">Мои сертификаты</h2>
             <div class="course-filter">
                 <button class="filter-btn active" data-course="all">Все</button>
@@ -185,7 +182,7 @@
                     </div>
                 </div>
                 {% endfor %}
-                               {% if not certificates %}
+                {% if not certificates %}
                 <div class="certificate-item empty-placeholder-card">
                     <div class="empty-card-icon"><i class="fas fa-award"></i></div>
                     <div class="certificate-info">

@@ -1260,79 +1260,71 @@ body.dark-theme .empty-work .work-icon i {
 /* Собачка с лодкой */
 #dogBoat {
     position: absolute;
-    bottom: 80px;
+    bottom: 120px;
     left: 50%;
-    transform: translateX(-50%);
     z-index: 3;
     cursor: grab;
-    transition: transform 0.1s;
     user-select: none;
     display: flex;
     flex-direction: column;
     align-items: center;
+    transition: transform 0.1s;
 }
 
-#dogBoat:active {
-    cursor: grabbing;
-}
-
-#dogBoat.dragging {
-    transform: scale(1.1);
-}
+#dogBoat:active { cursor: grabbing; }
 
 #dogEmoji {
-    font-size: 40px;
+    font-size: 44px;
+    position: relative;
+    z-index: 2;
     transition: transform 0.3s;
 }
 
-#boatEmoji {
-    font-size: 50px;
-    margin-top: -10px;
+#boatBack {
+    font-size: 55px;
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    opacity: 0.9;
 }
 
 #dogBoat:hover #dogEmoji {
-    transform: translateY(-5px);
+    transform: translateY(-8px) scale(1.1);
 }
 
 #dogBoat.petted #dogEmoji {
-    transform: translateY(-10px) scale(1.2);
+    transform: translateY(-15px) scale(1.2);
+    animation: dogHappy 0.5s ease;
 }
 
-/* Сердечко при поглаживании */
-.heart-bubble {
+@keyframes dogHappy {
+    0%, 100% { transform: translateY(-15px) scale(1.2) rotate(0deg); }
+    25% { transform: translateY(-15px) scale(1.2) rotate(-10deg); }
+    75% { transform: translateY(-15px) scale(1.2) rotate(10deg); }
+}
+
+/* ═══════════════════════════════════════════ */
+/* СЕРТИФИКАТЫ С ПУЗЫРЯМИ */
+/* ═══════════════════════════════════════════ */
+
+#certificates {
+    position: relative;
+    overflow: hidden;
+}
+
+#bubbleCanvas {
     position: absolute;
-    top: -30px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 20px;
-    opacity: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
     pointer-events: none;
-    transition: all 0.5s ease;
 }
 
-.heart-bubble.show {
-    opacity: 1;
-    top: -50px;
-}
-
-/* Островок */
-#island {
-    position: absolute;
-    bottom: 30px;
-    right: 15%;
-    font-size: 60px;
-    z-index: 2;
-    cursor: pointer;
-    animation: islandFloat 3s ease-in-out infinite;
-}
-
-@keyframes islandFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-
-/* Счётчик */
-#petCounter {
+#bubbleCounter {
     position: absolute;
     top: 20px;
     right: 20px;
@@ -1346,7 +1338,85 @@ body.dark-theme .empty-work .work-icon i {
     backdrop-filter: blur(5px);
 }
 
-#petCount {
-    color: var(--primary-color);
+#bubbleCount {
+    color: #4dabf7;
     font-size: 18px;
+}
+
+/* ═══════════════════════════════════════════ */
+/* ЗАГЛУШКИ */
+/* ═══════════════════════════════════════════ */
+
+.empty-placeholder-card {
+    text-align: center;
+    padding: 40px 20px !important;
+    animation: emptyFloat 4s ease-in-out infinite;
+    cursor: default !important;
+    border: 1px solid transparent !important;
+    transition: all 0.5s ease !important;
+}
+
+.empty-placeholder-card:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 20px 40px rgba(0, 163, 54, 0.35) !important;
+    border-color: transparent !important;
+}
+
+.empty-placeholder-card .empty-card-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+    transition: all 0.5s ease;
+}
+
+.empty-placeholder-card:hover .empty-card-icon {
+    transform: scale(1.2);
+    text-shadow: 0 0 20px rgba(0, 163, 54, 0.5);
+}
+
+.empty-card-icon i,
+.empty-placeholder-card .empty-card-icon i {
+    color: #bbb;
+    transition: all 0.5s ease;
+}
+
+body.dark-theme .empty-card-icon i,
+body.dark-theme .empty-placeholder-card .empty-card-icon i {
+    color: #555;
+}
+
+.empty-placeholder-card:hover .empty-card-icon i {
+    color: var(--primary-color) !important;
+    text-shadow: 0 0 25px rgba(0, 163, 54, 0.6);
+}
+
+.empty-work {
+    animation: emptyFloat 4s ease-in-out infinite !important;
+    cursor: default !important;
+    border: 1px solid transparent !important;
+}
+
+.empty-work:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 20px 40px rgba(0, 163, 54, 0.35) !important;
+    border-color: transparent !important;
+}
+
+.empty-work .work-icon i {
+    color: #bbb !important;
+    transition: all 0.5s ease;
+}
+
+body.dark-theme .empty-work .work-icon i {
+    color: #555 !important;
+}
+
+.empty-work:hover .work-icon i {
+    color: var(--primary-color) !important;
+    transform: scale(1.3) rotate(360deg);
+    text-shadow: 0 0 25px rgba(0, 163, 54, 0.6);
+}
+
+@keyframes emptyFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
 }
