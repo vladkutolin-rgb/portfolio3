@@ -458,15 +458,101 @@ function initWaterfallGame() {
 
     animate();
 
-    window.triggerTsunami = function() {
-        window.tsunamiHeight = 60;
-        tsunamiFlash = 1;
+       window.triggerTsunami = function() {
+        // ДРОЖАНИЕ ЭКРАНА
+        const galleryEl = document.querySelector('.gallery');
+        if (galleryEl) {
+            galleryEl.style.animation = 'screenShake 0.8s ease-out';
+            setTimeout(() => galleryEl.style.animation = '', 800);
+        }
+
+        // ГИГАНТСКАЯ ВОЛНА
+        window.tsunamiHeight = 90;
+
+        // Волна-дракон
         const wave = document.getElementById('tsunamiWave');
         if (wave) {
-            wave.style.height = '130px';
-            wave.style.background = 'linear-gradient(0deg, rgba(0,230,255,0.9), rgba(0,180,240,0.6), rgba(255,255,255,0.4), transparent)';
-            setTimeout(() => wave.style.height = '0', 1500);
+            wave.style.height = '200px';
+            wave.style.background = `
+                linear-gradient(0deg, 
+                    rgba(0, 255, 200, 0.95) 0%,
+                    rgba(0, 200, 255, 0.8) 20%,
+                    rgba(0, 150, 255, 0.6) 40%,
+                    rgba(100, 200, 255, 0.4) 60%,
+                    rgba(255, 255, 255, 0.7) 80%,
+                    rgba(255, 255, 255, 0) 100%
+                )
+            `;
+            wave.style.boxShadow = '0 -20px 60px rgba(0, 255, 200, 0.8), 0 -40px 120px rgba(0, 200, 255, 0.5)';
+            wave.style.transition = 'height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            setTimeout(() => {
+                wave.style.height = '0';
+                wave.style.boxShadow = 'none';
+            }, 1800);
         }
+
+        // МОЛНИИ ПО ВСЕМУ ЭКРАНУ
+        for (let i = 0; i < 8; i++) {
+            setTimeout(() => {
+                const lightning = document.createElement('div');
+                const lx = Math.random() * 80 + 10;
+                lightning.style.cssText = `
+                    position: absolute;
+                    left: ${lx}%;
+                    top: 0;
+                    width: 3px;
+                    height: ${40 + Math.random() * 40}%;
+                    background: linear-gradient(180deg, rgba(255,255,255,1), rgba(0,255,200,0.8), transparent);
+                    z-index: 9;
+                    pointer-events: none;
+                    animation: lightningFlash ${0.1 + Math.random() * 0.3}s ease-out forwards;
+                    transform: rotate(${(Math.random() - 0.5) * 20}deg);
+                `;
+                document.querySelector('.gallery').appendChild(lightning);
+                setTimeout(() => lightning.remove(), 400);
+            }, i * 80);
+        }
+
+                // ЧАСТИЦЫ ВОДЫ ПО ВСЕМУ ЭКРАНУ
+        for (let i = 0; i < 50; i++) {
+            const drop = document.createElement('div');
+            const wx = (Math.random() - 0.5) * 200;
+            const wy = -100 - Math.random() * 200;
+            drop.style.cssText = `
+                position: absolute;
+                left: ${Math.random() * 100}%;
+                top: ${50 + Math.random() * 30}%;
+                width: ${3 + Math.random() * 8}px;
+                height: ${3 + Math.random() * 8}px;
+                background: rgba(0, 255, 200, ${0.6 + Math.random() * 0.4});
+                border-radius: 50%;
+                z-index: 9;
+                pointer-events: none;
+                --wx: ${wx}px;
+                --wy: ${wy}px;
+                animation: waterExplosion ${0.8 + Math.random() * 1.2}s ease-out forwards;
+                animation-delay: ${Math.random() * 0.5}s;
+            `;
+            document.querySelector('.gallery').appendChild(drop);
+            setTimeout(() => drop.remove(), 2000);
+        }
+
+        // ВСПЫШКА
+        const flash = document.createElement('div');
+        flash.style.cssText = `
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 7;
+            pointer-events: none;
+            animation: flashBang 0.6s ease-out forwards;
+        `;
+        document.querySelector('.gallery').appendChild(flash);
+        setTimeout(() => flash.remove(), 700);
+
+        // Фейерверки
+        tsunamiFlash = 1;
     };
 }
 // ═══════════════════════════════════════════
