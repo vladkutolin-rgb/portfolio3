@@ -240,47 +240,83 @@ function initWaterfallGame() {
         }
     }
 
-    // Красивые волны реки
+        // Красивые волны реки — ЧУВСТВУЮТ МУЗЫКУ
     function drawRiver() {
         const bass = smoothBass || 0;
         const baseY = canvas.height * 0.73;
         const tsunamiEffect = (window.tsunamiHeight || 0) * 0.3;
 
-        // Рисуем несколько слоёв волн
-        const layers = [
-            { alpha: 0.08, height: 6 + bass * 20 + tsunamiEffect * 0.5, speed: 1.2, color: 'rgba(0, 160, 210,' },
-            { alpha: 0.12, height: 8 + bass * 15 + tsunamiEffect * 0.3, speed: 0.8, color: 'rgba(0, 180, 225,' },
-            { alpha: 0.06, height: 10 + bass * 25 + tsunamiEffect * 0.6, speed: 1.5, color: 'rgba(100, 200, 240,' },
-        ];
-
-        layers.forEach(layer => {
-            ctx.fillStyle = layer.color + layer.alpha + ')';
-            for (let x = 0; x < canvas.width; x += 4) {
-                const y = baseY + Math.sin((x + time * layer.speed) / 120) * layer.height +
-                          Math.cos((x - time * layer.speed * 0.6) / 80) * layer.height * 0.5 +
-                          Math.sin((x + time * layer.speed * 0.3) / 200) * layer.height * 0.3;
-                ctx.fillRect(x, y, 4, 3);
-            }
-        });
-
-        // Пена на гребнях волн
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-        for (let i = 0; i < 8; i++) {
-            const fx = (time * 1.5 + i * canvas.width / 8) % canvas.width;
-            const fy = baseY + Math.sin((fx + time) / 120) * (6 + bass * 20) - 4;
-            const fs = 3 + Math.random() * 4;
-            ctx.beginPath();
-            ctx.arc(fx, fy, fs, 0, Math.PI, false);
-            ctx.fill();
+        // Частоты из музыки для разных слоёв
+        const beat = bass; // Басы — амплитуда
+        const rhythm = Math.sin(time * 0.03) * bass; // Ритмический рисунок
+        
+        // Слой 1: Глубинная волна (реагирует на бас)
+        const layer1Height = 5 + beat * 30 + tsunamiEffect * 0.5;
+        const layer1Speed = 1 + beat * 3;
+        ctx.fillStyle = 'rgba(0, 150, 200, 0.1)';
+        for (let x = 0; x < canvas.width; x += 6) {
+            const y = baseY + Math.sin((x + time * layer1Speed) / 100) * layer1Height +
+                      Math.cos((x - time * layer1Speed * 0.5) / 70) * layer1Height * 0.4;
+            ctx.fillRect(x, y, 6, 4);
         }
 
-        // Блики на воде
-        for (let i = 0; i < 15; i++) {
-            const sx = (time * 0.5 + i * canvas.width / 15 + Math.sin(i * 2.7) * 40) % canvas.width;
-            const sy = baseY + 15 + Math.sin(sx / 50 + time * 0.3) * 8;
-            const shimmer = 0.1 + Math.abs(Math.sin(time * 0.05 + i)) * 0.15;
+        // Слой 2: Средняя волна (реагирует на ритм)
+        const layer2Height = 7 + rhythm * 20 + tsunamiEffect * 0.4;
+        const layer2Speed = 0.9 + beat * 2;
+        ctx.fillStyle = 'rgba(0, 180, 225, 0.14)';
+        for (let x = 0; x < canvas.width; x += 4) {
+            const y = baseY + Math.cos((x + time * layer2Speed) / 90) * layer2Height +
+                      Math.sin((x - time * layer2Speed * 0.7) / 60) * layer2Height * 0.6;
+            ctx.fillRect(x, y, 4, 3);
+        }
+
+        // Слой 3: Поверхностная рябь (быстрая реакция)
+        const layer3Height = 3 + beat * 15;
+        const layer3Speed = 1.5 + beat * 4;
+        ctx.fillStyle = 'rgba(100, 200, 240, 0.08)';
+        for (let x = 0; x < canvas.width; x += 3) {
+            const y = baseY + Math.sin((x + time * layer3Speed) / 60) * layer3Height +
+                      Math.cos((x - time * layer3Speed * 0.8) / 40) * layer3Height * 0.4;
+            ctx.fillRect(x, y, 3, 2);
+        }
+
+        // Пена на пиках (появляется только при сильных басах)
+        if (beat > 0.1) {
+            const foamAlpha = Math.min(beat * 2, 0.5);
+            ctx.fillStyle = `rgba(255, 255, 255, ${foamAlpha})`;
+            for (let i = 0; i < 12; i++) {
+                const fx = (time * 2 + i * canvas.width / 12 + Math.sin(i * 3.3) * 50) % canvas.width;
+                const fy = baseY + Math.sin((fx + time * layer1Speed) / 100) * layer1Height - 5;
+                const fs = 2 + Math.random() * 5 * beat;
+                ctx.beginPath();
+                ctx.arc(fx, fy, fs, 0, Math.PI, false);
+                ctx.fill();
+            }
+        }
+
+        // Блики — танцуют под музыку
+        const shimmerCount = Math.floor(10 + beat * 20);
+        for (let i = 0; i < shimmerCount; i++) {
+            const sx = (time * (0.5 + beat) + i * canvas.width / shimmerCount) % canvas.width;
+            const sy = baseY + 12 + Math.sin(sx / 40 + time * 0.5) * (6 + beat * 10);
+            const shimmer = 0.05 + Math.abs(Math.sin(time * 0.08 + i * 0.7)) * (0.1 + beat * 0.3);
             ctx.fillStyle = `rgba(255, 255, 255, ${shimmer})`;
             ctx.fillRect(sx, sy, 2, 2);
+        }
+
+        // Визуализация бита — круги на воде
+        if (beat > 0.25) {
+            const pulseR = beat * 60;
+            const pulseAlpha = (beat - 0.25) * 2;
+            for (let i = 0; i < 3; i++) {
+                const px = canvas.width * 0.1 + i * canvas.width * 0.4;
+                const py = baseY + 15;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${pulseAlpha * 0.3})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(px, py, pulseR * (0.5 + i * 0.3), 0, Math.PI * 2);
+                ctx.stroke();
+            }
         }
     }
 
