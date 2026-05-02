@@ -240,84 +240,155 @@ function initWaterfallGame() {
         }
     }
 
-        // Красивые волны реки — ЧУВСТВУЮТ МУЗЫКУ
+           // Красивые волны реки — FULL POWER EDITION
     function drawRiver() {
         const bass = smoothBass || 0;
         const baseY = canvas.height * 0.73;
         const tsunamiEffect = (window.tsunamiHeight || 0) * 0.3;
+        const beat = bass;
+        const rhythm = Math.sin(time * 0.03) * bass;
+        const melody = Math.sin(time * 0.015) * 0.5 + 0.5; // Мелодия (0-1)
+        const energy = beat * 0.7 + melody * 0.3; // Общая энергия трека
 
-        // Частоты из музыки для разных слоёв
-        const beat = bass; // Басы — амплитуда
-        const rhythm = Math.sin(time * 0.03) * bass; // Ритмический рисунок
-        
-        // Слой 1: Глубинная волна (реагирует на бас)
-        const layer1Height = 5 + beat * 30 + tsunamiEffect * 0.5;
-        const layer1Speed = 1 + beat * 3;
-        ctx.fillStyle = 'rgba(0, 150, 200, 0.1)';
+        // ══════════════════════════════════════
+        // ГЛУБИНА — тёмная вода снизу
+        // ══════════════════════════════════════
+        const depthGrad = ctx.createLinearGradient(0, baseY - 20, 0, canvas.height);
+        depthGrad.addColorStop(0, 'rgba(0, 160, 210, 0.15)');
+        depthGrad.addColorStop(0.3, 'rgba(0, 120, 180, 0.2)');
+        depthGrad.addColorStop(1, 'rgba(0, 60, 120, 0.35)');
+        ctx.fillStyle = depthGrad;
+        ctx.fillRect(0, baseY, canvas.width, canvas.height - baseY);
+
+        // ══════════════════════════════════════
+        // СВЕЧЕНИЕ ПОД ВОДОЙ (неон)
+        // ══════════════════════════════════════
+        const glowGrad = ctx.createRadialGradient(canvas.width * 0.3, baseY + 30, 10, canvas.width * 0.3, baseY + 20, canvas.width * 0.5);
+        glowGrad.addColorStop(0, `rgba(0, 255, 150, ${0.1 + energy * 0.2})`);
+        glowGrad.addColorStop(1, 'rgba(0, 255, 150, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.fillRect(0, baseY - 40, canvas.width, canvas.height - baseY);
+
+        const glowGrad2 = ctx.createRadialGradient(canvas.width * 0.7, baseY + 40, 10, canvas.width * 0.7, baseY + 25, canvas.width * 0.45);
+        glowGrad2.addColorStop(0, `rgba(0, 200, 255, ${0.08 + energy * 0.15})`);
+        glowGrad2.addColorStop(1, 'rgba(0, 200, 255, 0)');
+        ctx.fillStyle = glowGrad2;
+        ctx.fillRect(0, baseY - 40, canvas.width, canvas.height - baseY);
+
+        // ══════════════════════════════════════
+        // СЛОЙ 1: ГЛУБИННАЯ ВОЛНА
+        // ══════════════════════════════════════
+        const l1h = 5 + beat * 35 + tsunamiEffect * 0.5;
+        const l1s = 1 + beat * 3;
+        const hue1 = 190 + melody * 20; // Цвет меняется с мелодией
+        ctx.fillStyle = `hsla(${hue1}, 60%, 55%, 0.12)`;
         for (let x = 0; x < canvas.width; x += 6) {
-            const y = baseY + Math.sin((x + time * layer1Speed) / 100) * layer1Height +
-                      Math.cos((x - time * layer1Speed * 0.5) / 70) * layer1Height * 0.4;
-            ctx.fillRect(x, y, 6, 4);
+            const y = baseY + Math.sin((x + time * l1s) / 100) * l1h +
+                      Math.cos((x - time * l1s * 0.5) / 70) * l1h * 0.4 +
+                      Math.sin((x * 0.02 + time * 0.3)) * 3;
+            ctx.fillRect(x, y, 6, 5);
         }
 
-        // Слой 2: Средняя волна (реагирует на ритм)
-        const layer2Height = 7 + rhythm * 20 + tsunamiEffect * 0.4;
-        const layer2Speed = 0.9 + beat * 2;
-        ctx.fillStyle = 'rgba(0, 180, 225, 0.14)';
+        // ══════════════════════════════════════
+        // СЛОЙ 2: СРЕДНЯЯ ВОЛНА
+        // ══════════════════════════════════════
+        const l2h = 6 + rhythm * 25 + tsunamiEffect * 0.4;
+        const l2s = 0.9 + beat * 2;
+        const hue2 = 180 + melody * 25;
+        ctx.fillStyle = `hsla(${hue2}, 70%, 60%, 0.16)`;
         for (let x = 0; x < canvas.width; x += 4) {
-            const y = baseY + Math.cos((x + time * layer2Speed) / 90) * layer2Height +
-                      Math.sin((x - time * layer2Speed * 0.7) / 60) * layer2Height * 0.6;
+            const y = baseY + Math.cos((x + time * l2s) / 90) * l2h +
+                      Math.sin((x - time * l2s * 0.7) / 60) * l2h * 0.6 +
+                      Math.cos((x * 0.03 + time * 0.25)) * 4;
             ctx.fillRect(x, y, 4, 3);
         }
 
-        // Слой 3: Поверхностная рябь (быстрая реакция)
-        const layer3Height = 3 + beat * 15;
-        const layer3Speed = 1.5 + beat * 4;
-        ctx.fillStyle = 'rgba(100, 200, 240, 0.08)';
+        // ══════════════════════════════════════
+        // СЛОЙ 3: ПОВЕРХНОСТНАЯ РЯБЬ
+        // ══════════════════════════════════════
+        const l3h = 2.5 + beat * 18;
+        const l3s = 1.5 + beat * 4;
+        const hue3 = 200 + melody * 15;
+        ctx.fillStyle = `hsla(${hue3}, 60%, 70%, 0.1)`;
         for (let x = 0; x < canvas.width; x += 3) {
-            const y = baseY + Math.sin((x + time * layer3Speed) / 60) * layer3Height +
-                      Math.cos((x - time * layer3Speed * 0.8) / 40) * layer3Height * 0.4;
+            const y = baseY + Math.sin((x + time * l3s) / 60) * l3h +
+                      Math.cos((x - time * l3s * 0.8) / 40) * l3h * 0.4;
             ctx.fillRect(x, y, 3, 2);
         }
 
-        // Пена на пиках (появляется только при сильных басах)
-        if (beat > 0.1) {
-            const foamAlpha = Math.min(beat * 2, 0.5);
-            ctx.fillStyle = `rgba(255, 255, 255, ${foamAlpha})`;
-            for (let i = 0; i < 12; i++) {
-                const fx = (time * 2 + i * canvas.width / 12 + Math.sin(i * 3.3) * 50) % canvas.width;
-                const fy = baseY + Math.sin((fx + time * layer1Speed) / 100) * layer1Height - 5;
-                const fs = 2 + Math.random() * 5 * beat;
+        // ══════════════════════════════════════
+        // РАДУЖНАЯ ПЕНА
+        // ══════════════════════════════════════
+        if (beat > 0.08) {
+            const fa = Math.min(beat * 2.5, 0.7);
+            for (let i = 0; i < 15; i++) {
+                const fx = (time * 2 + i * canvas.width / 15 + Math.sin(i * 3.3) * 60) % canvas.width;
+                const fy = baseY + Math.sin((fx + time * l1s) / 100) * l1h - 6;
+                const hue = 180 + i * 20 + time * 2;
+                ctx.fillStyle = `hsla(${hue % 360}, 80%, 80%, ${fa * 0.6})`;
                 ctx.beginPath();
-                ctx.arc(fx, fy, fs, 0, Math.PI, false);
+                ctx.arc(fx, fy, 2 + Math.random() * 6 * beat, 0, Math.PI);
+                ctx.fill();
+                // Второй слой пены
+                ctx.fillStyle = `rgba(255, 255, 255, ${fa * 0.4})`;
+                ctx.beginPath();
+                ctx.arc(fx + 3, fy - 1, 1 + Math.random() * 3 * beat, 0, Math.PI);
                 ctx.fill();
             }
         }
 
-        // Блики — танцуют под музыку
-        const shimmerCount = Math.floor(10 + beat * 20);
-        for (let i = 0; i < shimmerCount; i++) {
-            const sx = (time * (0.5 + beat) + i * canvas.width / shimmerCount) % canvas.width;
-            const sy = baseY + 12 + Math.sin(sx / 40 + time * 0.5) * (6 + beat * 10);
-            const shimmer = 0.05 + Math.abs(Math.sin(time * 0.08 + i * 0.7)) * (0.1 + beat * 0.3);
-            ctx.fillStyle = `rgba(255, 255, 255, ${shimmer})`;
+        // ══════════════════════════════════════
+        // СВЕТЛЯЧКИ-БЛИКИ
+        // ══════════════════════════════════════
+        const sc = Math.floor(15 + energy * 25);
+        for (let i = 0; i < sc; i++) {
+            const sx = (time * (0.4 + beat) + i * canvas.width / sc + Math.sin(i * 5.1) * 30) % canvas.width;
+            const sy = baseY + 8 + Math.sin(sx / 35 + time * 0.6) * (5 + beat * 12) + Math.cos(i * 3.7 + time * 0.2) * 4;
+            const shimmer = 0.04 + Math.abs(Math.sin(time * 0.07 + i * 0.9)) * (0.12 + energy * 0.25);
+            const shimmerHue = 180 + Math.sin(i * 0.5 + time * 0.1) * 40;
+            ctx.fillStyle = `hsla(${shimmerHue}, 70%, 80%, ${shimmer})`;
+            ctx.shadowColor = `hsla(${shimmerHue}, 80%, 70%, ${shimmer * 2})`;
+            ctx.shadowBlur = 3 + beat * 6;
             ctx.fillRect(sx, sy, 2, 2);
+            ctx.shadowBlur = 0;
         }
 
-        // Визуализация бита — круги на воде
-        if (beat > 0.25) {
-            const pulseR = beat * 60;
-            const pulseAlpha = (beat - 0.25) * 2;
-            for (let i = 0; i < 3; i++) {
-                const px = canvas.width * 0.1 + i * canvas.width * 0.4;
-                const py = baseY + 15;
-                ctx.strokeStyle = `rgba(255, 255, 255, ${pulseAlpha * 0.3})`;
-                ctx.lineWidth = 1;
+        // ══════════════════════════════════════
+        // БИТ-КРУГИ
+        // ══════════════════════════════════════
+        if (beat > 0.2) {
+            const pa = (beat - 0.2) * 3;
+            for (let i = 0; i < 4; i++) {
+                const px = canvas.width * 0.1 + i * canvas.width * 0.27;
+                const pr = beat * 70 * (0.4 + i * 0.2);
+                const hue = 170 + i * 30 + time;
+                ctx.strokeStyle = `hsla(${hue % 360}, 80%, 65%, ${pa * 0.25})`;
+                ctx.lineWidth = 1.5;
+                ctx.shadowColor = `hsla(${hue % 360}, 80%, 65%, ${pa * 0.4})`;
+                ctx.shadowBlur = 8 + beat * 10;
                 ctx.beginPath();
-                ctx.arc(px, py, pulseR * (0.5 + i * 0.3), 0, Math.PI * 2);
+                ctx.arc(px, baseY + 10, pr, 0, Math.PI * 2);
                 ctx.stroke();
+                ctx.shadowBlur = 0;
             }
         }
+
+        // ══════════════════════════════════════
+        // ОТРАЖЕНИЯ ОТ ВОДОПАДОВ
+        // ══════════════════════════════════════
+        const reflAlpha = 0.04 + energy * 0.06;
+        // Левое отражение
+        const leftRefl = ctx.createLinearGradient(canvas.width * 0.05, baseY, canvas.width * 0.2, baseY);
+        leftRefl.addColorStop(0, `rgba(180, 220, 255, ${reflAlpha})`);
+        leftRefl.addColorStop(1, 'rgba(180, 220, 255, 0)');
+        ctx.fillStyle = leftRefl;
+        ctx.fillRect(canvas.width * 0.02, baseY, canvas.width * 0.2, 15);
+        // Правое отражение
+        const rightRefl = ctx.createLinearGradient(canvas.width * 0.95, baseY, canvas.width * 0.8, baseY);
+        rightRefl.addColorStop(0, `rgba(180, 220, 255, ${reflAlpha})`);
+        rightRefl.addColorStop(1, 'rgba(180, 220, 255, 0)');
+        ctx.fillStyle = rightRefl;
+        ctx.fillRect(canvas.width * 0.78, baseY, canvas.width * 0.2, 15);
     }
 
     function animate() {
