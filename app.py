@@ -8,13 +8,14 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = 'tvoy-sekretnyy-klyuch-12345'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 def init_db():
     conn = sqlite3.connect('portfolio.db')
     c = conn.cursor()
+    
     c.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL)''')
     c.execute('''CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY AUTOINCREMENT, photo TEXT NOT NULL, description TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     c.execute('''CREATE TABLE IF NOT EXISTS certificates (id INTEGER PRIMARY KEY AUTOINCREMENT, photo TEXT NOT NULL, title TEXT NOT NULL, description TEXT, organization TEXT, year TEXT, course TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
@@ -24,18 +25,15 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, sort_order INTEGER DEFAULT 0)''')
     c.execute('''CREATE TABLE IF NOT EXISTS music (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, file_path TEXT NOT NULL, sort_order INTEGER DEFAULT 0)''')
     
-    # Админ
     c.execute('SELECT COUNT(*) FROM users')
     if c.fetchone()[0] == 0:
         c.execute('INSERT INTO users (username, password) VALUES (?, ?)', ('ID1Vlad', '43Vl_ad33'))
     
-    # Категории
     c.execute('SELECT COUNT(*) FROM categories')
     if c.fetchone()[0] == 0:
         for i, cat in enumerate(['Программирование и разработка','Офисные приложения','Графика и дизайн','Другие инструменты']):
             c.execute('INSERT INTO categories (name, sort_order) VALUES (?, ?)', (cat, i))
     
-    # Тех-стек
     c.execute('SELECT COUNT(*) FROM techstack')
     if c.fetchone()[0] == 0:
         for item in [
@@ -52,7 +50,7 @@ def init_db():
             ('Другие инструменты','Нейросети','fas fa-brain',70,'ChatGPT • Midjourney',1),
             ('Другие инструменты','Интернет-поиск','fas fa-search',85,'',2),
         ]:
-            c.execute('INSERT INTO techstack (category, name, icon, percent, subtitle, sort_order) VALUES (?, ?, ?, ?, ?, ?)', item)
+            c.execute('INSERT INTO techstack (category, name, icon, percent, subtitle, sort_order) VALUES (?,?,?,?,?,?)', item)
     
     conn.commit()
     conn.close()
@@ -81,24 +79,24 @@ def index():
     c.execute('SELECT * FROM gallery ORDER BY created_at DESC')
     gallery = c.fetchall()
     c.execute('SELECT * FROM certificates ORDER BY created_at DESC')
-    certificates = c.fetchall()
+    certs = c.fetchall()
     c.execute('SELECT * FROM works ORDER BY created_at DESC')
     works = c.fetchall()
     c.execute('SELECT * FROM categories ORDER BY sort_order ASC')
-    categories = c.fetchall()
+    cats = c.fetchall()
     c.execute('SELECT * FROM techstack ORDER BY sort_order ASC')
-    techstack = c.fetchall()
+    ts = c.fetchall()
     avatar = get_setting('avatar') or 'static/uploads/default_avatar.jpg'
     conn.close()
-    return render_template('index.html', gallery=gallery, certificates=certificates, works=works, categories=categories, techstack=techstack, avatar=avatar)
+    return render_template('index.html', gallery=gallery, certificates=certs, works=works, categories=cats, techstack=ts, avatar=avatar)
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
     error = None
     if request.method == 'POST':
         conn = sqlite3.connect('portfolio.db')
         c = conn.cursor()
-        c.execute('SELECT * FROM users WHERE username = ? AND password = ?', (request.form['username'], request.form['password']))
+        c.execute('SELECT * FROM users WHERE username=? AND password=?', (request.form['username'], request.form['password']))
         user = c.fetchone()
         conn.close()
         if user:
@@ -118,9 +116,9 @@ def logout():
 def admin():
     return render_template('admin.html')
 
-# GALLERY API
+# GALLERY
 @app.route('/api/gallery', methods=['GET'])
-def api_gallery(): 
+def api_gallery():
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
     c.execute('SELECT * FROM gallery ORDER BY created_at DESC')
     items = [{'id':r[0],'photo':r[1],'description':r[2]} for r in c.fetchall()]
@@ -133,7 +131,7 @@ def api_gallery_add():
     fn = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{f.filename}")
     f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
-    c.execute('INSERT INTO gallery (photo, description) VALUES (?, ?)', (f'static/uploads/{fn}', request.form.get('description','')))
+    c.execute('INSERT INTO gallery (photo, description) VALUES (?,?)', (f'static/uploads/{fn}', request.form.get('description','')))
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
@@ -148,7 +146,7 @@ def api_gallery_del(id):
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
-# CERTIFICATES API
+# CERTIFICATES
 @app.route('/api/certificates', methods=['GET'])
 def api_certs():
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
@@ -163,7 +161,7 @@ def api_certs_add():
     fn = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{f.filename}")
     f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
-    c.execute('INSERT INTO certificates (photo, title, description, organization, year, course) VALUES (?,?,?,?,?,?)',
+    c.execute('INSERT INTO certificates (photo,title,description,organization,year,course) VALUES (?,?,?,?,?,?)',
               (f'static/uploads/{fn}', request.form.get('title',''), request.form.get('description',''), request.form.get('organization',''), request.form.get('year',''), request.form.get('course','1')))
     conn.commit(); conn.close()
     return jsonify({'success':True})
@@ -179,7 +177,7 @@ def api_certs_del(id):
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
-# WORKS API
+# WORKS
 @app.route('/api/works', methods=['GET'])
 def api_works():
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
@@ -197,7 +195,7 @@ def api_works_add():
         f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
         fp = f'static/uploads/{fn}'
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
-    c.execute('INSERT INTO works (title, description, icon, file_path) VALUES (?,?,?,?)',
+    c.execute('INSERT INTO works (title,description,icon,file_path) VALUES (?,?,?,?)',
               (request.form.get('title',''), request.form.get('description',''), request.form.get('icon','fa-code'), fp))
     conn.commit(); conn.close()
     return jsonify({'success':True})
@@ -213,7 +211,7 @@ def api_works_del(id):
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
-# TECHSTACK API
+# TECHSTACK
 @app.route('/api/techstack', methods=['GET'])
 def api_ts():
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
@@ -228,7 +226,7 @@ def api_ts_add():
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
     c.execute('SELECT MAX(sort_order) FROM techstack WHERE category=?', (d.get('category',''),))
     mo = (c.fetchone()[0] or 0) + 1
-    c.execute('INSERT INTO techstack (category, name, icon, percent, subtitle, sort_order) VALUES (?,?,?,?,?,?)',
+    c.execute('INSERT INTO techstack (category,name,icon,percent,subtitle,sort_order) VALUES (?,?,?,?,?,?)',
               (d.get('category',''), d.get('name',''), d.get('icon','fa-code'), d.get('percent',50), d.get('subtitle',''), mo))
     conn.commit(); conn.close()
     return jsonify({'success':True})
@@ -251,7 +249,7 @@ def api_ts_del(id):
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
-# CATEGORIES API
+# CATEGORIES
 @app.route('/api/categories', methods=['GET'])
 def api_cats():
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
@@ -266,7 +264,7 @@ def api_cats_add():
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
     c.execute('SELECT MAX(sort_order) FROM categories')
     mo = (c.fetchone()[0] or 0) + 1
-    c.execute('INSERT INTO categories (name, sort_order) VALUES (?,?)', (d.get('name',''), mo))
+    c.execute('INSERT INTO categories (name,sort_order) VALUES (?,?)', (d.get('name',''), mo))
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
@@ -275,7 +273,7 @@ def api_cats_upd(id):
     if 'logged_in' not in session: return jsonify({'error':'Auth'}), 401
     d = request.get_json()
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
-    c.execute('UPDATE categories SET name=?, sort_order=? WHERE id=?', (d.get('name',''), d.get('sort_order',0), id))
+    c.execute('UPDATE categories SET name=?,sort_order=? WHERE id=?', (d.get('name',''), d.get('sort_order',0), id))
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
@@ -297,50 +295,11 @@ def api_avatar():
     fn = secure_filename(f"avatar_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg")
     f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
-    c.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)', ('avatar', f'static/uploads/{fn}'))
+    c.execute('INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)', ('avatar', f'static/uploads/{fn}'))
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
-# MUSIC API
-@app.route('/api/music', methods=['GET'])
-def api_music_list():
-    conn = sqlite3.connect('portfolio.db')
-    c = conn.cursor()
-    c.execute('SELECT * FROM music ORDER BY sort_order ASC')
-    items = [{'id': r[0], 'title': r[1], 'file_path': r[2], 'sort_order': r[3]} for r in c.fetchall()]
-    conn.close()
-    return jsonify(items)
-
-@app.route('/api/music', methods=['POST'])
-def api_music_add():
-    if 'logged_in' not in session: return jsonify({'error': 'Auth'}), 401
-    if 'file' not in request.files: return jsonify({'error': 'No file'}), 400
-    f = request.files['file']
-    if f.filename == '': return jsonify({'error': 'Empty'}), 400
-    fn = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{f.filename}")
-    f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
-    conn = sqlite3.connect('portfolio.db')
-    c = conn.cursor()
-    c.execute('SELECT MAX(sort_order) FROM music')
-    mo = (c.fetchone()[0] or 0) + 1
-    c.execute('INSERT INTO music (title, file_path, sort_order) VALUES (?, ?, ?)',
-              (request.form.get('title', fn), f'static/uploads/{fn}', mo))
-    conn.commit(); conn.close()
-    return jsonify({'success': True})
-
-@app.route('/api/music/<int:id>', methods=['DELETE'])
-def api_music_del(id):
-    if 'logged_in' not in session: return jsonify({'error': 'Auth'}), 401
-    conn = sqlite3.connect('portfolio.db')
-    c = conn.cursor()
-    c.execute('SELECT file_path FROM music WHERE id=?', (id,))
-    row = c.fetchone()
-    if row and os.path.exists(row[0]): os.remove(row[0])
-    c.execute('DELETE FROM music WHERE id=?', (id,))
-    conn.commit(); conn.close()
-    return jsonify({'success': True})
-
-# CHANGE PASSWORD
+# PASSWORD
 @app.route('/api/change-password', methods=['POST'])
 def api_chpass():
     if 'logged_in' not in session: return jsonify({'error':'Auth'}), 401
@@ -348,6 +307,40 @@ def api_chpass():
     if len(d.get('password','')) < 3: return jsonify({'error':'Короткий'}), 400
     conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
     c.execute('UPDATE users SET password=? WHERE username=?', (d['password'], session['username']))
+    conn.commit(); conn.close()
+    return jsonify({'success':True})
+
+# MUSIC
+@app.route('/api/music', methods=['GET'])
+def api_music():
+    conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
+    c.execute('SELECT * FROM music ORDER BY sort_order ASC')
+    items = [{'id':r[0],'title':r[1],'file_path':r[2],'sort_order':r[3]} for r in c.fetchall()]
+    conn.close(); return jsonify(items)
+
+@app.route('/api/music', methods=['POST'])
+def api_music_add():
+    if 'logged_in' not in session: return jsonify({'error':'Auth'}), 401
+    f = request.files['file']
+    if f.filename == '': return jsonify({'error':'Empty'}), 400
+    fn = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{f.filename}")
+    f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
+    conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
+    c.execute('SELECT MAX(sort_order) FROM music')
+    mo = (c.fetchone()[0] or 0) + 1
+    c.execute('INSERT INTO music (title,file_path,sort_order) VALUES (?,?,?)',
+              (request.form.get('title',fn), f'static/uploads/{fn}', mo))
+    conn.commit(); conn.close()
+    return jsonify({'success':True})
+
+@app.route('/api/music/<int:id>', methods=['DELETE'])
+def api_music_del(id):
+    if 'logged_in' not in session: return jsonify({'error':'Auth'}), 401
+    conn = sqlite3.connect('portfolio.db'); c = conn.cursor()
+    c.execute('SELECT file_path FROM music WHERE id=?', (id,))
+    row = c.fetchone()
+    if row and os.path.exists(row[0]): os.remove(row[0])
+    c.execute('DELETE FROM music WHERE id=?', (id,))
     conn.commit(); conn.close()
     return jsonify({'success':True})
 
