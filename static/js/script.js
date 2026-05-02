@@ -573,7 +573,7 @@ function initDogBoat(){
 }
 
 // ═══════════════════════════════════════════
-// МАГИЧЕСКИЕ ПУЗЫРИ — GOD MODE
+// ПУЗЫРИ — ТРАНСЦЕНДЕНТНЫЙ УРОВЕНЬ
 // ═══════════════════════════════════════════
 function initBubbleGame() {
     const canvas = document.getElementById('bubbleCanvas');
@@ -581,66 +581,113 @@ function initBubbleGame() {
     if (!canvas || !section) return;
 
     const ctx = canvas.getContext('2d');
+    let width, height;
 
     function resize() {
-        canvas.width = section.offsetWidth;
-        canvas.height = section.offsetHeight;
+        width = section.offsetWidth;
+        height = section.offsetHeight;
+        canvas.width = width;
+        canvas.height = height;
     }
     resize();
     window.addEventListener('resize', resize);
 
     const bubbles = [];
     let popCount = 0;
-    let ambianceGlow = 0; // Общая атмосфера
+    let dimensionalRift = 0;
 
     function createBubble(fromBottom = false) {
-        const isGiant = Math.random() < 0.06;
+        const types = ['normal', 'giant', 'galaxy', 'quantum', 'void'];
+        const weights = [0.55, 0.06, 0.15, 0.15, 0.09];
+        const r = Math.random();
+        let type = 'normal';
+        let cum = 0;
+        for (let i = 0; i < types.length; i++) {
+            cum += weights[i];
+            if (r < cum) { type = types[i]; break; }
+        }
+
+        const sizes = {
+            normal: 5 + Math.random() * 14,
+            giant: 30 + Math.random() * 30,
+            galaxy: 18 + Math.random() * 25,
+            quantum: 8 + Math.random() * 12,
+            void: 12 + Math.random() * 18
+        };
+
+        const speeds = {
+            normal: 0.25 + Math.random() * 0.9,
+            giant: 0.1 + Math.random() * 0.3,
+            galaxy: 0.15 + Math.random() * 0.5,
+            quantum: 0.8 + Math.random() * 1.5,
+            void: 0.3 + Math.random() * 0.6
+        };
+
         return {
-            x: Math.random() * canvas.width,
-            y: fromBottom ? canvas.height + 60 : Math.random() * canvas.height,
-            size: isGiant ? 30 + Math.random() * 35 : 5 + Math.random() * 16,
-            speed: isGiant ? 0.12 + Math.random() * 0.35 : 0.25 + Math.random() * 0.9,
-            opacity: 0.18 + Math.random() * 0.28,
-            hue: 180 + Math.random() * 60,
+            x: Math.random() * width,
+            y: fromBottom ? height + 60 : Math.random() * height,
+            size: sizes[type],
+            speed: speeds[type],
+            opacity: 0.15 + Math.random() * 0.3,
+            hue: type === 'void' ? 270 + Math.random() * 40 : 180 + Math.random() * 60,
             wobble: Math.random() * Math.PI * 2,
             wobbleSpeed: 0.004 + Math.random() * 0.022,
             popped: false,
             pieces: [],
             popStart: 0,
-            isGiant: isGiant,
-            innerFire: Math.random() * Math.PI * 2,
-            sparkTimer: Math.random() * 100
+            type: type,
+            innerRotation: Math.random() * Math.PI * 2,
+            sparkTimer: 0,
+            rings: [], // Квантовые кольца
+            galaxyArms: []
         };
     }
 
-    for (let i = 0; i < 28; i++) bubbles.push(createBubble());
+    for (let i = 0; i < 30; i++) bubbles.push(createBubble());
 
     function popBubble(b) {
         if (b.popped) return;
         b.popped = true;
         b.popStart = performance.now();
 
-        const count = b.isGiant ? 30 : 14;
+        // Разные эффекты для разных типов
+        const counts = { normal: 14, giant: 28, galaxy: 22, quantum: 35, void: 18 };
+        const count = counts[b.type];
         b.pieces = [];
+
         for (let i = 0; i < count; i++) {
             const angle = (Math.PI * 2 / count) * i;
-            const speed = b.isGiant ? 3 + Math.random() * 10 : 1.5 + Math.random() * 6;
+            const speed = b.type === 'quantum' ? 5 + Math.random() * 12 :
+                          b.type === 'void' ? 2 + Math.random() * 15 :
+                          b.type === 'giant' ? 3 + Math.random() * 10 :
+                          b.type === 'galaxy' ? 2 + Math.random() * 7 :
+                          1.5 + Math.random() * 5;
             b.pieces.push({
                 x: b.x, y: b.y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
                 size: b.size * (0.06 + Math.random() * 0.25),
                 life: 1,
-                hue: b.hue + Math.random() * 80 - 40
+                hue: b.hue + Math.random() * 120 - 60,
+                spin: (Math.random() - 0.5) * 0.3
             });
+        }
+
+        // Квантовые кольца
+        if (b.type === 'quantum' || b.type === 'galaxy') {
+            for (let i = 0; i < 3; i++) {
+                b.rings.push({ radius: 0, maxRadius: b.size * (1.5 + i), life: 1, hue: b.hue + i * 30 });
+            }
+        }
+
+        // Войд-эффект
+        if (b.type === 'void') {
+            dimensionalRift = Math.max(dimensionalRift, 1);
         }
 
         popCount++;
         const el = document.getElementById('bubbleCount');
         if (el) el.textContent = popCount;
-
-        // Взрывная вспышка
-        ambianceGlow = 1;
 
         if (popCount % 20 === 0 && window.triggerTsunami) {
             window.triggerTsunami();
@@ -652,130 +699,196 @@ function initBubbleGame() {
     function drawBubbles() {
         const now = performance.now();
         const bass = smoothBass || 0;
-        const energy = bass * 0.7 + ambianceGlow * 0.3;
+        const energy = bass * 0.7 + dimensionalRift * 0.3;
 
-        // Затухание вспышки
-        ambianceGlow *= 0.95;
+        dimensionalRift *= 0.94;
 
-        // Фоновая магическая дымка
-        if (energy > 0.05) {
-            const haze = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width * 0.7);
-            haze.addColorStop(0, `rgba(0, 200, 255, ${energy * 0.06})`);
-            haze.addColorStop(1, 'rgba(0, 200, 255, 0)');
+        // Фоновая магия
+        if (energy > 0.03) {
+            const haze = ctx.createRadialGradient(width/2, height/2, 30, width/2, height/2, width * 0.8);
+            haze.addColorStop(0, `rgba(0, 220, 255, ${energy * 0.08})`);
+            haze.addColorStop(0.5, `rgba(120, 0, 255, ${energy * 0.04})`);
+            haze.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = haze;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // Дрожание пространства
+        if (dimensionalRift > 0.3) {
+            ctx.save();
+            ctx.translate((Math.random()-0.5)*dimensionalRift*10, (Math.random()-0.5)*dimensionalRift*10);
         }
 
         bubbles.forEach(b => {
             if (b.popped) {
                 const elapsed = (now - b.popStart) / 1000;
-                if (elapsed > 2) {
+                if (elapsed > 2.5) {
                     Object.assign(b, createBubble(true));
                     return;
                 }
 
-                // Осколки с магическим свечением
+                // Частицы
                 b.pieces.forEach(p => {
                     p.x += p.vx;
                     p.y += p.vy;
-                    p.vy += 0.04;
-                    p.life = Math.max(0, 1 - elapsed / 2);
+                    p.vy += 0.03;
+                    p.vx += p.spin;
+                    p.life = Math.max(0, 1 - elapsed / 2.5);
                     if (p.life > 0) {
-                        // Свечение
-                        ctx.shadowColor = `hsla(${p.hue}, 80%, 60%, ${p.life * 0.8})`;
-                        ctx.shadowBlur = 6;
-                        ctx.fillStyle = `hsla(${p.hue}, 70%, 70%, ${p.life * 0.9})`;
+                        ctx.shadowColor = `hsla(${p.hue}, 90%, 65%, ${p.life * 0.9})`;
+                        ctx.shadowBlur = 8 + energy * 12;
+                        ctx.fillStyle = `hsla(${p.hue}, 80%, 70%, ${p.life * 0.9})`;
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
                         ctx.fill();
                         ctx.shadowBlur = 0;
 
-                        // Искорка внутри
                         ctx.fillStyle = `rgba(255, 255, 255, ${p.life})`;
                         ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.size * p.life * 0.4, 0, Math.PI * 2);
+                        ctx.arc(p.x, p.y, p.size * p.life * 0.3, 0, Math.PI * 2);
                         ctx.fill();
                     }
                 });
+
+                // Квантовые кольца
+                b.rings.forEach(ring => {
+                    ring.radius += (ring.maxRadius - ring.radius) * 0.15;
+                    ring.life -= 0.025;
+                    if (ring.life > 0) {
+                        ctx.strokeStyle = `hsla(${ring.hue}, 90%, 65%, ${ring.life * 0.6})`;
+                        ctx.lineWidth = 2;
+                        ctx.shadowColor = `hsla(${ring.hue}, 100%, 60%, ${ring.life * 0.8})`;
+                        ctx.shadowBlur = 15;
+                        ctx.beginPath();
+                        ctx.arc(b.x, b.y, ring.radius, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
+                    }
+                });
+
                 return;
             }
 
-            // Движение под музыку
-            const bassBoost = 1 + bass * 2.5;
-            b.y -= b.speed * bassBoost;
-            b.x += Math.sin(b.wobble) * (0.6 + bass * 2);
-            b.wobble += b.wobbleSpeed * (1 + bass * 3);
-            b.innerFire += 0.03;
+            // Движение с музыкой
+            const boost = 1 + bass * 3;
+            b.y -= b.speed * boost;
+            b.x += Math.sin(b.wobble) * (0.7 + bass * 2.5);
+            b.wobble += b.wobbleSpeed * boost;
+            b.innerRotation += 0.02 * boost;
 
-            if (b.y < -80) Object.assign(b, createBubble(true));
-            if (b.x < -30) b.x = canvas.width + 30;
-            if (b.x > canvas.width + 30) b.x = -30;
+            if (b.y < -80) b.y = height + 50;
+            if (b.y > height + 80) b.y = -50;
+            if (b.x < -60) b.x = width + 60;
+            if (b.x > width + 60) b.x = -60;
 
-            const hueShift = Math.sin(b.innerFire) * 25;
-            const currentHue = (b.hue + hueShift + 360) % 360;
-            const sizeBoost = 1 + Math.sin(b.innerFire * 1.3) * 0.1 * (bass + 1);
+            const hueShift = Math.sin(b.innerRotation) * 30;
+            const hue = (b.hue + hueShift + 360) % 360;
+            const sizePulse = 1 + Math.sin(b.innerRotation * 1.5) * 0.12 * (bass + 1);
 
-            // Основной пузырь
-            const grad = ctx.createRadialGradient(
-                b.x - b.size * sizeBoost * 0.2, b.y - b.size * sizeBoost * 0.25, b.size * sizeBoost * 0.04,
-                b.x, b.y, b.size * sizeBoost
-            );
-            grad.addColorStop(0, `hsla(${currentHue}, 60%, 85%, ${b.opacity + 0.25 + bass * 0.2})`);
-            grad.addColorStop(0.5, `hsla(${currentHue}, 55%, 60%, ${b.opacity + 0.12 + bass * 0.1})`);
-            grad.addColorStop(1, `hsla(${currentHue}, 45%, 38%, ${b.opacity * 0.6})`);
+            // Тип-специфичные эффекты
+            if (b.type === 'void') {
+                // Чёрная дыра — засасывает свет
+                const voidGrad = ctx.createRadialGradient(b.x, b.y, b.size * 0.2, b.x, b.y, b.size * sizePulse);
+                voidGrad.addColorStop(0, 'rgba(40, 0, 60, 0.9)');
+                voidGrad.addColorStop(0.4, 'rgba(80, 0, 120, 0.5)');
+                voidGrad.addColorStop(0.7, `hsla(${hue}, 60%, 40%, 0.3)`);
+                voidGrad.addColorStop(1, `hsla(${hue}, 50%, 30%, 0.1)`);
+                ctx.fillStyle = voidGrad;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.size * sizePulse, 0, Math.PI * 2);
+                ctx.fill();
 
-            ctx.fillStyle = grad;
+                // Аккреционный диск
+                ctx.strokeStyle = `hsla(${hue}, 70%, 55%, ${0.5 + energy * 0.5})`;
+                ctx.lineWidth = 3;
+                ctx.shadowColor = `hsla(${hue}, 80%, 50%, 0.8)`;
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.ellipse(b.x, b.y, b.size * 0.9, b.size * 0.2, 0, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+            } else if (b.type === 'galaxy') {
+                // Галактика — спираль
+                const galGrad = ctx.createRadialGradient(b.x, b.y, b.size * 0.1, b.x, b.y, b.size * sizePulse);
+                galGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+                galGrad.addColorStop(0.2, `hsla(${hue}, 60%, 60%, 0.7)`);
+                galGrad.addColorStop(0.6, `hsla(${hue}, 50%, 35%, 0.3)`);
+                galGrad.addColorStop(1, 'rgba(0, 0, 50, 0.1)');
+                ctx.fillStyle = galGrad;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.size * sizePulse, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Спиральные рукава
+                for (let a = 0; a < 2; a++) {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${0.4 + energy * 0.4})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    for (let r = 0; r < b.size; r += 3) {
+                        const angle = b.innerRotation * 2 + a * Math.PI + r * 0.3;
+                        const sx = b.x + Math.cos(angle) * r * 0.7;
+                        const sy = b.y + Math.sin(angle) * r * 0.7;
+                        if (r === 0) ctx.moveTo(sx, sy);
+                        else ctx.lineTo(sx, sy);
+                    }
+                    ctx.stroke();
+                }
+
+            } else if (b.type === 'quantum') {
+                // Квантовый — дрожит и множится
+                for (let q = 0; q < 3; q++) {
+                    const qx = b.x + Math.sin(b.innerRotation * 3 + q * 2) * b.size * 0.25;
+                    const qy = b.y + Math.cos(b.innerRotation * 3 + q * 2) * b.size * 0.25;
+                    const qGrad = ctx.createRadialGradient(qx, qy, 0, qx, qy, b.size * sizePulse * 0.7);
+                    qGrad.addColorStop(0, `hsla(${hue}, 70%, 80%, 0.7)`);
+                    qGrad.addColorStop(1, `hsla(${hue}, 60%, 50%, 0.15)`);
+                    ctx.fillStyle = qGrad;
+                    ctx.beginPath();
+                    ctx.arc(qx, qy, b.size * sizePulse * 0.7, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+            } else {
+                // Обычный / гигант
+                const grad = ctx.createRadialGradient(
+                    b.x - b.size * 0.2, b.y - b.size * 0.25, b.size * 0.04,
+                    b.x, b.y, b.size * sizePulse
+                );
+                grad.addColorStop(0, `hsla(${hue}, 60%, 88%, ${b.opacity + 0.3 + bass * 0.2})`);
+                grad.addColorStop(0.5, `hsla(${hue}, 55%, 62%, ${b.opacity + 0.15})`);
+                grad.addColorStop(1, `hsla(${hue}, 45%, 38%, ${b.opacity * 0.5})`);
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.size * sizePulse, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Неоновая обводка
+            ctx.strokeStyle = `hsla(${hue}, 70%, 72%, ${b.opacity * 0.55 + bass * 0.45})`;
+            ctx.lineWidth = 1.8 + bass * 1.5;
+            ctx.shadowColor = `hsla(${hue}, 80%, 65%, ${b.opacity * 0.5 + bass * 0.3})`;
+            ctx.shadowBlur = 5 + bass * 10 + energy * 6;
             ctx.beginPath();
-            ctx.arc(b.x, b.y, b.size * sizeBoost, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Обводка с неоном
-            ctx.strokeStyle = `hsla(${currentHue}, 70%, 70%, ${b.opacity * 0.5 + bass * 0.4})`;
-            ctx.lineWidth = 1.5 + bass;
-            ctx.shadowColor = `hsla(${currentHue}, 80%, 65%, ${b.opacity * 0.6 + bass * 0.3})`;
-            ctx.shadowBlur = 4 + bass * 8;
+            ctx.arc(b.x, b.y, b.size * sizePulse, 0, Math.PI * 2);
             ctx.stroke();
             ctx.shadowBlur = 0;
 
-            // Гигантский пузырь — внутреннее пламя
-            if (b.isGiant) {
-                const innerGrad = ctx.createRadialGradient(b.x, b.y, b.size * 0.1, b.x, b.y, b.size * 0.55);
-                innerGrad.addColorStop(0, `rgba(255, 255, 255, ${0.3 + Math.sin(b.innerFire * 2) * 0.2})`);
-                innerGrad.addColorStop(0.5, `hsla(${currentHue}, 70%, 70%, 0.2)`);
-                innerGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = innerGrad;
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, b.size * 0.6, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Искорки внутри гиганта
-                b.sparkTimer += 0.1;
-                if (b.sparkTimer > 1) {
-                    b.sparkTimer = 0;
-                }
-                for (let s = 0; s < 3; s++) {
-                    const sx = b.x + Math.cos(b.innerFire * 3 + s * 2) * b.size * 0.4;
-                    const sy = b.y + Math.sin(b.innerFire * 2.5 + s * 2) * b.size * 0.35;
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                    ctx.beginPath();
-                    ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-
             // Блик
-            const blinkAlpha = b.opacity * 0.55 + bass * 0.4;
-            ctx.fillStyle = `rgba(255, 255, 255, ${blinkAlpha})`;
+            ctx.fillStyle = `rgba(255, 255, 255, ${b.opacity * 0.6 + bass * 0.4})`;
             ctx.beginPath();
-            ctx.arc(b.x - b.size * 0.18, b.y - b.size * 0.22, b.size * 0.16, 0, Math.PI * 2);
+            ctx.arc(b.x - b.size * 0.2, b.y - b.size * 0.25, b.size * 0.17, 0, Math.PI * 2);
             ctx.fill();
 
             // Второй блик
-            ctx.fillStyle = `rgba(255, 255, 255, ${blinkAlpha * 0.6})`;
+            ctx.fillStyle = `rgba(255, 255, 255, ${(b.opacity * 0.6 + bass * 0.4) * 0.7})`;
             ctx.beginPath();
-            ctx.arc(b.x + b.size * 0.1, b.y - b.size * 0.15, b.size * 0.08, 0, Math.PI * 2);
+            ctx.arc(b.x + b.size * 0.12, b.y - b.size * 0.18, b.size * 0.09, 0, Math.PI * 2);
             ctx.fill();
         });
+
+        if (dimensionalRift > 0.3) ctx.restore();
     }
 
     // Лопание
@@ -784,27 +897,15 @@ function initBubbleGame() {
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
         for (let i = 0; i < bubbles.length; i++) {
-            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 4) {
+            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 6) {
                 popBubble(bubbles[i]);
-            }
-        }
-    });
-
-    canvas.addEventListener('click', function(e) {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-        for (let i = 0; i < bubbles.length; i++) {
-            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 8) {
-                popBubble(bubbles[i]);
-                break;
             }
         }
     });
 
     function animate() {
         if (!canvas.isConnected) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, width, height);
         drawBubbles();
         requestAnimationFrame(animate);
     }
