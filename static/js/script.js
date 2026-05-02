@@ -573,7 +573,7 @@ function initDogBoat(){
 }
 
 // ═══════════════════════════════════════════
-// ГАРМОНИЧНАЯ ЭКОСИСТЕМА — МИР И ЛЮБОВЬ
+// МЕДИТАТИВНОЕ СВЕТОВОЕ ШОУ
 // ═══════════════════════════════════════════
 function initBubbleGame() {
     const canvas = document.getElementById('bubbleCanvas');
@@ -581,8 +581,8 @@ function initBubbleGame() {
     if (!canvas || !section) return;
 
     const ctx = canvas.getContext('2d');
-    let W, H, popCount = 0, globalTime = 0;
-    let mouseX = -100, mouseY = -100, mouseActive = false;
+    let W, H, time = 0, popCount = 0;
+    let mouseX = -100, mouseY = -100;
 
     function resize() {
         W = section.offsetWidth;
@@ -597,36 +597,144 @@ function initBubbleGame() {
         const r = canvas.getBoundingClientRect();
         mouseX = e.clientX - r.left;
         mouseY = e.clientY - r.top;
-        mouseActive = true;
     });
-    canvas.addEventListener('mouseleave', () => { mouseActive = false; });
 
-    let creatures = [];
-    const MAX_CREATURES = 45;
-    const INITIAL_COUNT = 30;
+    // Орбы — светящиеся шары
+    const orbs = [];
+    for (let i = 0; i < 12; i++) {
+        orbs.push({
+            x: W * 0.2 + Math.random() * W * 0.6,
+            y: H * 0.2 + Math.random() * H * 0.6,
+            baseX: 0, baseY: 0,
+            size: 30 + Math.random() * 50,
+            hue: (i / 12) * 360,
+            phase: Math.random() * Math.PI * 2,
+            speed: 0.3 + Math.random() * 0.7
+        });
+    }
+    orbs.forEach(o => { o.baseX = o.x; o.baseY = o.y; });
 
-    function createCreature(x, y, parentHue) {
-        return {
-            x: x || Math.random() * W,
-            y: y || Math.random() * H,
-            size: 4 + Math.random() * 8,
-            hue: parentHue !== undefined ? parentHue + (Math.random() - 0.5) * 30 : Math.random() * 360,
-            vx: (Math.random() - 0.5) * 0.3,
-            vy: (Math.random() - 0.5) * 0.3,
-            life: 1,
-            age: 0,
-            maxAge: 500 + Math.random() * 800,
-            energy: 0.4 + Math.random() * 0.4,
-            pulsePhase: Math.random() * Math.PI * 2,
-            trail: [],
-            canMate: false,
-            mateCooldown: 0
-        };
+    function draw() {
+        time += 0.016;
+        const bass = smoothBass || 0;
+        const energy = bass;
+
+        // Глубокий фон
+        const bgGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W*0.7);
+        bgGrad.addColorStop(0, `rgba(0, 30, 60, ${0.3 + energy * 0.3})`);
+        bgGrad.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // ══════════════════════════
+        // ОРБЫ — ПЛАВНОЕ ДВИЖЕНИЕ
+        // ══════════════════════════
+        orbs.forEach(o => {
+            // Плавное движение по кругу + реакция на музыку
+            const orbitR = 80 + energy * 150;
+            o.x = o.baseX + Math.cos(time * o.speed + o.phase) * orbitR;
+            o.y = o.baseY + Math.sin(time * o.speed * 0.7 + o.phase) * orbitR * 0.7;
+            
+            // Лёгкое притяжение к курсору
+            if (mouseX > 0 && mouseY > 0) {
+                const dx = mouseX - o.x, dy = mouseY - o.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < 200) {
+                    o.x += dx * 0.02;
+                    o.y += dy * 0.02;
+                }
+            }
+
+            // Многослойное свечение
+            for (let layer = 3; layer >= 0; layer--) {
+                const lr = o.size * (0.5 + layer * 0.5);
+                const alpha = (0.08 - layer * 0.015) * (1 + energy);
+                const glow = ctx.createRadialGradient(o.x, o.y, lr * 0.1, o.x, o.y, lr);
+                glow.addColorStop(0, `hsla(${o.hue}, 70%, 65%, ${alpha * 2})`);
+                glow.addColorStop(0.5, `hsla(${o.hue}, 60%, 50%, ${alpha})`);
+                glow.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(o.x, o.y, lr, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Ядро
+            const core = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.size * 0.4);
+            core.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+            core.addColorStop(0.3, `hsla(${o.hue}, 60%, 80%, 0.6)`);
+            core.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = core;
+            ctx.beginPath();
+            ctx.arc(o.x, o.y, o.size * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // ══════════════════════════
+        // СВЯЗИ МЕЖДУ ОРБАМИ
+        // ══════════════════════════
+        for (let i = 0; i < orbs.length; i++) {
+            for (let j = i + 1; j < orbs.length; j++) {
+                const dx = orbs[j].x - orbs[i].x;
+                const dy = orbs[j].y - orbs[i].y;
+                const dist = Math.hypot(dx, dy);
+                const maxDist = 250 + energy * 200;
+                
+                if (dist < maxDist) {
+                    const alpha = (1 - dist / maxDist) * (0.04 + energy * 0.08);
+                    const midHue = (orbs[i].hue + orbs[j].hue) / 2;
+                    ctx.strokeStyle = `hsla(${midHue}, 60%, 60%, ${alpha})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.shadowColor = `hsla(${midHue}, 70%, 55%, ${alpha})`;
+                    ctx.shadowBlur = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(orbs[i].x, orbs[i].y);
+                    ctx.lineTo(orbs[j].x, orbs[j].y);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        // ══════════════════════════
+        // ПАРЯЩИЕ ЧАСТИЦЫ
+        // ══════════════════════════
+        const particleCount = 30 + Math.floor(energy * 40);
+        for (let i = 0; i < particleCount; i++) {
+            const px = (Math.sin(time * 0.7 + i * 0.5) * 0.5 + 0.5) * W;
+            const py = (Math.cos(time * 0.6 + i * 0.4) * 0.5 + 0.5) * H;
+            const ps = 1 + Math.abs(Math.sin(time + i)) * 2;
+            const ph = (i / particleCount) * 360 + time * 20;
+            ctx.fillStyle = `hsla(${ph % 360}, 60%, 70%, ${0.3 + energy * 0.4})`;
+            ctx.shadowColor = `hsla(${ph % 360}, 70%, 60%, 0.5)`;
+            ctx.shadowBlur = 4;
+            ctx.beginPath();
+            ctx.arc(px, py, ps, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // ══════════════════════════
+        // ВСПЫШКИ ПРИ БАСАХ
+        // ══════════════════════════
+        if (energy > 0.35) {
+            const flashAlpha = (energy - 0.35) * 0.2;
+            const flash = ctx.createRadialGradient(W/2, H/2, W*0.2, W/2, H/2, W*0.8);
+            flash.addColorStop(0, `rgba(255, 255, 255, ${flashAlpha})`);
+            flash.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = flash;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        // Счётчик
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.font = '12px "Segoe UI", sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(`💫 ${popCount}`, W - 20, 30);
     }
 
-    for (let i = 0; i < INITIAL_COUNT; i++) creatures.push(createCreature());
-
-    function popCreature(c) {
+    // Клик по холсту — вспышка
+    canvas.addEventListener('click', e => {
         popCount++;
         const el = document.getElementById('bubbleCount');
         if (el) el.textContent = popCount;
@@ -635,187 +743,16 @@ function initBubbleGame() {
             const a = document.getElementById('tsunamiAlert');
             if (a) { a.classList.add('show'); setTimeout(() => a.classList.remove('show'), 2000); }
         }
-    }
-
-    function drawEcosystem() {
-        globalTime += 0.016;
-        const bass = smoothBass || 0;
-        const energy = bass;
-
-        ctx.fillStyle = `rgba(0, 160, 220, ${0.02 + energy * 0.04})`;
-        ctx.fillRect(0, 0, W, H);
-
-        // Обновление
-        creatures.forEach(c => {
-            c.age++;
-            c.pulsePhase += 0.02;
-            c.energy -= 0.0001;
-            c.life = Math.max(0, 1 - (c.age / c.maxAge));
-            if (c.mateCooldown > 0) c.mateCooldown--;
-            c.canMate = c.energy > 0.5 && c.mateCooldown <= 0 && creatures.length < MAX_CREATURES;
-        });
-
-        // Мягкие взаимодействия
-        for (let i = 0; i < creatures.length; i++) {
-            for (let j = i + 1; j < creatures.length; j++) {
-                const a = creatures[i], b = creatures[j];
-                const dx = b.x - a.x, dy = b.y - a.y;
-                const dist = Math.hypot(dx, dy) || 1;
-                const range = 50 + energy * 80;
-
-                if (dist < range) {
-                    const strength = (1 - dist / range) * 0.005 * (1 + energy);
-                    const angle = Math.atan2(dy, dx);
-
-                    // Мягкое удержание вместе (стайный инстинкт)
-                    const eq = 35 + energy * 40;
-                    const dir = dist < eq ? -1 : 1;
-                    a.vx += Math.cos(angle) * strength * dir * 0.5;
-                    a.vy += Math.sin(angle) * strength * dir * 0.5;
-                    b.vx -= Math.cos(angle) * strength * dir * 0.5;
-                    b.vy -= Math.sin(angle) * strength * dir * 0.5;
-
-                    // Редкое размножение
-                    if (a.canMate && b.canMate && dist < 15 && creatures.length < MAX_CREATURES) {
-                        const child = createCreature(
-                            (a.x + b.x) / 2 + (Math.random() - 0.5) * 20,
-                            (a.y + b.y) / 2 + (Math.random() - 0.5) * 20,
-                            (a.hue + b.hue) / 2
-                        );
-                        child.size = 2.5;
-                        child.energy = 0.4;
-                        creatures.push(child);
-                        a.energy -= 0.15;
-                        b.energy -= 0.15;
-                        a.mateCooldown = 200;
-                        b.mateCooldown = 200;
-                    }
-                }
-            }
-        }
-
-        // Реакция на курсор — мягкое избегание
-        if (mouseActive) {
-            creatures.forEach(c => {
-                const dx = mouseX - c.x, dy = mouseY - c.y;
-                const dist = Math.hypot(dx, dy);
-                if (dist < 80) {
-                    const flee = (1 - dist / 80) * 0.2;
-                    c.vx -= (dx / dist) * flee;
-                    c.vy -= (dy / dist) * flee;
-                }
-            });
-        }
-
-        // Движение
-        creatures.forEach(c => {
-            c.vx += (Math.random() - 0.5) * 0.03;
-            c.vy += (Math.random() - 0.5) * 0.03;
-            c.vx *= 0.995;
-            c.vy *= 0.995;
-            c.x += c.vx;
-            c.y += c.vy;
-
-            if (c.x < 30) { c.x = 30; c.vx *= -0.3; }
-            if (c.x > W - 30) { c.x = W - 30; c.vx *= -0.3; }
-            if (c.y < 30) { c.y = 30; c.vy *= -0.3; }
-            if (c.y > H - 30) { c.y = H - 30; c.vy *= -0.3; }
-
-            c.trail.push({ x: c.x, y: c.y, size: c.size, life: 1 });
-            if (c.trail.length > 4) c.trail.shift();
-            c.trail.forEach(t => t.life -= 0.05);
-        });
-
-        // Смерть
-        for (let i = creatures.length - 1; i >= 0; i--) {
-            if (creatures[i].life <= 0 && creatures.length > 15) {
-                const dead = creatures[i];
-                for (let s = 0; s < 6; s++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const spark = createCreature(dead.x, dead.y, dead.hue);
-                    spark.size = 1.5;
-                    spark.vx = Math.cos(angle) * 1.5;
-                    spark.vy = Math.sin(angle) * 1.5;
-                    spark.maxAge = 150;
-                    spark.energy = 0.3;
-                    creatures.push(spark);
-                }
-                creatures.splice(i, 1);
-            }
-        }
-
-        // Поддержание
-        if (creatures.length < 15 && Math.random() < 0.05) creatures.push(createCreature());
-
-        // ОТРИСОВКА
-        creatures.forEach(c => {
-            c.trail.forEach((t, idx) => {
-                if (t.life > 0) {
-                    ctx.fillStyle = `hsla(${c.hue}, 50%, 55%, ${t.life * 0.15})`;
-                    ctx.beginPath();
-                    ctx.arc(t.x, t.y, t.size * (idx / 4) * 0.6, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            });
-        });
-
-        // Лёгкие связи
-        for (let i = 0; i < creatures.length; i++) {
-            for (let j = i + 1; j < creatures.length; j++) {
-                const a = creatures[i], b = creatures[j];
-                const dist = Math.hypot(b.x - a.x, b.y - a.y);
-                if (dist < 50 + energy * 70) {
-                    const alpha = (1 - dist / (50 + energy * 70)) * 0.05;
-                    ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-                    ctx.lineWidth = 0.3;
-                    ctx.beginPath();
-                    ctx.moveTo(a.x, a.y);
-                    ctx.lineTo(b.x, b.y);
-                    ctx.stroke();
-                }
-            }
-        }
-
-        creatures.forEach(c => {
-            const sp = c.size * (0.9 + 0.2 * Math.sin(c.pulsePhase));
-            const glow = ctx.createRadialGradient(c.x, c.y, sp * 0.3, c.x, c.y, sp * 1.8);
-            glow.addColorStop(0, `hsla(${c.hue}, 60%, 55%, ${c.energy * 0.4})`);
-            glow.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = glow;
-            ctx.beginPath();
-            ctx.arc(c.x, c.y, sp * 1.8, 0, Math.PI * 2);
-            ctx.fill();
-
-            const grad = ctx.createRadialGradient(c.x - sp*0.2, c.y - sp*0.2, sp*0.05, c.x, c.y, sp);
-            grad.addColorStop(0, `hsla(${c.hue}, 55%, 85%, 0.8)`);
-            grad.addColorStop(0.5, `hsla(${c.hue}, 50%, 60%, 0.5)`);
-            grad.addColorStop(1, `hsla(${c.hue}, 40%, 30%, 0.2)`);
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(c.x, c.y, sp, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = `hsla(${c.hue}, 70%, 70%, ${0.3 + c.energy*0.3})`;
-            ctx.lineWidth = 0.8;
-            ctx.beginPath();
-            ctx.arc(c.x, c.y, sp, 0, Math.PI * 2);
-            ctx.stroke();
-
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(c.x - sp*0.2, c.y - sp*0.2, sp*0.2, 0, Math.PI*2);
-            ctx.fill();
-        });
-    }
+    });
 
     function animate() {
         if (!canvas.isConnected) return;
-        ctx.clearRect(0, 0, W, H);
-        drawEcosystem();
+        draw();
         requestAnimationFrame(animate);
     }
     animate();
 }
+
 // ═══════════════════════════════════════════
 // ДОП СТИЛИ
 // ═══════════════════════════════════════════
