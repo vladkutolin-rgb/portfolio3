@@ -573,7 +573,7 @@ function initDogBoat(){
 }
 
 // ═══════════════════════════════════════════
-// ЖИВАЯ ЭКОСИСТЕМА ПУЗЫРЕЙ — BECOME GOD
+// ГАРМОНИЧНАЯ ЭКОСИСТЕМА — МИР И ЛЮБОВЬ
 // ═══════════════════════════════════════════
 function initBubbleGame() {
     const canvas = document.getElementById('bubbleCanvas');
@@ -582,8 +582,7 @@ function initBubbleGame() {
 
     const ctx = canvas.getContext('2d');
     let W, H, popCount = 0, globalTime = 0;
-    let mouseX = -100, mouseY = -100;
-    let mouseActive = false;
+    let mouseX = -100, mouseY = -100, mouseActive = false;
 
     function resize() {
         W = section.offsetWidth;
@@ -594,7 +593,6 @@ function initBubbleGame() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Отслеживаем мышь
     canvas.addEventListener('mousemove', e => {
         const r = canvas.getBoundingClientRect();
         mouseX = e.clientX - r.left;
@@ -604,33 +602,29 @@ function initBubbleGame() {
     canvas.addEventListener('mouseleave', () => { mouseActive = false; });
 
     let creatures = [];
-    const INITIAL_COUNT = 35;
+    const MAX_CREATURES = 45;
+    const INITIAL_COUNT = 30;
 
     function createCreature(x, y, parentHue) {
         return {
             x: x || Math.random() * W,
             y: y || Math.random() * H,
-            size: 3 + Math.random() * 10,
-            hue: parentHue || Math.random() * 360,
-            vx: (Math.random() - 0.5) * 0.8,
-            vy: (Math.random() - 0.5) * 0.8,
-            life: 1, // 0-1, умирает при 0
+            size: 4 + Math.random() * 8,
+            hue: parentHue !== undefined ? parentHue + (Math.random() - 0.5) * 30 : Math.random() * 360,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            life: 1,
             age: 0,
-            maxAge: 300 + Math.random() * 700,
-            energy: 0.5 + Math.random() * 0.5,
-            state: 'wander', // wander, flock, hunt, flee, mate, die
-            stateTimer: 0,
-            flockMate: null,
+            maxAge: 500 + Math.random() * 800,
+            energy: 0.4 + Math.random() * 0.4,
             pulsePhase: Math.random() * Math.PI * 2,
             trail: [],
-            children: 0
+            canMate: false,
+            mateCooldown: 0
         };
     }
 
-    // Создаём начальную популяцию
-    for (let i = 0; i < INITIAL_COUNT; i++) {
-        creatures.push(createCreature());
-    }
+    for (let i = 0; i < INITIAL_COUNT; i++) creatures.push(createCreature());
 
     function popCreature(c) {
         popCount++;
@@ -647,207 +641,131 @@ function initBubbleGame() {
         globalTime += 0.016;
         const bass = smoothBass || 0;
         const energy = bass;
-        const now = performance.now();
 
-        // Фон — дыхание вселенной
-        const bgAlpha = 0.03 + energy * 0.05;
-        ctx.fillStyle = `rgba(0, 180, 255, ${bgAlpha})`;
+        ctx.fillStyle = `rgba(0, 160, 220, ${0.02 + energy * 0.04})`;
         ctx.fillRect(0, 0, W, H);
 
-        // ═══════════════════════════════
-        // ОБНОВЛЕНИЕ СОСТОЯНИЙ
-        // ═══════════════════════════════
+        // Обновление
         creatures.forEach(c => {
             c.age++;
-            c.pulsePhase += 0.03;
-            
-            // Энергия тратится
-            c.energy -= 0.0002;
-            if (c.energy < 0.2) c.state = 'hunt';
-            if (c.energy > 0.7) c.state = 'mate';
-            
-            // Старение
-            c.life = 1 - (c.age / c.maxAge);
-            if (c.life <= 0) c.state = 'die';
-            
-            // Музыка влияет
-            if (energy > 0.4) {
-                c.energy = Math.min(1, c.energy + energy * 0.01);
-                c.vx += (Math.random() - 0.5) * energy * 0.3;
-                c.vy += (Math.random() - 0.5) * energy * 0.3;
-            }
+            c.pulsePhase += 0.02;
+            c.energy -= 0.0001;
+            c.life = Math.max(0, 1 - (c.age / c.maxAge));
+            if (c.mateCooldown > 0) c.mateCooldown--;
+            c.canMate = c.energy > 0.5 && c.mateCooldown <= 0 && creatures.length < MAX_CREATURES;
         });
 
-        // ═══════════════════════════════
-        // ВЗАИМОДЕЙСТВИЯ
-        // ═══════════════════════════════
+        // Мягкие взаимодействия
         for (let i = 0; i < creatures.length; i++) {
             for (let j = i + 1; j < creatures.length; j++) {
                 const a = creatures[i], b = creatures[j];
                 const dx = b.x - a.x, dy = b.y - a.y;
                 const dist = Math.hypot(dx, dy) || 1;
-                const interactionRange = 70 + energy * 150;
+                const range = 50 + energy * 80;
 
-                if (dist < interactionRange) {
-                    const strength = (1 - dist / interactionRange) * 0.015 * (1 + energy * 2);
+                if (dist < range) {
+                    const strength = (1 - dist / range) * 0.005 * (1 + energy);
                     const angle = Math.atan2(dy, dx);
 
-                    // ХИЩНИК-ЖЕРТВА: голодный охотится на сытого
-                    if (a.energy < 0.3 && b.energy > 0.5) {
-                        a.vx += Math.cos(angle) * strength * 3;
-                        a.vy += Math.sin(angle) * strength * 3;
-                        b.vx -= Math.cos(angle) * strength * 2;
-                        b.vy -= Math.sin(angle) * strength * 2;
-                        if (dist < 15) {
-                            a.energy += 0.3;
-                            b.energy -= 0.3;
-                            popCreature(b);
-                            a.size += 1;
-                            b.size = Math.max(1, b.size - 1);
-                        }
-                    } else if (b.energy < 0.3 && a.energy > 0.5) {
-                        b.vx += Math.cos(angle + Math.PI) * strength * 3;
-                        b.vy += Math.sin(angle + Math.PI) * strength * 3;
-                        a.vx -= Math.cos(angle + Math.PI) * strength * 2;
-                        a.vy -= Math.sin(angle + Math.PI) * strength * 2;
-                        if (dist < 15) {
-                            b.energy += 0.3;
-                            a.energy -= 0.3;
-                            popCreature(a);
-                            b.size += 1;
-                            a.size = Math.max(1, a.size - 1);
-                        }
-                    }
-                    // СТАЯ: держатся вместе
-                    else if (Math.abs(a.energy - b.energy) < 0.3) {
-                        const eq = 25 + energy * 50;
-                        const dir = dist < eq ? -1 : 1;
-                        a.vx += Math.cos(angle) * strength * dir;
-                        a.vy += Math.sin(angle) * strength * dir;
-                        b.vx -= Math.cos(angle) * strength * dir;
-                        b.vy -= Math.sin(angle) * strength * dir;
-                    }
-                    // РАЗМНОЖЕНИЕ
-                    else if (a.energy > 0.7 && b.energy > 0.7 && dist < 20 && creatures.length < 60) {
-                        if (a.children < 3 && b.children < 3) {
-                            const child = createCreature(
-                                (a.x + b.x) / 2 + (Math.random() - 0.5) * 30,
-                                (a.y + b.y) / 2 + (Math.random() - 0.5) * 30,
-                                (a.hue + b.hue) / 2
-                            );
-                            child.size = 2;
-                            child.energy = 0.4;
-                            creatures.push(child);
-                            a.energy -= 0.2;
-                            b.energy -= 0.2;
-                            a.children++;
-                            b.children++;
-                        }
+                    // Мягкое удержание вместе (стайный инстинкт)
+                    const eq = 35 + energy * 40;
+                    const dir = dist < eq ? -1 : 1;
+                    a.vx += Math.cos(angle) * strength * dir * 0.5;
+                    a.vy += Math.sin(angle) * strength * dir * 0.5;
+                    b.vx -= Math.cos(angle) * strength * dir * 0.5;
+                    b.vy -= Math.sin(angle) * strength * dir * 0.5;
+
+                    // Редкое размножение
+                    if (a.canMate && b.canMate && dist < 15 && creatures.length < MAX_CREATURES) {
+                        const child = createCreature(
+                            (a.x + b.x) / 2 + (Math.random() - 0.5) * 20,
+                            (a.y + b.y) / 2 + (Math.random() - 0.5) * 20,
+                            (a.hue + b.hue) / 2
+                        );
+                        child.size = 2.5;
+                        child.energy = 0.4;
+                        creatures.push(child);
+                        a.energy -= 0.15;
+                        b.energy -= 0.15;
+                        a.mateCooldown = 200;
+                        b.mateCooldown = 200;
                     }
                 }
             }
         }
 
-        // ═══════════════════════════════
-        // РЕАКЦИЯ НА КУРСОР (ХИЩНИК)
-        // ═══════════════════════════════
+        // Реакция на курсор — мягкое избегание
         if (mouseActive) {
             creatures.forEach(c => {
-                const dx = mouseX - c.x;
-                const dy = mouseY - c.y;
+                const dx = mouseX - c.x, dy = mouseY - c.y;
                 const dist = Math.hypot(dx, dy);
-                if (dist < 120) {
-                    const fleeForce = (1 - dist / 120) * 0.8;
-                    c.vx -= (dx / dist) * fleeForce;
-                    c.vy -= (dy / dist) * fleeForce;
+                if (dist < 80) {
+                    const flee = (1 - dist / 80) * 0.2;
+                    c.vx -= (dx / dist) * flee;
+                    c.vy -= (dy / dist) * flee;
                 }
             });
         }
 
-        // ═══════════════════════════════
-        // ДВИЖЕНИЕ И ГРАНИЦЫ
-        // ═══════════════════════════════
+        // Движение
         creatures.forEach(c => {
-            // Случайное блуждание
-            c.vx += (Math.random() - 0.5) * 0.05;
-            c.vy += (Math.random() - 0.5) * 0.05;
-            
-            // Трение
-            c.vx *= 0.99;
-            c.vy *= 0.99;
-            
+            c.vx += (Math.random() - 0.5) * 0.03;
+            c.vy += (Math.random() - 0.5) * 0.03;
+            c.vx *= 0.995;
+            c.vy *= 0.995;
             c.x += c.vx;
             c.y += c.vy;
-            
-            // Границы — отскок
-            if (c.x < 20) { c.x = 20; c.vx *= -0.5; }
-            if (c.x > W - 20) { c.x = W - 20; c.vx *= -0.5; }
-            if (c.y < 20) { c.y = 20; c.vy *= -0.5; }
-            if (c.y > H - 20) { c.y = H - 20; c.vy *= -0.5; }
-            
-            // Пульсация размера
-            const sizePulse = c.size * (0.9 + 0.2 * Math.sin(c.pulsePhase + c.energy * 5));
-            
-            // След
-            c.trail.push({ x: c.x, y: c.y, size: sizePulse, life: 1 });
-            if (c.trail.length > 5) c.trail.shift();
-            c.trail.forEach(t => t.life -= 0.04);
+
+            if (c.x < 30) { c.x = 30; c.vx *= -0.3; }
+            if (c.x > W - 30) { c.x = W - 30; c.vx *= -0.3; }
+            if (c.y < 30) { c.y = 30; c.vy *= -0.3; }
+            if (c.y > H - 30) { c.y = H - 30; c.vy *= -0.3; }
+
+            c.trail.push({ x: c.x, y: c.y, size: c.size, life: 1 });
+            if (c.trail.length > 4) c.trail.shift();
+            c.trail.forEach(t => t.life -= 0.05);
         });
 
-        // ═══════════════════════════════
-        // СМЕРТЬ И ВОЗРОЖДЕНИЕ
-        // ═══════════════════════════════
+        // Смерть
         for (let i = creatures.length - 1; i >= 0; i--) {
-            if (creatures[i].life <= 0) {
-                // Взрыв при смерти
+            if (creatures[i].life <= 0 && creatures.length > 15) {
                 const dead = creatures[i];
-                for (let s = 0; s < 12; s++) {
+                for (let s = 0; s < 6; s++) {
                     const angle = Math.random() * Math.PI * 2;
-                    const spark = createCreature(
-                        dead.x + Math.cos(angle) * 10,
-                        dead.y + Math.sin(angle) * 10,
-                        dead.hue
-                    );
-                    spark.size = 1;
+                    const spark = createCreature(dead.x, dead.y, dead.hue);
+                    spark.size = 1.5;
+                    spark.vx = Math.cos(angle) * 1.5;
+                    spark.vy = Math.sin(angle) * 1.5;
+                    spark.maxAge = 150;
                     spark.energy = 0.3;
-                    spark.vx = Math.cos(angle) * 3;
-                    spark.vy = Math.sin(angle) * 3;
-                    spark.maxAge = 100;
                     creatures.push(spark);
                 }
                 creatures.splice(i, 1);
-                popCreature(dead);
             }
         }
 
-        // Поддержание популяции
-        if (creatures.length < 20 && Math.random() < 0.1) {
-            creatures.push(createCreature());
-        }
+        // Поддержание
+        if (creatures.length < 15 && Math.random() < 0.05) creatures.push(createCreature());
 
-        // ═══════════════════════════════
         // ОТРИСОВКА
-        // ═══════════════════════════════
-
-        // Следы
         creatures.forEach(c => {
             c.trail.forEach((t, idx) => {
                 if (t.life > 0) {
-                    ctx.fillStyle = `hsla(${c.hue}, 60%, 60%, ${t.life * 0.2})`;
+                    ctx.fillStyle = `hsla(${c.hue}, 50%, 55%, ${t.life * 0.15})`;
                     ctx.beginPath();
-                    ctx.arc(t.x, t.y, t.size * (idx / 5) * 0.7, 0, Math.PI * 2);
+                    ctx.arc(t.x, t.y, t.size * (idx / 4) * 0.6, 0, Math.PI * 2);
                     ctx.fill();
                 }
             });
         });
 
-        // Связи стаи
+        // Лёгкие связи
         for (let i = 0; i < creatures.length; i++) {
             for (let j = i + 1; j < creatures.length; j++) {
                 const a = creatures[i], b = creatures[j];
                 const dist = Math.hypot(b.x - a.x, b.y - a.y);
-                if (dist < 60 + energy * 100) {
-                    const alpha = (1 - dist / (60 + energy * 100)) * 0.08;
+                if (dist < 50 + energy * 70) {
+                    const alpha = (1 - dist / (50 + energy * 70)) * 0.05;
                     ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
                     ctx.lineWidth = 0.3;
                     ctx.beginPath();
@@ -858,47 +776,34 @@ function initBubbleGame() {
             }
         }
 
-        // Сами существа
         creatures.forEach(c => {
-            const sizePulse = c.size * (0.9 + 0.2 * Math.sin(c.pulsePhase + c.energy * 5));
-            
-            // Свечение энергии
-            const glowAlpha = c.energy * 0.5;
-            const glow = ctx.createRadialGradient(c.x, c.y, sizePulse * 0.3, c.x, c.y, sizePulse * 2);
-            glow.addColorStop(0, `hsla(${c.hue}, 70%, 60%, ${glowAlpha})`);
+            const sp = c.size * (0.9 + 0.2 * Math.sin(c.pulsePhase));
+            const glow = ctx.createRadialGradient(c.x, c.y, sp * 0.3, c.x, c.y, sp * 1.8);
+            glow.addColorStop(0, `hsla(${c.hue}, 60%, 55%, ${c.energy * 0.4})`);
             glow.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = glow;
             ctx.beginPath();
-            ctx.arc(c.x, c.y, sizePulse * 2, 0, Math.PI * 2);
+            ctx.arc(c.x, c.y, sp * 1.8, 0, Math.PI * 2);
             ctx.fill();
 
-            // Тело
-            const grad = ctx.createRadialGradient(
-                c.x - sizePulse * 0.2, c.y - sizePulse * 0.2, sizePulse * 0.05,
-                c.x, c.y, sizePulse
-            );
-            grad.addColorStop(0, `hsla(${c.hue}, 60%, 85%, 0.85)`);
-            grad.addColorStop(0.5, `hsla(${c.hue}, 55%, 60%, 0.55)`);
-            grad.addColorStop(1, `hsla(${c.hue}, 45%, 32%, 0.2)`);
+            const grad = ctx.createRadialGradient(c.x - sp*0.2, c.y - sp*0.2, sp*0.05, c.x, c.y, sp);
+            grad.addColorStop(0, `hsla(${c.hue}, 55%, 85%, 0.8)`);
+            grad.addColorStop(0.5, `hsla(${c.hue}, 50%, 60%, 0.5)`);
+            grad.addColorStop(1, `hsla(${c.hue}, 40%, 30%, 0.2)`);
             ctx.fillStyle = grad;
             ctx.beginPath();
-            ctx.arc(c.x, c.y, sizePulse, 0, Math.PI * 2);
+            ctx.arc(c.x, c.y, sp, 0, Math.PI * 2);
             ctx.fill();
 
-            // Обводка
-            ctx.strokeStyle = `hsla(${c.hue}, 80%, 70%, ${0.4 + c.energy * 0.4})`;
-            ctx.lineWidth = 1 + c.energy;
-            ctx.shadowColor = `hsla(${c.hue}, 90%, 60%, ${0.5 + c.energy * 0.3})`;
-            ctx.shadowBlur = 3 + c.energy * 8;
+            ctx.strokeStyle = `hsla(${c.hue}, 70%, 70%, ${0.3 + c.energy*0.3})`;
+            ctx.lineWidth = 0.8;
             ctx.beginPath();
-            ctx.arc(c.x, c.y, sizePulse, 0, Math.PI * 2);
+            ctx.arc(c.x, c.y, sp, 0, Math.PI * 2);
             ctx.stroke();
-            ctx.shadowBlur = 0;
 
-            // Глаз (блик)
             ctx.fillStyle = 'white';
             ctx.beginPath();
-            ctx.arc(c.x - sizePulse * 0.2, c.y - sizePulse * 0.2, sizePulse * 0.22, 0, Math.PI * 2);
+            ctx.arc(c.x - sp*0.2, c.y - sp*0.2, sp*0.2, 0, Math.PI*2);
             ctx.fill();
         });
     }
@@ -911,7 +816,6 @@ function initBubbleGame() {
     }
     animate();
 }
-
 // ═══════════════════════════════════════════
 // ДОП СТИЛИ
 // ═══════════════════════════════════════════
