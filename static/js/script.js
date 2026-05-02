@@ -296,7 +296,7 @@ window.addEventListener('scroll', () => {
 });
 
 // ═══════════════════════════════════════════
-// ВОДОПАДЫ + РЕКА + СОБАЧКА В ЛОДКЕ
+// ВОДОПАДЫ + РЕКА
 // ═══════════════════════════════════════════
 
 function initWaterfallGame() {
@@ -316,16 +316,16 @@ function initWaterfallGame() {
     const leftWaterfall = [];
     const rightWaterfall = [];
     const riverDrops = [];
-    const maxDrops = 80;
+    const maxDrops = 70;
     
     function createDrop(side) {
         return {
             x: side === 'left' ? canvas.width * 0.08 + (Math.random() - 0.5) * 40 :
                 canvas.width * 0.92 + (Math.random() - 0.5) * 40,
             y: Math.random() * canvas.height * 0.4,
-            speed: 2 + Math.random() * 4,
+            speed: 1.5 + Math.random() * 3,
             size: 2 + Math.random() * 4,
-            opacity: 0.3 + Math.random() * 0.5,
+            opacity: 0.25 + Math.random() * 0.45,
             splashed: false
         };
     }
@@ -336,41 +336,33 @@ function initWaterfallGame() {
     }
     
     let waveOffset = 0;
+    let tsunamiHeight = 0;
+    window.currentTsunami = 0;
     
     function drawRiverWaves() {
-        const riverY = canvas.height * 0.78;
-        const waveHeight = 12;
+        const riverY = canvas.height * 0.78 + tsunamiHeight * 0.3;
+        const waveHeight = 12 + tsunamiHeight * 0.5;
         
         for (let x = 0; x < canvas.width; x += 2) {
             const y = riverY + Math.sin((x + waveOffset) / 150) * waveHeight +
                       Math.cos((x - waveOffset * 0.7) / 100) * waveHeight * 0.6;
-            const alpha = 0.15 + Math.abs(Math.sin((x + waveOffset) / 150)) * 0.15;
+            const alpha = 0.12 + Math.abs(Math.sin((x + waveOffset) / 150)) * 0.12;
             ctx.fillStyle = `rgba(0, 180, 220, ${alpha})`;
             ctx.fillRect(x, y, 4, 3);
-        }
-        
-        for (let i = 0; i < 5; i++) {
-            const rx = (waveOffset * 2 + i * canvas.width / 5) % canvas.width;
-            const ry = riverY + 20 + Math.sin(rx / 80 + waveOffset / 50) * 8;
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx.beginPath();
-            ctx.arc(rx, ry, 4 + Math.random() * 6, 0, Math.PI * 2);
-            ctx.fill();
         }
     }
     
     function drawWaterfall(particles, x, width) {
-        particles.forEach((p, i) => {
+        particles.forEach((p) => {
             p.y += p.speed;
-            
             if (p.y > canvas.height * 0.78 && !p.splashed) {
                 p.splashed = true;
-                for (let s = 0; s < 3; s++) {
+                for (let s = 0; s < 4; s++) {
                     riverDrops.push({
                         x: x + (Math.random() - 0.5) * width,
                         y: canvas.height * 0.78,
-                        vx: (Math.random() - 0.5) * 3,
-                        vy: -Math.random() * 5,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: -Math.random() * 6,
                         life: 1,
                         size: 2 + Math.random() * 3
                     });
@@ -378,23 +370,11 @@ function initWaterfallGame() {
                 p.y = Math.random() * canvas.height * 0.3;
                 p.splashed = false;
             }
-            
             ctx.fillStyle = `rgba(0, 180, 230, ${p.opacity})`;
             ctx.beginPath();
             ctx.ellipse(p.x, p.y, p.size, p.size * 1.6, 0, 0, Math.PI * 2);
             ctx.fill();
-            
-            ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity * 0.6})`;
-            ctx.beginPath();
-            ctx.arc(p.x - p.size * 0.3, p.y - p.size * 0.5, p.size * 0.4, 0, Math.PI * 2);
-            ctx.fill();
         });
-        
-        const gradient = ctx.createLinearGradient(x - width/2, canvas.height * 0.1, x + width/2, canvas.height * 0.5);
-        gradient.addColorStop(0, 'rgba(200, 230, 255, 0.15)');
-        gradient.addColorStop(1, 'rgba(0, 180, 230, 0.05)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x - width/2, canvas.height * 0.05, width, canvas.height * 0.5);
     }
     
     function drawRiverSplashes() {
@@ -416,7 +396,7 @@ function initWaterfallGame() {
     }
     
     function drawRocks() {
-        ctx.fillStyle = 'rgba(60, 65, 70, 0.3)';
+        ctx.fillStyle = 'rgba(60, 65, 70, 0.25)';
         ctx.beginPath();
         ctx.moveTo(0, canvas.height * 0.05);
         ctx.lineTo(canvas.width * 0.12, canvas.height * 0.15);
@@ -424,7 +404,6 @@ function initWaterfallGame() {
         ctx.lineTo(0, canvas.height);
         ctx.closePath();
         ctx.fill();
-        
         ctx.beginPath();
         ctx.moveTo(canvas.width, canvas.height * 0.05);
         ctx.lineTo(canvas.width * 0.88, canvas.height * 0.15);
@@ -442,15 +421,31 @@ function initWaterfallGame() {
         drawWaterfall(rightWaterfall, canvas.width * 0.92, 40);
         drawRiverWaves();
         drawRiverSplashes();
-        waveOffset += 1.5;
+        
+        if (tsunamiHeight > 0) tsunamiHeight *= 0.95;
+        if (tsunamiHeight < 0.5) tsunamiHeight = 0;
+        
+        waveOffset += 1.2;
         requestAnimationFrame(animate);
     }
     
     animate();
+    
+    // Цунами!
+    window.triggerTsunami = function() {
+        tsunamiHeight = 80;
+        setTimeout(() => {
+            const wave = document.getElementById('tsunamiWave');
+            if (wave) {
+                wave.style.height = '150px';
+                setTimeout(() => wave.style.height = '0', 1000);
+            }
+        }, 300);
+    };
 }
 
 // ═══════════════════════════════════════════
-// СОБАЧКА — КИДАЕТСЯ ПО ВСЕЙ СЕКЦИИ
+// СОБАЧКА — КИДАЕТСЯ С ФИЗИКОЙ
 // ═══════════════════════════════════════════
 
 function initDogBoat() {
@@ -458,45 +453,54 @@ function initDogBoat() {
     const gallery = document.querySelector('.gallery');
     if (!dogBoat || !gallery) return;
     
-    let isDragging = false, startX, startY, startLeft, startTop, velocityX = 0, velocityY = 0;
-    let animationId;
+    let isDragging = false, startX, startY, prevX, prevY, velocityX = 0, velocityY = 0;
+    let animId, startLeft, startTop;
     
     function setPos(x, y) {
         const rect = gallery.getBoundingClientRect();
-        x = Math.max(30, Math.min(x, rect.width - 80));
-        y = Math.max(30, Math.min(y, rect.height - 80));
+        x = Math.max(40, Math.min(x, rect.width - 90));
+        y = Math.max(40, Math.min(y, rect.height - 100));
         dogBoat.style.left = x + 'px';
         dogBoat.style.top = y + 'px';
         dogBoat.style.bottom = 'auto';
         dogBoat.style.transform = 'none';
-        return { x, y };
     }
     
     function physics() {
         const rect = gallery.getBoundingClientRect();
         let x = parseFloat(dogBoat.style.left) || rect.width / 2;
-        let y = parseFloat(dogBoat.style.top) || rect.height - 120;
+        let y = parseFloat(dogBoat.style.top) || rect.height - 100;
         
         x += velocityX;
         y += velocityY;
-        velocityX *= 0.95;
-        velocityY *= 0.95;
+        velocityX *= 0.92;
+        velocityY *= 0.92;
         
-        if (x <= 30 || x >= rect.width - 80) velocityX *= -0.5;
-        if (y <= 30 || y >= rect.height - 80) velocityY *= -0.5;
+        if (x <= 40) { x = 40; velocityX = Math.abs(velocityX) * 0.4; }
+        if (x >= rect.width - 90) { x = rect.width - 90; velocityX = -Math.abs(velocityX) * 0.4; }
+        if (y <= 40) { y = 40; velocityY = Math.abs(velocityY) * 0.4; }
+        if (y >= rect.height - 100) { y = rect.height - 100; velocityY = -Math.abs(velocityY) * 0.4; }
         
-        const pos = setPos(x, y);
+        dogBoat.style.left = x + 'px';
+        dogBoat.style.top = y + 'px';
+        dogBoat.style.transform = 'none';
+        
         if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
-            animationId = requestAnimationFrame(physics);
+            animId = requestAnimationFrame(physics);
+        } else {
+            dogBoat.classList.remove('thrown');
         }
     }
     
     dogBoat.addEventListener('mousedown', function(e) {
         isDragging = true;
-        cancelAnimationFrame(animationId);
-        const rect = dogBoat.getBoundingClientRect();
+        dogBoat.classList.add('thrown');
+        cancelAnimationFrame(animId);
+        prevX = e.clientX;
+        prevY = e.clientY;
         startX = e.clientX;
         startY = e.clientY;
+        const rect = dogBoat.getBoundingClientRect();
         startLeft = parseFloat(dogBoat.style.left) || rect.left;
         startTop = parseFloat(dogBoat.style.top) || rect.top;
         dogBoat.style.cursor = 'grabbing';
@@ -506,69 +510,53 @@ function initDogBoat() {
     document.addEventListener('mousemove', function(e) {
         if (!isDragging) return;
         setPos(startLeft + e.clientX - startX, startTop + e.clientY - startY);
+        prevX = e.clientX;
+        prevY = e.clientY;
     });
     
     document.addEventListener('mouseup', function(e) {
         if (!isDragging) return;
         isDragging = false;
         dogBoat.style.cursor = 'grab';
-        velocityX = e.movementX * 3;
-        velocityY = e.movementY * 3;
+        velocityX = (e.clientX - prevX) * 5;
+        velocityY = (e.clientY - prevY) * 5;
         physics();
     });
     
-    // Тач
-    dogBoat.addEventListener('touchstart', function(e) {
-        isDragging = true;
-        cancelAnimationFrame(animationId);
-        const touch = e.touches[0];
-        startX = touch.clientX;
-        startY = touch.clientY;
-        const rect = dogBoat.getBoundingClientRect();
-        startLeft = rect.left;
-        startTop = rect.top;
-    });
-    
-    document.addEventListener('touchmove', function(e) {
-        if (!isDragging) return;
-        const touch = e.touches[0];
-        setPos(startLeft + touch.clientX - startX, startTop + touch.clientY - startY);
-    });
-    
-    document.addEventListener('touchend', function(e) {
-        if (!isDragging) return;
-        isDragging = false;
-        const lastTouch = e.changedTouches[0];
-        velocityX = (lastTouch.clientX - startX) * 0.5;
-        velocityY = (lastTouch.clientY - startY) * 0.5;
-        physics();
-    });
-    
-    // Двойной клик — погладить
-    dogBoat.addEventListener('dblclick', function() {
+    // Двойной клик — погладить с сердечками
+    dogBoat.addEventListener('dblclick', function(e) {
+        e.preventDefault();
         dogBoat.classList.add('petted');
         setTimeout(() => dogBoat.classList.remove('petted'), 600);
+        const rect = dogBoat.getBoundingClientRect();
+        for (let i = 0; i < 5; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'dog-heart';
+            heart.textContent = ['❤️','💕','💖','🦴','✨'][i];
+            heart.style.left = (rect.left + rect.width/2 - 15 + (Math.random()-0.5)*40) + 'px';
+            heart.style.top = (rect.top + (Math.random()-0.5)*20) + 'px';
+            heart.style.animationDelay = i * 0.1 + 's';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1200);
+        }
     });
     
     // Авто-плавание
     let autoAngle = 0;
     setInterval(() => {
-        if (!isDragging && (!animationId || Math.abs(velocityX) < 0.1)) {
-            autoAngle += 0.02;
+        if (!isDragging && (!animId || Math.abs(velocityX) < 0.1)) {
+            autoAngle += 0.015;
             const rect = gallery.getBoundingClientRect();
-            const baseX = rect.width / 2;
-            const baseY = rect.height - 120;
-            setPos(baseX + Math.sin(autoAngle) * 80, baseY + Math.cos(autoAngle * 0.7) * 30);
+            setPos(rect.width/2 + Math.sin(autoAngle)*60, rect.height - 95 + Math.cos(autoAngle*0.7)*20);
         }
     }, 50);
     
-    // Начальная позиция
     const rect = gallery.getBoundingClientRect();
-    setPos(rect.width / 2, rect.height - 120);
+    setPos(rect.width/2, rect.height - 95);
 }
 
 // ═══════════════════════════════════════════
-// ПУЗЫРИ В СЕРТИФИКАТАХ
+// ПУЗЫРИ — МЕДЛЕННЕЕ, МЕНЬШЕ, КРАСИВЕЕ
 // ═══════════════════════════════════════════
 
 function initBubbleGame() {
@@ -586,17 +574,19 @@ function initBubbleGame() {
     window.addEventListener('resize', resize);
     
     const bubbles = [];
-    const maxBubbles = 30;
+    const maxBubbles = 22;
     let popCount = 0;
     
     function createBubble(fromBottom = false) {
         return {
             x: Math.random() * canvas.width,
-            y: fromBottom ? canvas.height + 20 : Math.random() * canvas.height,
-            size: 8 + Math.random() * 25,
-            speed: 1 + Math.random() * 2.5,
-            opacity: 0.4 + Math.random() * 0.4,
-            hue: 180 + Math.random() * 40,
+            y: fromBottom ? canvas.height + 30 : Math.random() * canvas.height,
+            size: 6 + Math.random() * 18,
+            speed: 0.4 + Math.random() * 1.2,
+            opacity: 0.2 + Math.random() * 0.25,
+            hue: 185 + Math.random() * 35,
+            wobble: Math.random() * Math.PI * 2,
+            wobbleSpeed: 0.01 + Math.random() * 0.03,
             popped: false,
             popAnim: 0
         };
@@ -609,69 +599,60 @@ function initBubbleGame() {
     function drawBubbles() {
         bubbles.forEach(b => {
             if (b.popped) {
-                b.popAnim += 0.05;
+                b.popAnim += 0.06;
                 if (b.popAnim > 1) {
+                    Object.assign(b, createBubble(true));
                     b.popped = false;
                     b.popAnim = 0;
-                    Object.assign(b, createBubble(true));
                 }
+                // Анимация лопанья
+                ctx.strokeStyle = `rgba(120,200,255,${1-b.popAnim})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.size * (1 + b.popAnim * 2), 0, Math.PI * 2);
+                ctx.stroke();
                 return;
             }
             
             b.y -= b.speed;
-            if (b.y < -30) {
-                Object.assign(b, createBubble(true));
-            }
+            b.x += Math.sin(b.wobble) * 0.5;
+            b.wobble += b.wobbleSpeed;
             
-            // Основной пузырь
-            const gradient = ctx.createRadialGradient(b.x - b.size * 0.3, b.y - b.size * 0.3, b.size * 0.1, b.x, b.y, b.size);
-            gradient.addColorStop(0, `hsla(${b.hue}, 70%, 75%, ${b.opacity + 0.2})`);
-            gradient.addColorStop(1, `hsla(${b.hue}, 70%, 50%, ${b.opacity})`);
+            if (b.y < -40) Object.assign(b, createBubble(true));
+            
+            const gradient = ctx.createRadialGradient(
+                b.x - b.size*0.3, b.y - b.size*0.3, b.size*0.1,
+                b.x, b.y, b.size
+            );
+            gradient.addColorStop(0, `hsla(${b.hue}, 60%, 80%, ${b.opacity+0.15})`);
+            gradient.addColorStop(1, `hsla(${b.hue}, 60%, 55%, ${b.opacity})`);
             
             ctx.fillStyle = gradient;
             ctx.beginPath();
             ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
             ctx.fill();
             
-            // Блик
-            ctx.fillStyle = `rgba(255,255,255,${b.opacity * 0.6})`;
+            ctx.fillStyle = `rgba(255,255,255,${b.opacity*0.5})`;
             ctx.beginPath();
-            ctx.arc(b.x - b.size * 0.3, b.y - b.size * 0.3, b.size * 0.3, 0, Math.PI * 2);
+            ctx.arc(b.x - b.size*0.3, b.y - b.size*0.3, b.size*0.25, 0, Math.PI*2);
             ctx.fill();
         });
     }
     
-    // Лопать пузыри
-    canvas.style.pointerEvents = 'auto';
     canvas.addEventListener('mousemove', function(e) {
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
-        
         bubbles.forEach(b => {
-            if (!b.popped) {
-                const dist = Math.hypot(mx - b.x, my - b.y);
-                if (dist < b.size + 5) {
-                    b.popped = true;
-                    b.popAnim = 0;
-                    popCount++;
-                    document.getElementById('bubbleCount').textContent = popCount;
-                }
-            }
-        });
-    });
-    
-    canvas.addEventListener('click', function(e) {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-        
-        bubbles.forEach(b => {
-            if (!b.popped && Math.hypot(mx - b.x, my - b.y) < b.size + 10) {
+            if (!b.popped && Math.hypot(mx - b.x, my - b.y) < b.size + 6) {
                 b.popped = true;
-                b.popAnim = 0;
                 popCount++;
                 document.getElementById('bubbleCount').textContent = popCount;
+                if (popCount % 20 === 0 && window.triggerTsunami) {
+                    window.triggerTsunami();
+                    const alert = document.getElementById('tsunamiAlert');
+                    if (alert) { alert.classList.add('show'); setTimeout(() => alert.classList.remove('show'), 2000); }
+                }
             }
         });
     });
@@ -682,7 +663,6 @@ function initBubbleGame() {
         drawBubbles();
         requestAnimationFrame(animate);
     }
-    
     animate();
 }
 

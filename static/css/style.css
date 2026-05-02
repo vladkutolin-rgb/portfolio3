@@ -1260,7 +1260,7 @@ body.dark-theme .empty-work .work-icon i {
 /* Собачка с лодкой */
 #dogBoat {
     position: absolute;
-    bottom: 120px;
+    bottom: 90px;
     left: 50%;
     z-index: 3;
     cursor: grab;
@@ -1268,22 +1268,24 @@ body.dark-theme .empty-work .work-icon i {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.1s;
+    transition: none;
 }
 
 #dogBoat:active { cursor: grabbing; }
+#dogBoat.thrown { cursor: default; }
 
 #dogEmoji {
-    font-size: 44px;
+    font-size: 55px;
     position: relative;
     z-index: 2;
     transition: transform 0.3s;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
 }
 
 #boatBack {
-    font-size: 55px;
+    font-size: 65px;
     position: absolute;
-    bottom: -15px;
+    bottom: -18px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1;
@@ -1295,14 +1297,29 @@ body.dark-theme .empty-work .work-icon i {
 }
 
 #dogBoat.petted #dogEmoji {
-    transform: translateY(-15px) scale(1.2);
-    animation: dogHappy 0.5s ease;
+    animation: dogHappy 0.6s ease;
 }
 
 @keyframes dogHappy {
-    0%, 100% { transform: translateY(-15px) scale(1.2) rotate(0deg); }
-    25% { transform: translateY(-15px) scale(1.2) rotate(-10deg); }
-    75% { transform: translateY(-15px) scale(1.2) rotate(10deg); }
+    0%, 100% { transform: scale(1.2) rotate(0deg); }
+    20% { transform: scale(1.3) rotate(-15deg); }
+    40% { transform: scale(1.2) rotate(10deg); }
+    60% { transform: scale(1.3) rotate(-8deg); }
+    80% { transform: scale(1.2) rotate(5deg); }
+}
+
+/* Сердечки */
+.dog-heart {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    animation: heartFly 1s forwards;
+    z-index: 10;
+}
+
+@keyframes heartFly {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-60px) scale(1.5); }
 }
 
 /* ═══════════════════════════════════════════ */
@@ -1321,7 +1338,7 @@ body.dark-theme .empty-work .work-icon i {
     width: 100%;
     height: 100%;
     z-index: 0;
-    pointer-events: none;
+    pointer-events: auto;
 }
 
 #bubbleCounter {
@@ -1341,6 +1358,42 @@ body.dark-theme .empty-work .work-icon i {
 #bubbleCount {
     color: #4dabf7;
     font-size: 18px;
+}
+
+#tsunamiAlert {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 10;
+    font-size: 48px;
+    pointer-events: none;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#tsunamiAlert.show {
+    transform: translate(-50%, -50%) scale(1);
+    animation: tsunamiAlert 2s forwards;
+}
+
+@keyframes tsunamiAlert {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    50% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+}
+
+/* Цунами-волна */
+#tsunamiWave {
+    position: absolute;
+    bottom: 0;
+    left: -50%;
+    width: 200%;
+    height: 0;
+    background: linear-gradient(0deg, rgba(0,200,240,0.6), rgba(0,160,220,0.3), transparent);
+    z-index: 8;
+    pointer-events: none;
+    transition: height 0.8s ease-out;
+    border-radius: 50% 50% 0 0;
 }
 
 /* ═══════════════════════════════════════════ */
