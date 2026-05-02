@@ -573,7 +573,7 @@ function initDogBoat(){
 }
 
 // ═══════════════════════════════════════════
-// ПРОСТЫЕ ПУЗЫРИ + ПЕРЕХОД В МЕДУЗЫ
+// ПУЗЫРИ — ЛОПАЮТСЯ ВСЕГДА + ЭПИЧНО
 // ═══════════════════════════════════════════
 function initBubbleGame() {
     const canvas = document.getElementById('bubbleCanvas');
@@ -581,9 +581,9 @@ function initBubbleGame() {
     if (!canvas || !section) return;
 
     const ctx = canvas.getContext('2d');
-    let W, H, time = 0;
-    let popCount = 0;
-    let fallingSouls = []; // Души, падающие в медузы
+    let W, H, popCount = 0;
+    let fallingSouls = [];
+    let mouseX = -100, mouseY = -100;
 
     function resize() {
         W = section.offsetWidth;
@@ -594,20 +594,40 @@ function initBubbleGame() {
     resize();
     window.addEventListener('resize', resize);
 
+    // Отслеживаем мышь ВСЕГДА
+    canvas.addEventListener('mousemove', e => {
+        const r = canvas.getBoundingClientRect();
+        mouseX = e.clientX - r.left;
+        mouseY = e.clientY - r.top;
+    });
+    canvas.addEventListener('click', e => {
+        const r = canvas.getBoundingClientRect();
+        mouseX = e.clientX - r.left;
+        mouseY = e.clientY - r.top;
+        // При клике проверяем ВСЕ пузыри
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+            if (!bubbles[i].popped && Math.hypot(mouseX - bubbles[i].x, mouseY - bubbles[i].y) < bubbles[i].size + 10) {
+                popBubble(bubbles[i]);
+                break;
+            }
+        }
+    });
+
     const bubbles = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 25; i++) {
         bubbles.push({
             x: Math.random() * W,
             y: Math.random() * H,
-            size: 8 + Math.random() * 20,
-            speed: 0.3 + Math.random() * 0.8,
-            opacity: 0.2 + Math.random() * 0.25,
-            hue: 180 + Math.random() * 40,
+            size: 10 + Math.random() * 25,
+            speed: 0.2 + Math.random() * 1,
+            opacity: 0.2 + Math.random() * 0.3,
+            hue: 180 + Math.random() * 50,
             wobble: Math.random() * Math.PI * 2,
-            wobbleSpeed: 0.005 + Math.random() * 0.015,
+            wobbleSpeed: 0.005 + Math.random() * 0.02,
             popped: false,
             popTime: 0,
-            popParticles: []
+            particles: [],
+            glowPhase: Math.random() * Math.PI * 2
         });
     }
 
@@ -615,25 +635,28 @@ function initBubbleGame() {
         if (b.popped) return;
         b.popped = true;
         b.popTime = performance.now();
-        b.popParticles = [];
+        b.particles = [];
         
-        // Частицы разлета
-        for (let i = 0; i < 10; i++) {
-            const angle = (Math.PI * 2 / 10) * i;
-            b.popParticles.push({
+        // ЭПИЧНЫЙ взрыв
+        const count = b.size > 20 ? 20 : 12;
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 / count) * i;
+            const speed = 2 + Math.random() * 6;
+            b.particles.push({
                 x: b.x, y: b.y,
-                vx: Math.cos(angle) * (1 + Math.random() * 3),
-                vy: Math.sin(angle) * (1 + Math.random() * 3),
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
                 life: 1,
-                size: b.size * 0.1
+                size: 2 + Math.random() * 4,
+                hue: b.hue + Math.random() * 60 - 30
             });
         }
 
-        // Душа падает вниз → станет медузой
+        // Душа → медуза
         fallingSouls.push({
             x: b.x,
             y: b.y,
-            targetY: H,
+            targetY: H + 50,
             life: 1,
             hue: b.hue,
             size: b.size
@@ -657,85 +680,124 @@ function initBubbleGame() {
         bubbles.forEach(b => {
             if (b.popped) {
                 const elapsed = (now - b.popTime) / 1000;
-                if (elapsed > 1.2) {
+                if (elapsed > 1.5) {
                     Object.assign(b, {
                         x: Math.random() * W,
-                        y: H + 40,
-                        size: 8 + Math.random() * 20,
-                        speed: 0.3 + Math.random() * 0.8,
-                        opacity: 0.2 + Math.random() * 0.25,
-                        hue: 180 + Math.random() * 40,
+                        y: H + 50,
+                        size: 10 + Math.random() * 25,
+                        speed: 0.2 + Math.random() * 1,
+                        opacity: 0.2 + Math.random() * 0.3,
+                        hue: 180 + Math.random() * 50,
+                        wobble: Math.random() * Math.PI * 2,
+                        wobbleSpeed: 0.005 + Math.random() * 0.02,
                         popped: false,
-                        popParticles: []
+                        particles: []
                     });
                     return;
                 }
-                b.popParticles.forEach(p => {
+                // Частицы взрыва
+                b.particles.forEach(p => {
                     p.x += p.vx;
                     p.y += p.vy;
-                    p.vy += 0.05;
-                    p.life -= 0.03;
+                    p.vy += 0.04;
+                    p.life -= 0.025;
                     if (p.life > 0) {
-                        ctx.fillStyle = `rgba(180, 220, 255, ${p.life * 0.6})`;
+                        ctx.fillStyle = `hsla(${p.hue}, 80%, 70%, ${p.life})`;
+                        ctx.shadowColor = `hsla(${p.hue}, 90%, 65%, ${p.life * 0.8})`;
+                        ctx.shadowBlur = 8;
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
                         ctx.fill();
+                        ctx.shadowBlur = 0;
                     }
                 });
+                // Кольцо взрыва
+                const ringR = elapsed * 100;
+                const ringA = Math.max(0, 1 - elapsed / 1.5);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${ringA})`;
+                ctx.lineWidth = 2;
+                ctx.shadowColor = `rgba(200, 240, 255, ${ringA})`;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, ringR, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
                 return;
             }
 
-            b.y -= b.speed * (1 + bass);
-            b.x += Math.sin(b.wobble) * 0.3;
-            b.wobble += b.wobbleSpeed;
-            if (b.y < -40) { b.y = H + 40; b.x = Math.random() * W; }
+            b.y -= b.speed * (1 + bass * 2);
+            b.x += Math.sin(b.wobble) * 0.5;
+            b.wobble += b.wobbleSpeed * (1 + bass);
+            if (b.y < -50) { b.y = H + 50; b.x = Math.random() * W; }
+            b.glowPhase += 0.03;
 
+            // Свечение
+            const glowAlpha = 0.15 + bass * 0.3;
+            const glow = ctx.createRadialGradient(b.x, b.y, b.size * 0.3, b.x, b.y, b.size * 1.8);
+            glow.addColorStop(0, `hsla(${b.hue}, 60%, 65%, ${glowAlpha})`);
+            glow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.size * 1.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Тело
             const grad = ctx.createRadialGradient(b.x - b.size*0.2, b.y - b.size*0.2, b.size*0.05, b.x, b.y, b.size);
-            grad.addColorStop(0, `hsla(${b.hue}, 55%, 85%, ${b.opacity + 0.2})`);
-            grad.addColorStop(0.6, `hsla(${b.hue}, 50%, 60%, ${b.opacity + 0.1})`);
+            grad.addColorStop(0, `hsla(${b.hue}, 55%, 88%, ${b.opacity + 0.25})`);
+            grad.addColorStop(0.5, `hsla(${b.hue}, 50%, 62%, ${b.opacity + 0.12})`);
             grad.addColorStop(1, `hsla(${b.hue}, 40%, 35%, ${b.opacity * 0.5})`);
             ctx.fillStyle = grad;
             ctx.beginPath();
             ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = `rgba(255,255,255,${b.opacity * 0.5})`;
+            // Обводка
+            ctx.strokeStyle = `hsla(${b.hue}, 60%, 75%, ${b.opacity * 0.5 + bass * 0.3})`;
+            ctx.lineWidth = 1.5 + bass;
+            ctx.shadowColor = `hsla(${b.hue}, 70%, 65%, ${b.opacity * 0.4})`;
+            ctx.shadowBlur = 4 + bass * 6;
             ctx.beginPath();
-            ctx.arc(b.x - b.size*0.2, b.y - b.size*0.2, b.size*0.18, 0, Math.PI * 2);
+            ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Блик
+            ctx.fillStyle = `rgba(255,255,255,${b.opacity * 0.6})`;
+            ctx.beginPath();
+            ctx.arc(b.x - b.size*0.2, b.y - b.size*0.2, b.size*0.2, 0, Math.PI * 2);
             ctx.fill();
         });
 
         // Падающие души
-        fallingSouls.forEach((s, i) => {
-            s.y += (s.targetY - s.y) * 0.05;
-            s.life -= 0.01;
-            const alpha = s.life * 0.6;
+        for (let i = fallingSouls.length - 1; i >= 0; i--) {
+            const s = fallingSouls[i];
+            s.y += (H + 50 - s.y) * 0.06;
+            s.life -= 0.008;
+            if (s.y >= H - 10 || s.life <= 0) {
+                if (window.spawnJellyfish) window.spawnJellyfish(s.x, s.hue, s.size);
+                fallingSouls.splice(i, 1);
+                continue;
+            }
+            const alpha = s.life * 0.7;
             ctx.fillStyle = `hsla(${s.hue}, 60%, 70%, ${alpha})`;
             ctx.shadowColor = `hsla(${s.hue}, 70%, 60%, ${alpha})`;
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 12;
             ctx.beginPath();
-            ctx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+            ctx.arc(s.x, s.y, s.size * s.life * 0.8, 0, Math.PI * 2);
             ctx.fill();
             ctx.shadowBlur = 0;
-        });
-
-        // Когда душа достигла дна → создаём медузу
-        for (let i = fallingSouls.length - 1; i >= 0; i--) {
-            if (fallingSouls[i].y >= H - 20 || fallingSouls[i].life <= 0) {
-                if (window.spawnJellyfish) {
-                    window.spawnJellyfish(fallingSouls[i].x, fallingSouls[i].hue, fallingSouls[i].size);
-                }
-                fallingSouls.splice(i, 1);
-            }
         }
     }
 
+    // Мышка лопает пузыри при движении
     canvas.addEventListener('mousemove', function(e) {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+        const r = canvas.getBoundingClientRect();
+        const mx = e.clientX - r.left;
+        const my = e.clientY - r.top;
+        mouseX = mx;
+        mouseY = my;
         for (let i = 0; i < bubbles.length; i++) {
-            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 4) {
+            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 5) {
                 popBubble(bubbles[i]);
             }
         }
@@ -751,15 +813,13 @@ function initBubbleGame() {
 }
 
 // ═══════════════════════════════════════════
-// МЕДУЗЫ — ОТДЕЛЬНЫЙ CANVAS
+// МЕДУЗЫ — БОЖЕСТВЕННЫЙ УРОВЕНЬ
 // ═══════════════════════════════════════════
 function initJellyfish() {
     const canvas = document.getElementById('jellyfishCanvas');
     if (!canvas) return;
-    
     const section = document.getElementById('certificates');
     if (!section) return;
-    
     const ctx = canvas.getContext('2d');
     let W, H;
 
@@ -778,40 +838,39 @@ function initJellyfish() {
     window.addEventListener('resize', resize);
 
     let jellyfishes = [];
-    const MAX = 7;
+    const MAX = 8;
     let time = 0;
 
     function createJellyfish(x, hue, size) {
         const j = {
             x: x || Math.random() * W,
-            y: H + 40,
-            targetY: H * 0.15 + Math.random() * H * 0.55,
-            size: Math.max(15, (size || 20) * 1.6),
-            hue: hue || 180 + Math.random() * 30,
-            opacity: 0.7 + Math.random() * 0.3,
+            y: H + 50,
+            targetY: H * 0.1 + Math.random() * H * 0.6,
+            size: Math.max(18, (size || 20) * 1.8),
+            hue: hue || 180 + Math.random() * 40,
+            opacity: 0.75 + Math.random() * 0.25,
             bellPhase: Math.random() * Math.PI * 2,
-            bellSpeed: 0.03 + Math.random() * 0.04,
+            bellSpeed: 0.03,
             bellContract: 0,
             tentacles: [],
-            tentacleCount: 5 + Math.floor(Math.random() * 4),
-            vx: (Math.random() - 0.5) * 0.3,
-            vy: -0.3,
+            tentacleCount: 6 + Math.floor(Math.random() * 6),
+            vx: (Math.random() - 0.5) * 0.4,
             phase: Math.random() * Math.PI * 2,
             life: 1,
             born: performance.now(),
-            maxLife: 25 + Math.random() * 40,
-            particles: []
+            maxLife: 30 + Math.random() * 50,
+            particles: [],
+            childJellies: []
         };
 
-        // Щупальца
         for (let i = 0; i < j.tentacleCount; i++) {
             j.tentacles.push({
-                angle: (Math.PI * 2 / j.tentacleCount) * i + (Math.random() - 0.5) * 0.4,
-                length: j.size * (0.5 + Math.random() * 1.3),
-                segments: 6 + Math.floor(Math.random() * 6),
+                angle: (Math.PI * 2 / j.tentacleCount) * i + (Math.random() - 0.5) * 0.5,
+                length: j.size * (0.6 + Math.random() * 1.4),
+                segments: 8 + Math.floor(Math.random() * 8),
                 phase: Math.random() * Math.PI * 2,
-                speed: 0.02 + Math.random() * 0.04,
-                amplitude: 2 + Math.random() * 7
+                speed: 0.02 + Math.random() * 0.05,
+                amplitude: 3 + Math.random() * 10
             });
         }
         return j;
@@ -820,10 +879,20 @@ function initJellyfish() {
     window.spawnJellyfish = function(x, hue, size) {
         if (jellyfishes.length >= MAX) {
             jellyfishes.sort((a, b) => a.born - b.born);
-            jellyfishes[0].life = 0;
+            const old = jellyfishes[0];
+            // Взрыв старой медузы
+            for (let i = 0; i < 15; i++) {
+                old.particles.push({
+                    x: old.x, y: old.y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 1, size: 2 + Math.random() * 4,
+                    hue: old.hue
+                });
+            }
+            jellyfishes.shift();
         }
-        const j = createJellyfish(x, hue, size);
-        jellyfishes.push(j);
+        jellyfishes.push(createJellyfish(x, hue, size));
     };
 
     function drawJellyfish(j, bass) {
@@ -832,91 +901,105 @@ function initJellyfish() {
         j.life = Math.max(0, 1 - elapsed / j.maxLife);
         if (j.life <= 0) return false;
 
-        // Всплытие
-        j.y += (j.targetY - j.y) * 0.015;
-        
-        // Пульсация
-        j.bellSpeed = 0.03 + bass * 0.08;
+        j.y += (j.targetY - j.y) * 0.02;
+        j.bellSpeed = 0.03 + bass * 0.12;
         j.bellPhase += j.bellSpeed;
-        j.bellContract = Math.abs(Math.sin(j.bellPhase)) * (0.25 + bass * 0.6);
-
-        // Плавание
-        j.x += Math.sin(time * 0.4 + j.phase) * 0.4;
+        j.bellContract = Math.abs(Math.sin(j.bellPhase)) * (0.3 + bass * 0.7);
+        j.x += Math.sin(time * 0.5 + j.phase) * 0.6;
         j.x += j.vx;
-        if (j.x < 60) j.vx += 0.05;
-        if (j.x > W - 60) j.vx -= 0.05;
+        if (j.x < 80) j.vx += 0.08;
+        if (j.x > W - 80) j.vx -= 0.08;
         j.vx *= 0.995;
 
-        const bellW = j.size;
-        const bellH = j.size * 0.65;
-        const cY = -j.bellContract * bellH * 0.5;
+        const bw = j.size, bh = j.size * 0.7;
+        const cy = -j.bellContract * bh * 0.5;
 
-        // Свечение
-        const glow = ctx.createRadialGradient(j.x, j.y, bellW * 0.15, j.x, j.y, bellW * 0.7);
-        glow.addColorStop(0, `hsla(${j.hue}, 55%, 70%, ${j.opacity * 0.25 * (1 + bass)})`);
-        glow.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = glow;
+        // Божественное свечение
+        const halo = ctx.createRadialGradient(j.x, j.y, bw * 0.2, j.x, j.y, bw * 1.2);
+        halo.addColorStop(0, `hsla(${j.hue}, 60%, 75%, ${j.opacity * 0.4 * (1 + bass)})`);
+        halo.addColorStop(0.5, `hsla(${j.hue}, 55%, 55%, ${j.opacity * 0.15})`);
+        halo.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = halo;
         ctx.beginPath();
-        ctx.arc(j.x, j.y, bellW * 0.7, 0, Math.PI * 2);
+        ctx.arc(j.x, j.y, bw * 1.2, 0, Math.PI * 2);
         ctx.fill();
 
         // Купол
-        const bell = ctx.createRadialGradient(j.x, j.y + cY, bellW * 0.05, j.x, j.y, bellW * 0.45);
-        bell.addColorStop(0, `hsla(${j.hue}, 35%, 85%, ${j.opacity * 0.85})`);
-        bell.addColorStop(0.4, `hsla(${j.hue}, 45%, 62%, ${j.opacity * 0.5})`);
-        bell.addColorStop(1, `hsla(${j.hue}, 50%, 35%, ${j.opacity * 0.15})`);
+        const bell = ctx.createRadialGradient(j.x, j.y + cy, bw * 0.03, j.x, j.y, bw * 0.5);
+        bell.addColorStop(0, `hsla(${j.hue}, 30%, 90%, ${j.opacity * 0.9})`);
+        bell.addColorStop(0.3, `hsla(${j.hue}, 40%, 65%, ${j.opacity * 0.6})`);
+        bell.addColorStop(0.7, `hsla(${j.hue}, 48%, 38%, ${j.opacity * 0.25})`);
+        bell.addColorStop(1, `hsla(${j.hue}, 55%, 20%, 0)`);
         ctx.fillStyle = bell;
         ctx.beginPath();
-        ctx.ellipse(j.x, j.y + cY, bellW * 0.45, bellH * 0.45, 0, Math.PI, 0);
+        ctx.ellipse(j.x, j.y + cy, bw * 0.5, bh * 0.5, 0, Math.PI, 0);
         ctx.fill();
+
+        // Ободок купола
+        ctx.strokeStyle = `hsla(${j.hue}, 50%, 80%, ${j.opacity * 0.5})`;
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = `hsla(${j.hue}, 60%, 70%, ${j.opacity * 0.4})`;
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.ellipse(j.x, j.y + cy, bw * 0.5, bh * 0.5, 0, Math.PI, 0);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
 
         // Щупальца
         j.tentacles.forEach(t => {
-            t.phase += t.speed * (1 + bass * 3);
-            const bx = j.x + Math.cos(t.angle) * bellW * 0.25;
-            const by = j.y + bellH * 0.25;
-            ctx.strokeStyle = `hsla(${j.hue}, 45%, 50%, ${j.opacity * 0.6})`;
-            ctx.lineWidth = 1.2;
+            t.phase += t.speed * (1 + bass * 4);
+            const bx = j.x + Math.cos(t.angle) * bw * 0.3;
+            const by = j.y + bh * 0.3;
+
+            // Градиент щупальца
+            const grad = ctx.createLinearGradient(bx, by, bx, by + t.length);
+            grad.addColorStop(0, `hsla(${j.hue}, 50%, 70%, ${j.opacity * 0.7})`);
+            grad.addColorStop(1, `hsla(${j.hue}, 60%, 40%, 0)`);
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 1.5;
             ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(bx, by);
             for (let s = 1; s <= t.segments; s++) {
                 const prog = s / t.segments;
-                const wx = Math.sin(t.phase + prog * 4) * t.amplitude * prog;
+                const wx = Math.sin(t.phase + prog * 5) * t.amplitude * prog;
                 const wy = prog * t.length;
                 ctx.lineTo(bx + wx, by + wy);
             }
             ctx.stroke();
 
-            // Кончик
-            const tipX = bx + Math.sin(t.phase + 4) * t.amplitude;
+            // Кончик светится
+            const tipX = bx + Math.sin(t.phase + 5) * t.amplitude;
             const tipY = by + t.length;
-            ctx.fillStyle = `rgba(160, 230, 255, ${j.opacity * 0.5})`;
-            ctx.shadowColor = `rgba(140, 210, 255, ${j.opacity * 0.6})`;
-            ctx.shadowBlur = 4;
+            const tipGlow = ctx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 6);
+            tipGlow.addColorStop(0, `rgba(180, 240, 255, ${j.opacity * 0.8})`);
+            tipGlow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = tipGlow;
             ctx.beginPath();
-            ctx.arc(tipX, tipY, 1.5, 0, Math.PI * 2);
+            ctx.arc(tipX, tipY, 6, 0, Math.PI * 2);
             ctx.fill();
-            ctx.shadowBlur = 0;
         });
 
         // Частицы
-        if (Math.random() < 0.25 + bass * 0.4) {
+        if (Math.random() < 0.3 + bass * 0.5) {
             j.particles.push({
                 x: j.x + (Math.random() - 0.5) * j.size,
                 y: j.y + Math.random() * j.size * 0.5,
-                life: 1,
-                size: 1 + Math.random() * 1.5
+                life: 1, size: 1 + Math.random() * 2.5,
+                hue: j.hue
             });
         }
-        j.particles.forEach((p, i) => {
-            p.y += 0.2;
-            p.life -= 0.04;
+        j.particles.forEach(p => {
+            p.y += 0.3;
+            p.life -= 0.035;
             if (p.life > 0) {
-                ctx.fillStyle = `rgba(140, 230, 255, ${p.life * 0.6})`;
+                ctx.fillStyle = `hsla(${p.hue}, 60%, 80%, ${p.life * 0.7})`;
+                ctx.shadowColor = `hsla(${p.hue}, 70%, 70%, ${p.life * 0.5})`;
+                ctx.shadowBlur = 4;
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.shadowBlur = 0;
             }
         });
         for (let i = j.particles.length - 1; i >= 0; i--) {
@@ -928,8 +1011,8 @@ function initJellyfish() {
 
     function animate(ts) {
         if (!canvas.isConnected) return;
-        const bass = smoothBass || 0;
         time = ts * 0.001;
+        const bass = smoothBass || 0;
         ctx.clearRect(0, 0, W, H);
         jellyfishes = jellyfishes.filter(j => j.life > 0);
         jellyfishes.forEach(j => drawJellyfish(j, bass));
@@ -939,10 +1022,7 @@ function initJellyfish() {
     requestAnimationFrame(animate);
 }
 
-// Запуск
-window.addEventListener('load', () => {
-    setTimeout(initJellyfish, 1000);
-});
+window.addEventListener('load', () => setTimeout(initJellyfish, 1000));
 
 // ═══════════════════════════════════════════
 // ДОП СТИЛИ
