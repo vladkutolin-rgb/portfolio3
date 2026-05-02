@@ -108,40 +108,212 @@ window.addEventListener('load',()=>setTimeout(drawSkillsChart,1000));
 window.addEventListener('scroll',()=>{if(document.getElementById('about')?.classList.contains('animated')&&!chartDrawn){drawSkillsChart();chartDrawn=true;}});
 
 // ═══════════════════════════════════════════
-// ВОДОПАДЫ + РЕКА
+// ВОДОПАДЫ + РЕКА (КРАСИВЫЙ ДИЗАЙН)
 // ═══════════════════════════════════════════
-function initWaterfallGame(){
-    const canvas=document.getElementById('waterfallCanvas'),gallery=document.querySelector('.gallery');
-    if(!canvas||!gallery)return;
-    const ctx=canvas.getContext('2d');
-    function resize(){canvas.width=gallery.offsetWidth;canvas.height=gallery.offsetHeight;}
-    resize();window.addEventListener('resize',resize);
-    const leftWF=[],rightWF=[],riverDrops=[];
-    function createDrop(side){return{x:side==='left'?canvas.width*0.08+(Math.random()-0.5)*35:canvas.width*0.92+(Math.random()-0.5)*35,y:Math.random()*canvas.height*0.4,speed:1.5+Math.random()*3,size:2+Math.random()*3,opacity:0.2+Math.random()*0.4,splashed:false};}
-    for(let i=0;i<60;i++){leftWF.push(createDrop('left'));rightWF.push(createDrop('right'));}
-    let waveOffset=0;window.tsunamiHeight=0;
-       function drawRiverWaves() {
-        const bassEffect = smoothBass || 0;
-        const riverY = canvas.height * 0.75 + (window.tsunamiHeight || 0) * 0.3;
-        const waveHeight = 10 + bassEffect * 25 + (window.tsunamiHeight || 0) * 0.4;
-        const speed = 1 + bassEffect * 2;
+function initWaterfallGame() {
+    const canvas = document.getElementById('waterfallCanvas');
+    const gallery = document.querySelector('.gallery');
+    if (!canvas || !gallery) return;
 
-        for (let x = 0; x < canvas.width; x += 2) {
-            const y = riverY + Math.sin((x + waveOffset * speed) / 140) * waveHeight +
-                      Math.cos((x - waveOffset * speed * 0.7) / 90) * waveHeight * 0.5;
-            const alpha = 0.1 + Math.abs(Math.sin((x + waveOffset * speed) / 140)) * 0.1 + bassEffect * 0.1;
-            ctx.fillStyle = `rgba(0, 180, 220, ${alpha})`;
-            ctx.fillRect(x, y, 3, 3);
-        }
-        
-        waveOffset += 1 + bassEffect;
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+        canvas.width = gallery.offsetWidth;
+        canvas.height = gallery.offsetHeight;
     }
-    function drawWaterfall(particles,x,w){particles.forEach(p=>{p.y+=p.speed;if(p.y>canvas.height*0.75&&!p.splashed){p.splashed=true;for(let s=0;s<3;s++)riverDrops.push({x:x+(Math.random()-0.5)*w,y:canvas.height*0.75,vx:(Math.random()-0.5)*3,vy:-Math.random()*5,life:1,size:2+Math.random()*3});p.y=Math.random()*canvas.height*0.3;p.splashed=false;}ctx.fillStyle=`rgba(0,180,230,${p.opacity})`;ctx.beginPath();ctx.ellipse(p.x,p.y,p.size,p.size*1.5,0,0,Math.PI*2);ctx.fill();});}
-    function drawSplashes(){riverDrops.forEach(d=>{d.x+=d.vx;d.y+=d.vy;d.vy+=0.1;d.life-=0.02;if(d.life>0){ctx.fillStyle=`rgba(255,255,255,${d.life*0.5})`;ctx.beginPath();ctx.arc(d.x,d.y,d.size*d.life,0,Math.PI*2);ctx.fill();}});for(let i=riverDrops.length-1;i>=0;i--)if(riverDrops[i].life<=0)riverDrops.splice(i,1);}
-    function drawRocks(){ctx.fillStyle='rgba(60,65,70,0.2)';ctx.beginPath();ctx.moveTo(0,canvas.height*0.05);ctx.lineTo(canvas.width*0.1,canvas.height*0.15);ctx.lineTo(canvas.width*0.08,canvas.height*0.85);ctx.lineTo(0,canvas.height);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(canvas.width,canvas.height*0.05);ctx.lineTo(canvas.width*0.9,canvas.height*0.15);ctx.lineTo(canvas.width*0.92,canvas.height*0.85);ctx.lineTo(canvas.width,canvas.height);ctx.closePath();ctx.fill();}
-    function animate(){if(!canvas.isConnected)return;ctx.clearRect(0,0,canvas.width,canvas.height);drawRocks();drawWaterfall(leftWF,canvas.width*0.07,35);drawWaterfall(rightWF,canvas.width*0.93,35);drawRiverWaves();drawSplashes();if(window.tsunamiHeight>0)window.tsunamiHeight*=0.94;if(window.tsunamiHeight<0.3)window.tsunamiHeight=0;waveOffset+=1;requestAnimationFrame(animate);}
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Частицы водопада
+    const leftWF = [], rightWF = [], splashes = [];
+    
+    function createDrop(side) {
+        const baseX = side === 'left' ? canvas.width * 0.07 : canvas.width * 0.93;
+        return {
+            x: baseX + (Math.random() - 0.5) * 30,
+            y: Math.random() * canvas.height * 0.35,
+            speed: 1.2 + Math.random() * 2.5,
+            size: 1.5 + Math.random() * 2.5,
+            opacity: 0.15 + Math.random() * 0.35,
+            hue: 190 + Math.random() * 20,
+            splashed: false
+        };
+    }
+
+    for (let i = 0; i < 50; i++) {
+        leftWF.push(createDrop('left'));
+        rightWF.push(createDrop('right'));
+    }
+
+    let time = 0;
+    window.tsunamiHeight = 0;
+
+    // Рисуем скалы
+    function drawRocks() {
+        // Левая скала
+        const leftGrad = ctx.createLinearGradient(0, 0, canvas.width * 0.12, 0);
+        leftGrad.addColorStop(0, 'rgba(50, 55, 60, 0.35)');
+        leftGrad.addColorStop(1, 'rgba(50, 55, 60, 0.05)');
+        ctx.fillStyle = leftGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height * 0.05);
+        ctx.quadraticCurveTo(canvas.width * 0.06, canvas.height * 0.2, canvas.width * 0.1, canvas.height * 0.5);
+        ctx.lineTo(canvas.width * 0.07, canvas.height * 0.85);
+        ctx.lineTo(0, canvas.height);
+        ctx.closePath();
+        ctx.fill();
+
+        // Правая скала
+        const rightGrad = ctx.createLinearGradient(canvas.width, 0, canvas.width * 0.88, 0);
+        rightGrad.addColorStop(0, 'rgba(50, 55, 60, 0.35)');
+        rightGrad.addColorStop(1, 'rgba(50, 55, 60, 0.05)');
+        ctx.fillStyle = rightGrad;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width, canvas.height * 0.05);
+        ctx.quadraticCurveTo(canvas.width * 0.94, canvas.height * 0.2, canvas.width * 0.9, canvas.height * 0.5);
+        ctx.lineTo(canvas.width * 0.93, canvas.height * 0.85);
+        ctx.lineTo(canvas.width, canvas.height);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // Водопад
+    function drawWaterfall(particles, x, width) {
+        // Туман водопада
+        const mistGrad = ctx.createLinearGradient(x, canvas.height * 0.1, x, canvas.height * 0.7);
+        mistGrad.addColorStop(0, 'rgba(180, 220, 255, 0.08)');
+        mistGrad.addColorStop(0.5, 'rgba(140, 200, 240, 0.12)');
+        mistGrad.addColorStop(1, 'rgba(100, 180, 220, 0.04)');
+        ctx.fillStyle = mistGrad;
+        ctx.fillRect(x - width / 2, canvas.height * 0.05, width, canvas.height * 0.7);
+
+        // Капли
+        particles.forEach(p => {
+            p.y += p.speed;
+            if (p.y > canvas.height * 0.73 && !p.splashed) {
+                p.splashed = true;
+                for (let s = 0; s < 5; s++) {
+                    splashes.push({
+                        x: x + (Math.random() - 0.5) * width,
+                        y: canvas.height * 0.73,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: -Math.random() * 6 - 2,
+                        life: 1,
+                        size: 1 + Math.random() * 2.5
+                    });
+                }
+                p.y = Math.random() * canvas.height * 0.25;
+                p.splashed = false;
+            }
+
+            // Капля
+            const alpha = p.opacity;
+            ctx.fillStyle = `hsla(${p.hue}, 60%, 75%, ${alpha})`;
+            ctx.beginPath();
+            ctx.ellipse(p.x, p.y, p.size, p.size * 1.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Блик на капле
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.7})`;
+            ctx.beginPath();
+            ctx.arc(p.x - p.size * 0.2, p.y - p.size * 0.4, p.size * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    // Брызги
+    function drawSplashes() {
+        splashes.forEach(d => {
+            d.x += d.vx;
+            d.y += d.vy;
+            d.vy += 0.08;
+            d.life -= 0.015;
+            if (d.life > 0) {
+                ctx.fillStyle = `rgba(200, 230, 255, ${d.life * 0.7})`;
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.size * d.life, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+        for (let i = splashes.length - 1; i >= 0; i--) {
+            if (splashes[i].life <= 0) splashes.splice(i, 1);
+        }
+    }
+
+    // Красивые волны реки
+    function drawRiver() {
+        const bass = smoothBass || 0;
+        const baseY = canvas.height * 0.73;
+        const tsunamiEffect = (window.tsunamiHeight || 0) * 0.3;
+
+        // Рисуем несколько слоёв волн
+        const layers = [
+            { alpha: 0.08, height: 6 + bass * 20 + tsunamiEffect * 0.5, speed: 1.2, color: 'rgba(0, 160, 210,' },
+            { alpha: 0.12, height: 8 + bass * 15 + tsunamiEffect * 0.3, speed: 0.8, color: 'rgba(0, 180, 225,' },
+            { alpha: 0.06, height: 10 + bass * 25 + tsunamiEffect * 0.6, speed: 1.5, color: 'rgba(100, 200, 240,' },
+        ];
+
+        layers.forEach(layer => {
+            ctx.fillStyle = layer.color + layer.alpha + ')';
+            for (let x = 0; x < canvas.width; x += 4) {
+                const y = baseY + Math.sin((x + time * layer.speed) / 120) * layer.height +
+                          Math.cos((x - time * layer.speed * 0.6) / 80) * layer.height * 0.5 +
+                          Math.sin((x + time * layer.speed * 0.3) / 200) * layer.height * 0.3;
+                ctx.fillRect(x, y, 4, 3);
+            }
+        });
+
+        // Пена на гребнях волн
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        for (let i = 0; i < 8; i++) {
+            const fx = (time * 1.5 + i * canvas.width / 8) % canvas.width;
+            const fy = baseY + Math.sin((fx + time) / 120) * (6 + bass * 20) - 4;
+            const fs = 3 + Math.random() * 4;
+            ctx.beginPath();
+            ctx.arc(fx, fy, fs, 0, Math.PI, false);
+            ctx.fill();
+        }
+
+        // Блики на воде
+        for (let i = 0; i < 15; i++) {
+            const sx = (time * 0.5 + i * canvas.width / 15 + Math.sin(i * 2.7) * 40) % canvas.width;
+            const sy = baseY + 15 + Math.sin(sx / 50 + time * 0.3) * 8;
+            const shimmer = 0.1 + Math.abs(Math.sin(time * 0.05 + i)) * 0.15;
+            ctx.fillStyle = `rgba(255, 255, 255, ${shimmer})`;
+            ctx.fillRect(sx, sy, 2, 2);
+        }
+    }
+
+    function animate() {
+        if (!canvas.isConnected) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        time += 1;
+
+        drawRocks();
+        drawWaterfall(leftWF, canvas.width * 0.07, 35);
+        drawWaterfall(rightWF, canvas.width * 0.93, 35);
+        drawRiver();
+        drawSplashes();
+
+        // Затухание цунами
+        if (window.tsunamiHeight > 0) window.tsunamiHeight *= 0.93;
+        if (window.tsunamiHeight < 0.2) window.tsunamiHeight = 0;
+
+        requestAnimationFrame(animate);
+    }
+
     animate();
-    window.triggerTsunami=function(){window.tsunamiHeight=60;const wave=document.getElementById('tsunamiWave');if(wave){wave.style.height='120px';setTimeout(()=>wave.style.height='0',1200);}};
+
+    window.triggerTsunami = function() {
+        window.tsunamiHeight = 50;
+        const wave = document.getElementById('tsunamiWave');
+        if (wave) {
+            wave.style.height = '100px';
+            wave.style.background = 'linear-gradient(0deg, rgba(0,200,240,0.7), rgba(0,160,220,0.4), rgba(255,255,255,0.2), transparent)';
+            setTimeout(() => wave.style.height = '0', 1500);
+        }
+    };
 }
 
 // ═══════════════════════════════════════════
