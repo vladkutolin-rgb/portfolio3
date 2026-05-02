@@ -573,7 +573,7 @@ function initDogBoat(){
 }
 
 // ═══════════════════════════════════════════
-// ЖИВЫЕ ПУЗЫРИ — САМООРГАНИЗАЦИЯ ПОД МУЗЫКУ
+// КВАНТОВЫЙ РОЙ — БОЖЕСТВЕННАЯ САМООРГАНИЗАЦИЯ
 // ═══════════════════════════════════════════
 function initBubbleGame() {
     const canvas = document.getElementById('bubbleCanvas');
@@ -582,37 +582,43 @@ function initBubbleGame() {
 
     const ctx = canvas.getContext('2d');
     let W, H;
+    let popCount = 0;
+    let globalTime = 0;
+    
+    // Фантомный слой (холст для следов)
+    const phantomCanvas = document.createElement('canvas');
+    const phantomCtx = phantomCanvas.getContext('2d');
 
     function resize() {
         W = section.offsetWidth;
         H = section.offsetHeight;
         canvas.width = W;
         canvas.height = H;
+        phantomCanvas.width = W;
+        phantomCanvas.height = H;
     }
     resize();
     window.addEventListener('resize', resize);
 
     const bubbles = [];
-    const BUBBLE_COUNT = 40;
-    let popCount = 0;
-    let globalPhase = 0;
+    const COUNT = 50;
+    const TRAIL_LENGTH = 8; // Длина следа
 
-    // Создаём пузыри
-    for (let i = 0; i < BUBBLE_COUNT; i++) {
+    for (let i = 0; i < COUNT; i++) {
+        const hue = (i / COUNT) * 360;
         bubbles.push({
             id: i,
-            x: Math.random() * W,
-            y: Math.random() * H,
-            size: 4 + Math.random() * 14,
-            baseSize: 4 + Math.random() * 14,
-            hue: Math.random() * 360,
-            vx: (Math.random() - 0.5) * 0.5,
-            vy: (Math.random() - 0.5) * 0.5,
+            x: W/2 + (Math.random()-0.5)*W*0.6,
+            y: H/2 + (Math.random()-0.5)*H*0.6,
+            size: 3 + Math.random() * 12,
+            baseSize: 3 + Math.random() * 12,
+            hue: hue,
+            vx: 0, vy: 0,
             phase: Math.random() * Math.PI * 2,
             popped: false,
             popTime: 0,
-            connections: [], // Связи с соседями
-            swarmAngle: 0
+            trail: [], // Фантомный след
+            pulsePhase: Math.random() * Math.PI * 2
         });
     }
 
@@ -634,224 +640,223 @@ function initBubbleGame() {
         const now = performance.now();
         const bass = smoothBass || 0;
         const energy = bass;
-        globalPhase += 0.005 * (1 + energy * 5);
+        globalTime += 0.016 * (1 + energy * 4);
 
-        // Фоновая энергия
-        const bgAlpha = 0.02 + energy * 0.06;
-        ctx.fillStyle = `rgba(0, 180, 255, ${bgAlpha})`;
-        ctx.fillRect(0, 0, W, H);
+        // Затемняем фантом (следы тают)
+        phantomCtx.fillStyle = 'rgba(0,0,0,0.04)';
+        phantomCtx.fillRect(0, 0, W, H);
+
+        // Очищаем основной холст
+        ctx.clearRect(0, 0, W, H);
+
+        const active = bubbles.filter(b => !b.popped);
+        const centerX = W/2, centerY = H/2;
 
         // ═══════════════════════════════
-        // ФИЗИКА: ПУЗЫРИ ЧУВСТВУЮТ ДРУГ ДРУГА
+        // ФИЗИКА РОЯ
         // ═══════════════════════════════
-        
-        // Обновление связей
-        bubbles.forEach(b => {
-            if (b.popped) return;
-            b.connections = [];
-            b.swarmAngle = 0;
-        });
-
-        // Находим соседей
-        const activeBubbles = bubbles.filter(b => !b.popped);
-        for (let i = 0; i < activeBubbles.length; i++) {
-            for (let j = i + 1; j < activeBubbles.length; j++) {
-                const a = activeBubbles[i];
-                const b = activeBubbles[j];
-                const dx = b.x - a.x;
-                const dy = b.y - a.y;
-                const dist = Math.hypot(dx, dy);
+        for (let i = 0; i < active.length; i++) {
+            for (let j = i+1; j < active.length; j++) {
+                const a = active[i], b = active[j];
+                const dx = b.x - a.x, dy = b.y - a.y;
+                const dist = Math.hypot(dx, dy) || 1;
                 
-                // Радиус взаимодействия зависит от музыки
-                const interactionRadius = 120 + energy * 200;
+                // Радиус взаимодействия
+                const radius = 80 + energy * 250;
                 
-                if (dist < interactionRadius) {
-                    const force = (1 - dist / interactionRadius) * 0.03 * (1 + energy * 3);
+                if (dist < radius) {
+                    // Сила
+                    const strength = (1 - dist/radius) * 0.02 * (1 + energy*4);
                     const angle = Math.atan2(dy, dx);
                     
-                    // Притяжение/отталкивание
-                    const equilibrium = 40 + energy * 80;
-                    const direction = dist < equilibrium ? -1 : 1;
+                    // Аттрактор Лоренца — хаотическое притяжение
+                    const lorenz = Math.sin(globalTime * 2 + a.phase) * Math.cos(globalTime * 1.7 + b.phase);
+                    const force = strength * (lorenz * 0.5 + 0.5);
                     
-                    a.vx += Math.cos(angle) * force * direction;
-                    a.vy += Math.sin(angle) * force * direction;
-                    b.vx -= Math.cos(angle) * force * direction;
-                    b.vy -= Math.sin(angle) * force * direction;
+                    const eq = 35 + Math.sin(globalTime + i*j*0.1) * 25 + energy * 60;
+                    const dir = dist < eq ? -1 : 1;
                     
-                    // Связь для рисования линий
-                    if (dist < 100 + energy * 150) {
-                        a.connections.push(b);
-                        b.connections.push(a);
-                    }
+                    a.vx += Math.cos(angle) * force * dir;
+                    a.vy += Math.sin(angle) * force * dir;
+                    b.vx -= Math.cos(angle) * force * dir;
+                    b.vy -= Math.sin(angle) * force * dir;
                 }
             }
         }
 
         // ═══════════════════════════════
-        // МУЗЫКА ВЛИЯЕТ НА ДВИЖЕНИЕ
+        // ДВИЖЕНИЕ
         // ═══════════════════════════════
-        activeBubbles.forEach(b => {
-            // Волновое движение под музыку
-            const waveX = Math.sin(b.phase + globalPhase) * (1 + energy * 4);
-            const waveY = Math.cos(b.phase * 1.3 + globalPhase * 0.8) * (1 + energy * 3);
+        active.forEach(b => {
+            // Спиральное притяжение к центру
+            const dx = centerX - b.x;
+            const dy = centerY - b.y;
+            const distToCenter = Math.hypot(dx, dy);
+            const spiralForce = 0.0005 * (1 + energy * 2) * Math.sin(distToCenter * 0.02 + globalTime);
+            b.vx += dx * spiralForce;
+            b.vy += dy * spiralForce;
             
-            b.vx += waveX * 0.02;
-            b.vy += waveY * 0.02;
+            // Вихревое движение
+            b.vx += -dy * 0.0003 * (1 + energy * 3);
+            b.vy += dx * 0.0003 * (1 + energy * 3);
             
-            // Резонанс с басами
-            if (energy > 0.2) {
-                b.size = b.baseSize * (1 + energy * 0.8 * Math.sin(globalPhase * 3 + b.phase));
-                b.vx += (Math.random() - 0.5) * energy * 0.5;
-                b.vy += (Math.random() - 0.5) * energy * 0.5;
-            } else {
-                b.size += (b.baseSize - b.size) * 0.05;
-            }
+            // Музыкальные вибрации
+            b.vx += Math.sin(globalTime * 3 + b.phase) * energy * 0.15;
+            b.vy += Math.cos(globalTime * 2.7 + b.phase) * energy * 0.15;
+            
+            // Размер пульсирует
+            b.size = b.baseSize * (1 + energy * 0.6 * Math.sin(globalTime * 4 + b.pulsePhase));
             
             // Трение
-            b.vx *= 0.98;
-            b.vy *= 0.98;
+            b.vx *= 0.985;
+            b.vy *= 0.985;
             
             // Движение
             b.x += b.vx;
             b.y += b.vy;
             
-            // Границы — мягкое отражение
-            if (b.x < 30) b.vx += 0.3;
-            if (b.x > W - 30) b.vx -= 0.3;
-            if (b.y < 30) b.vy += 0.3;
-            if (b.y > H - 30) b.vy -= 0.3;
+            // Мягкие границы
+            if (b.x < 20) b.vx += 0.2;
+            if (b.x > W-20) b.vx -= 0.2;
+            if (b.y < 20) b.vy += 0.2;
+            if (b.y > H-20) b.vy -= 0.2;
             
-            // Зацикливание
-            if (b.x < -50) b.x = W + 50;
-            if (b.x > W + 50) b.x = -50;
-            if (b.y < -50) b.y = H + 50;
-            if (b.y > H + 50) b.y = -50;
-        });
-
-        // ═══════════════════════════════
-        // ОТРИСОВКА СВЯЗЕЙ (НЕЙРОННАЯ СЕТЬ)
-        // ═══════════════════════════════
-        const drawnPairs = new Set();
-        activeBubbles.forEach(a => {
-            a.connections.forEach(b => {
-                const pairKey = Math.min(a.id, b.id) + '_' + Math.max(a.id, b.id);
-                if (drawnPairs.has(pairKey)) return;
-                drawnPairs.add(pairKey);
-                
-                const dx = b.x - a.x;
-                const dy = b.y - a.y;
-                const dist = Math.hypot(dx, dy);
-                const alpha = Math.max(0, (1 - dist / (100 + energy * 150)) * (0.15 + energy * 0.35));
-                
-                if (alpha > 0.01) {
-                    ctx.strokeStyle = `rgba(0, 220, 255, ${alpha})`;
-                    ctx.lineWidth = 0.5 + energy * 1.5;
-                    ctx.shadowColor = `rgba(0, 255, 200, ${alpha * 2})`;
-                    ctx.shadowBlur = 4 + energy * 10;
-                    ctx.beginPath();
-                    ctx.moveTo(a.x, a.y);
-                    ctx.lineTo(b.x, b.y);
-                    ctx.stroke();
-                    ctx.shadowBlur = 0;
+            // Фантомный след
+            b.trail.push({ x: b.x, y: b.y, size: b.size, hue: b.hue, life: 1 });
+            if (b.trail.length > TRAIL_LENGTH) b.trail.shift();
+            b.trail.forEach(t => t.life -= 0.02);
+            
+            // Рисуем след на фантоме
+            b.trail.forEach((t, idx) => {
+                if (t.life > 0) {
+                    phantomCtx.fillStyle = `hsla(${t.hue}, 70%, 60%, ${t.life * 0.3})`;
+                    phantomCtx.shadowColor = `hsla(${t.hue}, 80%, 55%, ${t.life * 0.5})`;
+                    phantomCtx.shadowBlur = t.size * 2;
+                    phantomCtx.beginPath();
+                    phantomCtx.arc(t.x, t.y, t.size * (idx/TRAIL_LENGTH), 0, Math.PI*2);
+                    phantomCtx.fill();
+                    phantomCtx.shadowBlur = 0;
                 }
             });
         });
 
         // ═══════════════════════════════
-        // ОТРИСОВКА ПУЗЫРЕЙ
+        // РИСУЕМ ФАНТОМНЫЙ СЛОЙ
+        // ═══════════════════════════════
+        ctx.globalAlpha = 0.5;
+        ctx.drawImage(phantomCanvas, 0, 0);
+        ctx.globalAlpha = 1;
+
+        // ═══════════════════════════════
+        // РИСУЕМ СВЯЗИ
+        // ═══════════════════════════════
+        const drawn = new Set();
+        active.forEach(a => {
+            active.forEach(b => {
+                if (a.id >= b.id) return;
+                const key = a.id + '_' + b.id;
+                if (drawn.has(key)) return;
+                
+                const dx = b.x - a.x, dy = b.y - a.y;
+                const dist = Math.hypot(dx, dy);
+                const maxDist = 90 + energy * 200;
+                
+                if (dist < maxDist) {
+                    drawn.add(key);
+                    const alpha = (1 - dist/maxDist) * (0.1 + energy * 0.4);
+                    if (alpha > 0.01) {
+                        const midHue = (a.hue + b.hue) / 2;
+                        ctx.strokeStyle = `hsla(${midHue}, 70%, 65%, ${alpha})`;
+                        ctx.lineWidth = 0.4 + energy * 1.2;
+                        ctx.shadowColor = `hsla(${midHue}, 80%, 60%, ${alpha * 2})`;
+                        ctx.shadowBlur = 6 + energy * 12;
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        ctx.lineTo(b.x, b.y);
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
+                    }
+                }
+            });
+        });
+
+        // ═══════════════════════════════
+        // РИСУЕМ ПУЗЫРИ
         // ═══════════════════════════════
         bubbles.forEach(b => {
             if (b.popped) {
                 const elapsed = (now - b.popTime) / 1000;
-                if (elapsed > 0.8) {
+                if (elapsed > 1) {
                     Object.assign(b, {
-                        x: Math.random() * W,
-                        y: Math.random() * H,
-                        vx: (Math.random() - 0.5) * 0.5,
-                        vy: (Math.random() - 0.5) * 0.5,
-                        popped: false,
-                        size: 4 + Math.random() * 14,
-                        baseSize: 4 + Math.random() * 14,
-                        phase: Math.random() * Math.PI * 2,
-                        hue: Math.random() * 360,
-                        connections: []
+                        x: W/2 + (Math.random()-0.5)*W*0.6,
+                        y: H/2 + (Math.random()-0.5)*H*0.6,
+                        vx: 0, vy: 0, popped: false,
+                        size: 3 + Math.random() * 12,
+                        baseSize: 3 + Math.random() * 12,
+                        trail: []
                     });
                 } else {
-                    // Анимация лопания — кольцо
-                    const ringRadius = elapsed * 60;
-                    const ringAlpha = Math.max(0, 1 - elapsed / 0.8);
-                    ctx.strokeStyle = `rgba(255, 255, 255, ${ringAlpha})`;
+                    // Кольцо взрыва
+                    const rr = elapsed * 80;
+                    const ra = 1 - elapsed;
+                    ctx.strokeStyle = `rgba(255,255,255,${ra})`;
                     ctx.lineWidth = 2;
-                    ctx.shadowColor = `rgba(0, 200, 255, ${ringAlpha})`;
-                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = `rgba(0,200,255,${ra})`;
+                    ctx.shadowBlur = 15;
                     ctx.beginPath();
-                    ctx.arc(b.x, b.y, ringRadius, 0, Math.PI * 2);
+                    ctx.arc(b.x, b.y, rr, 0, Math.PI*2);
                     ctx.stroke();
                     ctx.shadowBlur = 0;
                 }
                 return;
             }
 
-            // Свечение при энергии
-            const glowAlpha = energy * 0.5;
-            if (glowAlpha > 0.05) {
-                const glow = ctx.createRadialGradient(b.x, b.y, b.size * 0.3, b.x, b.y, b.size * 1.8);
-                glow.addColorStop(0, `hsla(${b.hue}, 70%, 60%, ${glowAlpha})`);
-                glow.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = glow;
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, b.size * 1.8, 0, Math.PI * 2);
-                ctx.fill();
-            }
+            // Свечение
+            const glow = ctx.createRadialGradient(b.x, b.y, b.size*0.2, b.x, b.y, b.size*2);
+            glow.addColorStop(0, `hsla(${b.hue}, 70%, 60%, ${energy*0.6})`);
+            glow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.size*2, 0, Math.PI*2);
+            ctx.fill();
 
-            // Основной градиент
+            // Тело
             const grad = ctx.createRadialGradient(
-                b.x - b.size * 0.2, b.y - b.size * 0.2, b.size * 0.05,
+                b.x - b.size*0.2, b.y - b.size*0.2, b.size*0.05,
                 b.x, b.y, b.size
             );
-            grad.addColorStop(0, `hsla(${b.hue}, 60%, 85%, 0.8)`);
-            grad.addColorStop(0.6, `hsla(${b.hue}, 55%, 60%, 0.5)`);
+            grad.addColorStop(0, `hsla(${b.hue}, 60%, 88%, 0.85)`);
+            grad.addColorStop(0.5, `hsla(${b.hue}, 55%, 62%, 0.55)`);
             grad.addColorStop(1, `hsla(${b.hue}, 45%, 35%, 0.2)`);
-
             ctx.fillStyle = grad;
             ctx.beginPath();
-            ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+            ctx.arc(b.x, b.y, b.size, 0, Math.PI*2);
             ctx.fill();
+
+            // Огненная обводка
+            ctx.strokeStyle = `hsla(${b.hue}, 80%, 70%, ${0.5+energy*0.5})`;
+            ctx.lineWidth = 1.2 + energy;
+            ctx.shadowColor = `hsla(${b.hue}, 90%, 60%, ${0.6+energy*0.4})`;
+            ctx.shadowBlur = 4 + energy*10;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.size, 0, Math.PI*2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
 
             // Блик
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fillStyle = `rgba(255,255,255,0.75)`;
             ctx.beginPath();
-            ctx.arc(b.x - b.size * 0.2, b.y - b.size * 0.2, b.size * 0.2, 0, Math.PI * 2);
+            ctx.arc(b.x - b.size*0.2, b.y - b.size*0.2, b.size*0.2, 0, Math.PI*2);
             ctx.fill();
         });
-
-        // ═══════════════════════════════
-        // САМООРГАНИЗАЦИЯ: ЦЕНТР МАССЫ
-        // ═══════════════════════════════
-        if (energy > 0.3 && activeBubbles.length > 5) {
-            let cx = 0, cy = 0;
-            activeBubbles.forEach(b => { cx += b.x; cy += b.y; });
-            cx /= activeBubbles.length;
-            cy /= activeBubbles.length;
-
-            const shapeRadius = 30 + energy * 60;
-            ctx.strokeStyle = `rgba(255, 255, 255, ${energy * 0.3})`;
-            ctx.lineWidth = 1;
-            ctx.setLineDash([4, 8]);
-            ctx.beginPath();
-            ctx.arc(cx, cy, shapeRadius, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
     }
 
-    // Лопание
     canvas.addEventListener('mousemove', function(e) {
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
         for (let i = 0; i < bubbles.length; i++) {
-            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 5) {
+            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 6) {
                 popBubble(bubbles[i]);
             }
         }
@@ -859,7 +864,6 @@ function initBubbleGame() {
 
     function animate() {
         if (!canvas.isConnected) return;
-        ctx.clearRect(0, 0, W, H);
         drawBubbles();
         requestAnimationFrame(animate);
     }
