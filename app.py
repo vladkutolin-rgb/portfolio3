@@ -22,19 +22,20 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS techstack (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT NOT NULL, name TEXT NOT NULL, icon TEXT DEFAULT 'fa-code', percent INTEGER DEFAULT 50, subtitle TEXT DEFAULT '', sort_order INTEGER DEFAULT 0)''')
     c.execute('''CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, sort_order INTEGER DEFAULT 0)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS music (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, file_path TEXT NOT NULL, sort_order INTEGER DEFAULT 0)''')
+    
+    # Админ
     c.execute('SELECT COUNT(*) FROM users')
-    c.execute('''CREATE TABLE IF NOT EXISTS music 
-        ( id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        file_path TEXT NOT NULL,
-        sort_order INTEGER DEFAULT 0
-        )''')
     if c.fetchone()[0] == 0:
         c.execute('INSERT INTO users (username, password) VALUES (?, ?)', ('ID1Vlad', '43Vl_ad33'))
+    
+    # Категории
     c.execute('SELECT COUNT(*) FROM categories')
     if c.fetchone()[0] == 0:
         for i, cat in enumerate(['Программирование и разработка','Офисные приложения','Графика и дизайн','Другие инструменты']):
             c.execute('INSERT INTO categories (name, sort_order) VALUES (?, ?)', (cat, i))
+    
+    # Тех-стек
     c.execute('SELECT COUNT(*) FROM techstack')
     if c.fetchone()[0] == 0:
         for item in [
@@ -52,6 +53,7 @@ def init_db():
             ('Другие инструменты','Интернет-поиск','fas fa-search',85,'',2),
         ]:
             c.execute('INSERT INTO techstack (category, name, icon, percent, subtitle, sort_order) VALUES (?, ?, ?, ?, ?, ?)', item)
+    
     conn.commit()
     conn.close()
 
