@@ -304,14 +304,20 @@ document.getElementById('workForm').addEventListener('submit', function(e) {
         .then(r => r.json()).then(d => { if (d.success) { showMsg('workSuccess'); this.reset(); loadWorks(); } });
 });
 
-   <!-- МУЗЫКА -->
+       <!-- МУЗЫКА -->
     <div class="section">
         <h2>🎵 Музыка</h2>
         <div class="success-msg" id="musicSuccess">✅ Трек добавлен!</div>
         <form id="musicForm" enctype="multipart/form-data">
             <div class="form-row">
-                <div class="form-group"><label>Название трека</label><input type="text" name="title" placeholder="Название"></div>
-                <div class="form-group"><label>MP3 файл</label><input type="file" name="file" accept="audio/mp3,audio/mpeg" required></div>
+                <div class="form-group">
+                    <label>Название трека</label>
+                    <input type="text" name="title" placeholder="Название">
+                </div>
+                <div class="form-group">
+                    <label>MP3 файл</label>
+                    <input type="file" name="file" accept="audio/mpeg,audio/mp3" required>
+                </div>
             </div>
             <button type="submit" class="btn">Загрузить трек</button>
         </form>
