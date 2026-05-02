@@ -882,3 +882,49 @@ body.dark-theme footer .footer-links a { color: var(--dark-color) !important; }
     .btn { padding: 12px 25px; font-size: 16px; }
     .scroll-to-top { bottom: 20px; right: 20px; width: 40px; height: 40px; }
 }
+
+/* ═══════════════════════════════════════════ */
+/* МУЗЫКАЛЬНЫЙ ПЛЕЕР */
+/* ═══════════════════════════════════════════ */
+#musicPlayer {
+    position: fixed;
+    bottom: 25px;
+    left: 25px;
+    z-index: 1000;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    padding: 10px 16px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+#musicPlayer button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+#musicPlayer button:hover { transform: scale(1.2); }
+
+#musicTitle {
+    color: white;
+    font-size: 13px;
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#musicVolume {
+    width: 60px;
+    accent-color: #00a336;
+    cursor: pointer;
+}

@@ -180,5 +180,15 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+        <!-- МУЗЫКАЛЬНЫЙ ПЛЕЕР -->
+    <div id="musicPlayer">
+        <button id="musicToggle" title="Вкл/выкл музыку">🔇</button>
+        <span id="musicTitle">Нет трека</span>
+        <input type="range" id="musicVolume" min="0" max="100" value="30" title="Громкость">
+        <button id="musicNext" title="Следующий трек">⏭️</button>
+        <audio id="musicAudio" preload="none"></audio>
+    </div>
+    
 </body>
 </html>

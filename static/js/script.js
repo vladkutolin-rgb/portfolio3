@@ -846,6 +846,124 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+
+// ═══════════════════════════════════════════
+// МУЗЫКАЛЬНЫЙ ПЛЕЕР + АУДИО-АНАЛИЗ
+// ═══════════════════════════════════════════
+let audioCtx, analyser, audioSource, bassLevel = 0;
+let musicPlaylist = [];
+let currentTrack = 0;
+let isMusicPlaying = false;
+
+const musicAudio = document.getElementById('musicAudio');
+const musicToggle = document.getElementById('musicToggle');
+const musicTitle = document.getElementById('musicTitle');
+const musicVolume = document.getElementById('musicVolume');
+const musicNext = document.getElementById('musicNext');
+
+function loadMusicPlaylist() {
+    fetch('/api/music')
+        .then(r => r.json())
+        .then(tracks => {
+            musicPlaylist = tracks;
+            if (tracks.length > 0) loadTrack(0);
+        });
+}
+
+function loadTrack(index) {
+    if (musicPlaylist.length === 0) return;
+    currentTrack = index;
+    const track = musicPlaylist[currentTrack];
+    musicAudio.src = '/' + track.file_path;
+    musicTitle.textContent = track.title;
+    if (isMusicPlaying) musicAudio.play();
+}
+
+function toggleMusic() {
+    if (musicPlaylist.length === 0) return;
+    if (isMusicPlaying) {
+        musicAudio.pause();
+        isMusicPlaying = false;
+        musicToggle.textContent = '🔇';
+    } else {
+        if (!audioCtx) initAudioContext();
+        musicAudio.play();
+        isMusicPlaying = true;
+        musicToggle.textContent = '🔊';
+    }
+}
+
+function initAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        audioSource = audioCtx.createMediaElementSource(musicAudio);
+        audioSource.connect(analyser);
+        analyser.connect(audioCtx.destination);
+    }
+}
+
+function getBassLevel() {
+    if (!analyser) return 0;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    let bass = 0;
+    for (let i = 0; i < 8; i++) bass += data[i];
+    return bass / 8 / 255;
+}
+
+// Обновляем воду под музыку
+setInterval(() => {
+    if (isMusicPlaying && analyser) {
+        bassLevel = getBassLevel();
+        // Вода реагирует на бас
+        if (window.tsunamiHeight !== undefined) {
+            window.tsunamiHeight = Math.max(window.tsunamiHeight || 0, bassLevel * 40);
+        }
+    }
+}, 50);
+
+// Собачка качается под музыку
+setInterval(() => {
+    const dog = document.getElementById('dogBoat');
+    if (dog && isMusicPlaying && bassLevel > 0) {
+        const bounce = bassLevel * 15;
+        const currentTop = parseFloat(dog.style.top) || 0;
+        dog.style.transition = 'top 0.1s ease';
+        dog.style.top = (currentTop - bounce * 0.3) + 'px';
+        setTimeout(() => {
+            dog.style.top = (currentTop + bounce * 0.3) + 'px';
+        }, 50);
+    }
+}, 100);
+
+// События плеера
+if (musicToggle) musicToggle.addEventListener('click', toggleMusic);
+if (musicNext) musicNext.addEventListener('click', () => {
+    if (musicPlaylist.length === 0) return;
+    loadTrack((currentTrack + 1) % musicPlaylist.length);
+    if (isMusicPlaying) musicAudio.play();
+});
+if (musicVolume) musicVolume.addEventListener('input', () => {
+    musicAudio.volume = musicVolume.value / 100;
+});
+
+musicAudio.addEventListener('ended', () => {
+    if (musicPlaylist.length > 0) {
+        loadTrack((currentTrack + 1) % musicPlaylist.length);
+        musicAudio.play();
+    }
+});
+
+musicAudio.volume = 0.3;
+if (musicVolume) musicVolume.value = 30;
+
+// Загружаем плейлист при старте
+window.addEventListener('load', () => {
+    setTimeout(loadMusicPlaylist, 1000);
+});
+
 // ═══════════════════════════════════════════
 // ЗАПУСК
 // ═══════════════════════════════════════════

@@ -304,6 +304,20 @@ document.getElementById('workForm').addEventListener('submit', function(e) {
         .then(r => r.json()).then(d => { if (d.success) { showMsg('workSuccess'); this.reset(); loadWorks(); } });
 });
 
+   <!-- МУЗЫКА -->
+    <div class="section">
+        <h2>🎵 Музыка</h2>
+        <div class="success-msg" id="musicSuccess">✅ Трек добавлен!</div>
+        <form id="musicForm" enctype="multipart/form-data">
+            <div class="form-row">
+                <div class="form-group"><label>Название трека</label><input type="text" name="title" placeholder="Название"></div>
+                <div class="form-group"><label>MP3 файл</label><input type="file" name="file" accept="audio/mp3,audio/mpeg" required></div>
+            </div>
+            <button type="submit" class="btn">Загрузить трек</button>
+        </form>
+        <div id="musicList" style="margin-top:15px;"></div>
+    </div>
+
 // ──────────────────────────────────────
 // КАТЕГОРИИ И ТЕХ-СТЕК
 // ──────────────────────────────────────
@@ -471,6 +485,22 @@ loadGallery();
 loadCerts();
 loadWorks();
 loadAll();
+
+// Музыка
+function loadMusic() {
+    fetch('/api/music').then(r => r.json()).then(items => {
+        document.getElementById('musicList').innerHTML = items.map(i =>
+            `<div class="edit-row"><span style="flex:1">🎵 ${i.title}</span><button class="btn btn-red btn-sm" onclick="del('music',${i.id})">✕</button></div>`
+        ).join('');
+    });
+}
+document.getElementById('musicForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch('/api/music', { method: 'POST', body: new FormData(this) })
+        .then(r => r.json()).then(d => { if (d.success) { showMsg('musicSuccess'); this.reset(); loadMusic(); } });
+});
+loadMusic();
+
 </script>
 
 </body>

@@ -23,6 +23,12 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS techstack (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT NOT NULL, name TEXT NOT NULL, icon TEXT DEFAULT 'fa-code', percent INTEGER DEFAULT 50, subtitle TEXT DEFAULT '', sort_order INTEGER DEFAULT 0)''')
     c.execute('''CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, sort_order INTEGER DEFAULT 0)''')
     c.execute('SELECT COUNT(*) FROM users')
+    c.execute('''CREATE TABLE IF NOT EXISTS music 
+        ( id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        sort_order INTEGER DEFAULT 0
+        )''')
     if c.fetchone()[0] == 0:
         c.execute('INSERT INTO users (username, password) VALUES (?, ?)', ('ID1Vlad', '43Vl_ad33'))
     c.execute('SELECT COUNT(*) FROM categories')
@@ -292,6 +298,45 @@ def api_avatar():
     c.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)', ('avatar', f'static/uploads/{fn}'))
     conn.commit(); conn.close()
     return jsonify({'success':True})
+
+# MUSIC API
+@app.route('/api/music', methods=['GET'])
+def api_music_list():
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM music ORDER BY sort_order ASC')
+    items = [{'id': r[0], 'title': r[1], 'file_path': r[2], 'sort_order': r[3]} for r in c.fetchall()]
+    conn.close()
+    return jsonify(items)
+
+@app.route('/api/music', methods=['POST'])
+def api_music_add():
+    if 'logged_in' not in session: return jsonify({'error': 'Auth'}), 401
+    if 'file' not in request.files: return jsonify({'error': 'No file'}), 400
+    f = request.files['file']
+    if f.filename == '': return jsonify({'error': 'Empty'}), 400
+    fn = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{f.filename}")
+    f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute('SELECT MAX(sort_order) FROM music')
+    mo = (c.fetchone()[0] or 0) + 1
+    c.execute('INSERT INTO music (title, file_path, sort_order) VALUES (?, ?, ?)',
+              (request.form.get('title', fn), f'static/uploads/{fn}', mo))
+    conn.commit(); conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/music/<int:id>', methods=['DELETE'])
+def api_music_del(id):
+    if 'logged_in' not in session: return jsonify({'error': 'Auth'}), 401
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute('SELECT file_path FROM music WHERE id=?', (id,))
+    row = c.fetchone()
+    if row and os.path.exists(row[0]): os.remove(row[0])
+    c.execute('DELETE FROM music WHERE id=?', (id,))
+    conn.commit(); conn.close()
+    return jsonify({'success': True})
 
 # CHANGE PASSWORD
 @app.route('/api/change-password', methods=['POST'])
