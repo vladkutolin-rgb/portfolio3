@@ -249,20 +249,22 @@ function drawSkillsChart() {
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Процент внутри сектора
+        // Процент внутри сектора (только если сектор достаточно большой)
         const mid = angle + slice / 2;
-        const tx = cx + Math.cos(mid) * r * 0.65;
-        const ty = cy + Math.sin(mid) * r * 0.65;
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 12px "Segoe UI", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(value + '%', tx, ty);
+        if (slice > 0.5) {
+            const tx = cx + Math.cos(mid) * r * 0.6;
+            const ty = cy + Math.sin(mid) * r * 0.6;
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 11px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(value + '%', tx, ty);
+        }
         
         // Легенда
-        legend += `<div style="display:flex;align-items:center;margin-bottom:6px;">
-            <span style="background:${color};width:14px;height:14px;border-radius:3px;display:inline-block;margin-right:8px;flex-shrink:0;"></span>
-            <span style="font-size:12px;color:var(--text-color);">${name} — ${value}%</span>
+        legend += `<div style="display:flex;align-items:center;margin-bottom:5px;flex-wrap:wrap;">
+            <span style="background:${color};min-width:14px;width:14px;height:14px;border-radius:3px;display:inline-block;margin-right:8px;"></span>
+            <span style="font-size:12px;line-height:1.3;word-break:break-word;">${name} — ${value}%</span>
         </div>`;
         
         angle += slice;
@@ -270,21 +272,25 @@ function drawSkillsChart() {
     
     // Круг в центре (пончик)
     ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.5, 0, 2 * Math.PI);
-    ctx.fillStyle = 'var(--bg-color, #fff)';
+    ctx.arc(cx, cy, r * 0.45, 0, 2 * Math.PI);
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--card-bg').trim() || '#fff';
     ctx.fill();
     
     const legendEl = document.getElementById('chartLegend');
     if (legendEl) legendEl.innerHTML = legend;
 }
 
-// Запускаем диаграмму при загрузке и при скролле
+// Запускаем при загрузке
 window.addEventListener('load', () => {
-    setTimeout(drawSkillsChart, 800);
+    setTimeout(drawSkillsChart, 1000);
 });
+
+// Обновляем при скролле
+let chartDrawn = false;
 window.addEventListener('scroll', () => {
     const about = document.getElementById('about');
-    if (about && about.classList.contains('animated')) {
+    if (about && about.classList.contains('animated') && !chartDrawn) {
         drawSkillsChart();
+        chartDrawn = true;
     }
 });
