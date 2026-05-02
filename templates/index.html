@@ -49,9 +49,9 @@
             <h2 class="section-title">Обо мне</h2>
             <div class="about-content">
                 <div class="about-text">
-                    <p>Я студент IT-направления, увлечённый программированием. За время обучения освоил несколько программ и технологий.</p>
+                    <p>Я студент IT-направления, увлечённый программированием.</p>
                     <p>Мои сильные стороны: внимание к деталям, способность быстро осваивать новые технологии и работать в команде.</p>
-                    <p>В будущем планирую стать full-stack разработчиком и создавать полезные и инновационные продукты.</p>
+                    <p>В будущем планирую стать full-stack разработчиком.</p>
                     
                     <div class="achievement-counter">
                         <div class="counter-item"><i class="fas fa-certificate"></i><span class="counter" data-target="{{ certificates|length }}">0</span><p>Сертификатов</p></div>
@@ -79,7 +79,7 @@
         </div>
     </section>
 
-    <!-- ГАЛЕРЕЯ -->
+    <!-- ГАЛЕРЕЯ С ВОДОПАДАМИ -->
     <section class="gallery animate-on-scroll" id="gallery">
         <canvas id="waterfallCanvas"></canvas>
         <div id="tsunamiWave"></div>
@@ -95,13 +95,13 @@
                 <div class="gallery-item"><img src="{{ item[1] }}" alt="{{ item[2] }}" data-full="{{ item[1] }}"><p>{{ item[2] }}</p></div>
                 {% endfor %}
                 {% if not gallery %}
-                <div class="gallery-item empty-placeholder-card"><div class="empty-card-icon"><i class="fas fa-images"></i></div><p>Фотографии с мероприятий появятся здесь</p></div>
+                <div class="gallery-item empty-placeholder-card"><div class="empty-card-icon"><i class="fas fa-images"></i></div><p>Фотографии появятся здесь</p></div>
                 {% endif %}
             </div>
         </div>
     </section>
 
-        <!-- СЕРТИФИКАТЫ -->
+    <!-- СЕРТИФИКАТЫ С ПУЗЫРЯМИ -->
     <section id="certificates" class="animate-on-scroll">
         <canvas id="bubbleCanvas"></canvas>
         <div id="bubbleCounter">🫧 Лопнуто: <span id="bubbleCount">0</span></div>
@@ -127,13 +127,7 @@
                 </div>
                 {% endfor %}
                 {% if not certificates %}
-                <div class="certificate-item empty-placeholder-card">
-                    <div class="empty-card-icon"><i class="fas fa-award"></i></div>
-                    <div class="certificate-info">
-                        <h3>Пока нет сертификатов</h3>
-                        <p>Сертификаты и достижения появятся здесь</p>
-                    </div>
-                </div>
+                <div class="certificate-item empty-placeholder-card"><div class="empty-card-icon"><i class="fas fa-award"></i></div><div class="certificate-info"><h3>Пока нет сертификатов</h3><p>Сертификаты появятся здесь</p></div></div>
                 {% endif %}
             </div>
         </div>
@@ -179,9 +173,7 @@
         <div class="zoom-controls"><button id="zoomInBtn">+</button><button id="zoomOutBtn">−</button><button id="resetZoomBtn">↺</button></div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
-        <!-- МУЗЫКАЛЬНЫЙ ПЛЕЕР -->
+    <!-- МУЗЫКАЛЬНЫЙ ПЛЕЕР -->
     <div id="musicPlayer">
         <button id="musicToggle" title="Вкл/выкл музыку">🔇</button>
         <span id="musicTitle">Нет трека</span>
@@ -189,6 +181,7 @@
         <button id="musicNext" title="Следующий трек">⏭️</button>
         <audio id="musicAudio" preload="none"></audio>
     </div>
-    
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

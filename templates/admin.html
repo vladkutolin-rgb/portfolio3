@@ -8,89 +8,50 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: #f0f2f5; }
-        
-        /* Шапка */
         .header { background: #111; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .header h1 { font-size: 22px; }
-        .header h1 span { color: #00a336; }
-        .header-btns { display: flex; gap: 10px; align-items: center; }
-        .logout-btn { background: #ff4444; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; font-weight: 600; font-size: 14px; }
-        .site-link { color: #00a336; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 15px; background: rgba(255,255,255,0.1); border-radius: 5px; }
-        
-        /* Контейнер */
+        .header h1 { font-size: 22px; } .header h1 span { color: #00a336; }
+        .logout-btn { background: #ff4444; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; font-weight: 600; }
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        
-        /* Секции */
         .section { background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
         .section h2 { margin-bottom: 20px; color: #222; border-bottom: 3px solid #00a336; padding-bottom: 10px; font-size: 20px; }
-        
-        /* Формы */
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
         .form-group { flex: 1; min-width: 180px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; font-size: 13px; }
-        .form-group input,
-        .form-group textarea,
-        .form-group select { width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border 0.2s; }
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus { outline: none; border-color: #00a336; }
-        
-        /* Кнопки */
-        .btn { background: #00a336; color: white; padding: 10px 22px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background 0.2s; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #00a336; }
+        .btn { background: #00a336; color: white; padding: 10px 22px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; margin: 3px; }
         .btn:hover { background: #008a2d; }
-        .btn-sm { padding: 6px 14px; font-size: 12px; }
-        .btn-red { background: #ff4444; }
-        .btn-red:hover { background: #cc0000; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-red { background: #ff4444; } .btn-red:hover { background: #cc0000; }
         .btn-outline { background: white; color: #00a336; border: 2px solid #00a336; }
         .btn-outline:hover { background: #00a336; color: white; }
-        
-        /* Сетка карточек */
         .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; margin-top: 18px; }
-        .item-card { background: #fafafa; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); position: relative; transition: transform 0.2s; }
-        .item-card:hover { transform: translateY(-3px); }
+        .item-card { background: #fafafa; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); position: relative; }
         .item-card img { width: 100%; height: 170px; object-fit: cover; }
-        .item-info { padding: 14px; }
-        .item-info h3 { font-size: 15px; margin-bottom: 4px; }
-        .item-info p { font-size: 12px; color: #777; }
+        .item-info { padding: 14px; } .item-info h3 { font-size: 15px; margin-bottom: 4px; } .item-info p { font-size: 12px; color: #777; }
         .delete-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,0,0,0.8); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; }
         .delete-btn:hover { background: red; }
-        
-        /* Сообщения */
         .success-msg { background: #4CAF50; color: white; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; display: none; }
         .error-msg { background: #f44336; color: white; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; display: none; }
-        
-        /* Редактируемые строки */
         .edit-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 10px; background: #f5f5f5; border-radius: 8px; margin-bottom: 6px; }
-        .edit-row input,
-        .edit-row select { padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+        .edit-row input, .edit-row select { padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
         .edit-row input[type="number"] { width: 70px; }
         .edit-row input[type="text"] { flex: 1; min-width: 80px; }
         .edit-row select { width: 100px; }
-        
-        /* Заголовки категорий */
         .category-block { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
         .category-block h3 { color: #00a336; margin-bottom: 10px; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* Табы */
-        .tab-buttons { display: flex; gap: 5px; margin-bottom: 18px; flex-wrap: wrap; }
-        .tab-btn { padding: 8px 18px; border: 2px solid #00a336; background: white; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
-        .tab-btn.active { background: #00a336; color: white; }
     </style>
 </head>
 <body>
 
-<!-- ШАПКА -->
 <div class="header">
     <h1>⚙️ Админ-<span>Панель</span></h1>
-    <div class="header-btns">
-        <a href="/" class="site-link" target="_blank">🌐 Открыть сайт</a>
-        <a href="/logout" class="logout-btn">🚪 Выйти</a>
-    </div>
+    <a href="/logout" class="logout-btn">🚪 Выйти</a>
 </div>
 
 <div class="container">
 
-    <!-- СМЕНА ПАРОЛЯ -->
+    <!-- ПАРОЛЬ -->
     <div class="section">
         <h2>🔒 Сменить пароль</h2>
         <div class="success-msg" id="passSuccess">✅ Пароль изменён!</div>
@@ -103,27 +64,21 @@
 
     <!-- АВАТАР -->
     <div class="section">
-        <h2>🖼️ Аватар профиля</h2>
-        <div class="success-msg" id="avatarSuccess">✅ Аватар обновлён!</div>
+        <h2>🖼️ Аватар</h2>
+        <div class="success-msg" id="avatarSuccess">✅ Обновлён!</div>
         <form id="avatarForm" enctype="multipart/form-data">
-            <div class="form-row">
-                <div class="form-group"><label>Выберите фото</label><input type="file" name="avatar" accept="image/*" required></div>
-            </div>
-            <button type="submit" class="btn">Загрузить аватар</button>
+            <div class="form-row"><div class="form-group"><label>Фото</label><input type="file" name="avatar" accept="image/*" required></div></div>
+            <button class="btn">Загрузить</button>
         </form>
     </div>
 
     <!-- ГАЛЕРЕЯ -->
     <div class="section">
-        <h2>📸 Галерея фото</h2>
-        <div class="success-msg" id="gallerySuccess">✅ Фото добавлено!</div>
-        <div class="error-msg" id="galleryError"></div>
+        <h2>📸 Галерея</h2>
+        <div class="success-msg" id="gallerySuccess">✅</div>
         <form id="galleryForm" enctype="multipart/form-data">
-            <div class="form-row">
-                <div class="form-group"><label>Фотография</label><input type="file" name="photo" accept="image/*" required></div>
-                <div class="form-group" style="flex:2"><label>Описание</label><input type="text" name="description" placeholder="Например: Выступление на конференции"></div>
-            </div>
-            <button type="submit" class="btn">Добавить в галерею</button>
+            <div class="form-row"><div class="form-group"><label>Фото</label><input type="file" name="photo" accept="image/*" required></div><div class="form-group" style="flex:2"><label>Описание</label><input type="text" name="description"></div></div>
+            <button class="btn">Добавить</button>
         </form>
         <div class="items-grid" id="galleryItems"></div>
     </div>
@@ -131,383 +86,94 @@
     <!-- СЕРТИФИКАТЫ -->
     <div class="section">
         <h2>📜 Сертификаты</h2>
-        <div class="success-msg" id="certSuccess">✅ Сертификат добавлен!</div>
-        <div class="error-msg" id="certError"></div>
+        <div class="success-msg" id="certSuccess">✅</div>
         <form id="certForm" enctype="multipart/form-data">
-            <div class="form-row">
-                <div class="form-group"><label>Изображение</label><input type="file" name="photo" accept="image/*" required></div>
-                <div class="form-group"><label>Название</label><input type="text" name="title" placeholder="Название сертификата" required></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Описание</label><input type="text" name="description" placeholder="За что получен"></div>
-                <div class="form-group"><label>Организация</label><input type="text" name="organization" placeholder="Кто выдал"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Год</label><input type="text" name="year" placeholder="2025"></div>
-                <div class="form-group"><label>Курс</label><select name="course">
-                    <option value="1">1 курс</option><option value="2" selected>2 курс</option><option value="3">3 курс</option><option value="4">4 курс</option>
-                </select></div>
-            </div>
-            <button type="submit" class="btn">Добавить сертификат</button>
+            <div class="form-row"><div class="form-group"><label>Фото</label><input type="file" name="photo" accept="image/*" required></div><div class="form-group"><label>Название</label><input type="text" name="title" required></div></div>
+            <div class="form-row"><div class="form-group"><label>Описание</label><input type="text" name="description"></div><div class="form-group"><label>Организация</label><input type="text" name="organization"></div></div>
+            <div class="form-row"><div class="form-group"><label>Год</label><input type="text" name="year"></div><div class="form-group"><label>Курс</label><select name="course"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option></select></div></div>
+            <button class="btn">Добавить</button>
         </form>
         <div class="items-grid" id="certItems"></div>
     </div>
 
     <!-- РАБОТЫ -->
     <div class="section">
-        <h2>💼 Мои работы</h2>
-        <div class="success-msg" id="workSuccess">✅ Работа добавлена!</div>
+        <h2>💼 Работы</h2>
+        <div class="success-msg" id="workSuccess">✅</div>
         <form id="workForm" enctype="multipart/form-data">
-            <div class="form-row">
-                <div class="form-group"><label>Название</label><input type="text" name="title" placeholder="Название проекта" required></div>
-                <div class="form-group"><label>Иконка (Font Awesome)</label><input type="text" name="icon" value="fa-code" placeholder="fa-code"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group" style="flex:2"><label>Описание</label><input type="text" name="description" placeholder="О чём проект"></div>
-                <div class="form-group"><label>Файл (необязательно)</label><input type="file" name="file"></div>
-            </div>
-            <button type="submit" class="btn">Добавить работу</button>
+            <div class="form-row"><div class="form-group"><label>Название</label><input type="text" name="title" required></div><div class="form-group"><label>Иконка</label><input type="text" name="icon" value="fa-code"></div></div>
+            <div class="form-row"><div class="form-group" style="flex:2"><label>Описание</label><input type="text" name="description"></div><div class="form-group"><label>Файл</label><input type="file" name="file"></div></div>
+            <button class="btn">Добавить</button>
         </form>
         <div class="items-grid" id="workItems"></div>
     </div>
 
-    <!-- КАТЕГОРИИ И ТЕХ-СТЕК -->
-    <div class="section">
-        <h2>📁 Категории и тех-стек</h2>
-        <p style="color:#777;margin-bottom:15px;">Сначала создайте категорию, потом добавляйте в неё карточки навыков.</p>
-        
-        <!-- Добавление категории -->
-        <div class="form-row">
-            <div class="form-group"><label>Новая категория</label><input type="text" id="newCategoryName" placeholder="Название категории"></div>
-            <div class="form-group" style="align-self:flex-end"><button class="btn" onclick="addCategory()">+ Создать категорию</button></div>
-        </div>
-        <div class="success-msg" id="catSuccess">✅ Категория создана!</div>
-        
-        <!-- Список категорий с карточками -->
-        <div id="categoriesContainer"></div>
-    </div>
-
-</div>
-
-<script>
-// ──────────────────────────────────────
-// ПРОВЕРКА АВТОРИЗАЦИИ
-// ──────────────────────────────────────
-fetch('/api/check-auth').then(r => r.json()).then(d => { if (!d.authenticated) location.href = '/login'; });
-
-function showMsg(id) {
-    document.getElementById(id).style.display = 'block';
-    setTimeout(() => document.getElementById(id).style.display = 'none', 2500);
-}
-
-// ──────────────────────────────────────
-// СМЕНА ПАРОЛЯ
-// ──────────────────────────────────────
-function changePassword() {
-    const pass = document.getElementById('newPassword').value;
-    if (pass.length < 3) {
-        document.getElementById('passError').textContent = '❌ Пароль должен быть минимум 3 символа';
-        document.getElementById('passError').style.display = 'block';
-        return;
-    }
-    fetch('/api/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pass })
-    })
-    .then(r => r.json())
-    .then(d => {
-        if (d.success) {
-            showMsg('passSuccess');
-            document.getElementById('passError').style.display = 'none';
-            document.getElementById('newPassword').value = '';
-        } else {
-            document.getElementById('passError').textContent = '❌ ' + d.error;
-            document.getElementById('passError').style.display = 'block';
-        }
-    });
-}
-
-// ──────────────────────────────────────
-// АВАТАР
-// ──────────────────────────────────────
-document.getElementById('avatarForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    fetch('/api/avatar', { method: 'POST', body: new FormData(this) })
-        .then(r => r.json()).then(d => { if (d.success) { showMsg('avatarSuccess'); this.reset(); } });
-});
-
-// ──────────────────────────────────────
-// ГАЛЕРЕЯ
-// ──────────────────────────────────────
-function loadGallery() {
-    fetch('/api/gallery').then(r => r.json()).then(items => {
-        document.getElementById('galleryItems').innerHTML = items.map(i =>
-            `<div class="item-card">
-                <img src="${i.photo}" alt="">
-                <button class="delete-btn" onclick="del('gallery',${i.id})">✕</button>
-                <div class="item-info"><p>${i.description || 'Без описания'}</p></div>
-            </div>`
-        ).join('');
-    });
-}
-document.getElementById('galleryForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    fetch('/api/gallery', { method: 'POST', body: new FormData(this) })
-        .then(r => r.json()).then(d => { if (d.success) { showMsg('gallerySuccess'); this.reset(); loadGallery(); } });
-});
-
-// ──────────────────────────────────────
-// СЕРТИФИКАТЫ
-// ──────────────────────────────────────
-function loadCerts() {
-    fetch('/api/certificates').then(r => r.json()).then(items => {
-        document.getElementById('certItems').innerHTML = items.map(i =>
-            `<div class="item-card">
-                <img src="${i.photo}" alt="">
-                <button class="delete-btn" onclick="del('certificates',${i.id})">✕</button>
-                <div class="item-info">
-                    <h3>${i.title}</h3>
-                    <p>${i.organization || ''} | ${i.year || ''}</p>
-                    <p>${i.course} курс</p>
-                </div>
-            </div>`
-        ).join('');
-    });
-}
-document.getElementById('certForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    fetch('/api/certificates', { method: 'POST', body: new FormData(this) })
-        .then(r => r.json()).then(d => { if (d.success) { showMsg('certSuccess'); this.reset(); loadCerts(); } });
-});
-
-// ──────────────────────────────────────
-// РАБОТЫ
-// ──────────────────────────────────────
-function loadWorks() {
-    fetch('/api/works').then(r => r.json()).then(items => {
-        document.getElementById('workItems').innerHTML = items.map(i =>
-            `<div class="item-card">
-                <div class="item-info">
-                    <h3><i class="fas ${i.icon}"></i> ${i.title}</h3>
-                    <p>${i.description || ''}</p>
-                    ${i.file_path ? `<a href="/${i.file_path}" class="btn btn-sm" download style="margin-top:8px;display:inline-block;">📥 Скачать</a>` : ''}
-                </div>
-                <button class="delete-btn" onclick="del('works',${i.id})">✕</button>
-            </div>`
-        ).join('');
-    });
-}
-document.getElementById('workForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    fetch('/api/works', { method: 'POST', body: new FormData(this) })
-        .then(r => r.json()).then(d => { if (d.success) { showMsg('workSuccess'); this.reset(); loadWorks(); } });
-});
-
-       <!-- МУЗЫКА -->
+    <!-- МУЗЫКА -->
     <div class="section">
         <h2>🎵 Музыка</h2>
         <div class="success-msg" id="musicSuccess">✅ Трек добавлен!</div>
         <form id="musicForm" enctype="multipart/form-data">
             <div class="form-row">
-                <div class="form-group">
-                    <label>Название трека</label>
-                    <input type="text" name="title" placeholder="Название">
-                </div>
-                <div class="form-group">
-                    <label>MP3 файл</label>
-                    <input type="file" name="file" accept="audio/mpeg,audio/mp3" required>
-                </div>
+                <div class="form-group"><label>Название трека</label><input type="text" name="title" placeholder="Название"></div>
+                <div class="form-group"><label>MP3 файл</label><input type="file" name="file" accept="audio/mpeg,audio/mp3" required></div>
             </div>
             <button type="submit" class="btn">Загрузить трек</button>
         </form>
         <div id="musicList" style="margin-top:15px;"></div>
     </div>
 
-// ──────────────────────────────────────
+    <!-- КАТЕГОРИИ И ТЕХ-СТЕК -->
+    <div class="section">
+        <h2>📁 Категории и тех-стек</h2>
+        <p style="color:#777;margin-bottom:15px;">Создайте категорию, потом добавляйте в неё навыки.</p>
+        <div class="form-row">
+            <div class="form-group"><label>Новая категория</label><input type="text" id="newCategoryName" placeholder="Название категории"></div>
+            <div class="form-group" style="align-self:flex-end"><button class="btn" onclick="addCategory()">+ Создать</button></div>
+        </div>
+        <div class="success-msg" id="catSuccess">✅ Категория создана!</div>
+        <div id="categoriesContainer"></div>
+    </div>
+
+</div>
+
+<script>
+fetch('/api/check-auth').then(r=>r.json()).then(d=>{if(!d.authenticated)location.href='/login'});
+function showMsg(id){document.getElementById(id).style.display='block';setTimeout(()=>document.getElementById(id).style.display='none',2000);}
+
+// ПАРОЛЬ
+function changePassword(){const p=document.getElementById('newPassword').value;if(p.length<3){document.getElementById('passError').textContent='❌ Минимум 3 символа';document.getElementById('passError').style.display='block';return;}fetch('/api/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p})}).then(r=>r.json()).then(d=>{if(d.success){showMsg('passSuccess');document.getElementById('newPassword').value='';document.getElementById('passError').style.display='none';}else{document.getElementById('passError').textContent='❌ '+d.error;document.getElementById('passError').style.display='block';}});}
+
+// АВАТАР
+document.getElementById('avatarForm').addEventListener('submit',function(e){e.preventDefault();fetch('/api/avatar',{method:'POST',body:new FormData(this)}).then(r=>r.json()).then(d=>{if(d.success){showMsg('avatarSuccess');this.reset();}});});
+
+// ГАЛЕРЕЯ
+function loadGallery(){fetch('/api/gallery').then(r=>r.json()).then(items=>{document.getElementById('galleryItems').innerHTML=items.map(i=>`<div class="item-card"><img src="${i.photo}"><button class="delete-btn" onclick="del('gallery',${i.id})">✕</button><div class="item-info"><p>${i.description||''}</p></div></div>`).join('');});}
+document.getElementById('galleryForm').addEventListener('submit',function(e){e.preventDefault();fetch('/api/gallery',{method:'POST',body:new FormData(this)}).then(r=>r.json()).then(d=>{if(d.success){showMsg('gallerySuccess');this.reset();loadGallery();}});});
+
+// СЕРТИФИКАТЫ
+function loadCerts(){fetch('/api/certificates').then(r=>r.json()).then(items=>{document.getElementById('certItems').innerHTML=items.map(i=>`<div class="item-card"><img src="${i.photo}"><button class="delete-btn" onclick="del('certificates',${i.id})">✕</button><div class="item-info"><h3>${i.title}</h3><p>${i.organization||''} | ${i.year||''}</p><p>${i.course} курс</p></div></div>`).join('');});}
+document.getElementById('certForm').addEventListener('submit',function(e){e.preventDefault();fetch('/api/certificates',{method:'POST',body:new FormData(this)}).then(r=>r.json()).then(d=>{if(d.success){showMsg('certSuccess');this.reset();loadCerts();}});});
+
+// РАБОТЫ
+function loadWorks(){fetch('/api/works').then(r=>r.json()).then(items=>{document.getElementById('workItems').innerHTML=items.map(i=>`<div class="item-card"><div class="item-info"><h3><i class="fas ${i.icon}"></i> ${i.title}</h3><p>${i.description||''}</p>${i.file_path?`<a href="/${i.file_path}" class="btn btn-sm" download>📥</a>`:''}</div><button class="delete-btn" onclick="del('works',${i.id})">✕</button></div>`).join('');});}
+document.getElementById('workForm').addEventListener('submit',function(e){e.preventDefault();fetch('/api/works',{method:'POST',body:new FormData(this)}).then(r=>r.json()).then(d=>{if(d.success){showMsg('workSuccess');this.reset();loadWorks();}});});
+
+// МУЗЫКА
+function loadMusic(){fetch('/api/music').then(r=>r.json()).then(items=>{document.getElementById('musicList').innerHTML=items.map(i=>`<div class="edit-row"><span style="flex:1">🎵 ${i.title}</span><button class="btn btn-red btn-sm" onclick="del('music',${i.id})">✕</button></div>`).join('');});}
+document.getElementById('musicForm').addEventListener('submit',function(e){e.preventDefault();fetch('/api/music',{method:'POST',body:new FormData(this)}).then(r=>r.json()).then(d=>{if(d.success){showMsg('musicSuccess');this.reset();loadMusic();}});});
+
 // КАТЕГОРИИ И ТЕХ-СТЕК
-// ──────────────────────────────────────
-let allTechstack = [];
-let allCategories = [];
+let allTech=[],allCats=[];
+function addCategory(){const n=document.getElementById('newCategoryName').value.trim();if(!n)return;fetch('/api/categories',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n})}).then(r=>r.json()).then(d=>{if(d.success){showMsg('catSuccess');document.getElementById('newCategoryName').value='';loadAll();}});}
+function loadAll(){Promise.all([fetch('/api/categories').then(r=>r.json()),fetch('/api/techstack').then(r=>r.json())]).then(([cats,tech])=>{allCats=cats;allTech=tech;renderCats();});}
+function renderCats(){document.getElementById('categoriesContainer').innerHTML=allCats.map(c=>`<div class="category-block"><h3>📁 ${c.name} <span><button class="btn btn-sm btn-outline" onclick="addTech('${c.name}')">+ Навык</button> <button class="btn btn-sm btn-red" onclick="del('categories',${c.id})">🗑️</button></span></h3>${allTech.filter(t=>t.category===c.name).map(t=>`<div class="edit-row"><input type="text" value="${t.name}" data-id="${t.id}" class="tn" style="flex:2"><select data-id="${t.id}" class="ti"><option value="fab fa-python" ${t.icon==='fab fa-python'?'selected':''}>🐍</option><option value="fas fa-code" ${t.icon==='fas fa-code'?'selected':''}>💻</option><option value="fas fa-database" ${t.icon==='fas fa-database'?'selected':''}>🗄️</option><option value="fas fa-file-word" ${t.icon==='fas fa-file-word'?'selected':''}>📄</option><option value="fas fa-file-excel" ${t.icon==='fas fa-file-excel'?'selected':''}>📊</option><option value="fas fa-file-powerpoint" ${t.icon==='fas fa-file-powerpoint'?'selected':''}>📽️</option><option value="fas fa-paint-brush" ${t.icon==='fas fa-paint-brush'?'selected':''}>🎨</option><option value="fas fa-vector-square" ${t.icon==='fas fa-vector-square'?'selected':''}>🔷</option><option value="fas fa-edit" ${t.icon==='fas fa-edit'?'selected':''}>✏️</option><option value="fas fa-brain" ${t.icon==='fas fa-brain'?'selected':''}>🧠</option><option value="fas fa-search" ${t.icon==='fas fa-search'?'selected':''}>🔍</option></select><input type="number" value="${t.percent}" data-id="${t.id}" class="tp" min="0" max="100" style="width:65px">%<input type="text" value="${t.subtitle||''}" data-id="${t.id}" class="ts" placeholder="Подпись" style="width:120px"><button class="btn btn-sm" onclick="moveT(${t.id},-1)">▲</button><button class="btn btn-sm" onclick="moveT(${t.id},1)">▼</button><button class="btn btn-sm btn-red" onclick="del('techstack',${t.id})">✕</button></div>`).join('')||'<p style="color:#999;padding:10px;">Нет навыков</p>'}</div>`).join('');}
+function addTech(cat){fetch('/api/techstack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category:cat,name:'Новый',icon:'fa-code',percent:50})}).then(r=>r.json()).then(d=>{if(d.success)loadAll();});}
+function moveT(id,d){const item=allTech.find(t=>t.id===id);if(!item)return;const sibs=allTech.filter(t=>t.category===item.category).sort((a,b)=>a.sort_order-b.sort_order);const idx=sibs.findIndex(t=>t.id===id);if(idx===-1||(d===-1&&idx===0)||(d===1&&idx===sibs.length-1))return;const t=sibs[idx].sort_order;sibs[idx].sort_order=sibs[idx+d].sort_order;sibs[idx+d].sort_order=t;Promise.all([fetch(`/api/techstack/${sibs[idx].id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(sibs[idx])}),fetch(`/api/techstack/${sibs[idx+d].id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(sibs[idx+d])})]).then(()=>loadAll());}
+document.addEventListener('change',function(e){if(e.target.closest('#categoriesContainer')){const r=e.target.closest('.edit-row');if(!r)return;const id=e.target.dataset.id;if(!id)return;const item=allTech.find(t=>t.id===parseInt(id));if(!item)return;fetch(`/api/techstack/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:r.querySelector('.tn')?.value||'',icon:r.querySelector('.ti')?.value||'fa-code',percent:r.querySelector('.tp')?.value||50,subtitle:r.querySelector('.ts')?.value||'',category:item.category,sort_order:item.sort_order})});}});
 
-function addCategory() {
-    const name = document.getElementById('newCategoryName').value.trim();
-    if (!name) return;
-    fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name })
-    })
-    .then(r => r.json())
-    .then(d => {
-        if (d.success) {
-            showMsg('catSuccess');
-            document.getElementById('newCategoryName').value = '';
-            loadAll();
-        }
-    });
-}
+function del(type,id){if(!confirm('Удалить?'))return;fetch(`/api/${type}/${id}`,{method:'DELETE'}).then(()=>{loadGallery();loadCerts();loadWorks();loadMusic();loadAll();});}
 
-function loadAll() {
-    Promise.all([
-        fetch('/api/categories').then(r => r.json()),
-        fetch('/api/techstack').then(r => r.json())
-    ]).then(([cats, tech]) => {
-        allCategories = cats;
-        allTechstack = tech;
-        renderCategories();
-    });
-}
-
-function renderCategories() {
-    const container = document.getElementById('categoriesContainer');
-    container.innerHTML = allCategories.map(cat => {
-        const items = allTechstack.filter(t => t.category === cat.name);
-        return `
-            <div class="category-block">
-                <h3>
-                    📁 ${cat.name}
-                    <span>
-                        <button class="btn btn-sm btn-outline" onclick="addTechItem('${cat.name}')">+ Добавить навык</button>
-                        <button class="btn btn-sm btn-red" onclick="del('categories',${cat.id})" style="margin-left:5px;">🗑️</button>
-                    </span>
-                </h3>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                    ${items.map(t => `
-                        <div class="edit-row">
-                            <input type="text" value="${t.name}" data-id="${t.id}" class="t-name" style="flex:2;" placeholder="Название">
-                            <select data-id="${t.id}" class="t-icon">
-                                <option value="fab fa-python" ${t.icon==='fab fa-python'?'selected':''}>🐍 Python</option>
-                                <option value="fas fa-code" ${t.icon==='fas fa-code'?'selected':''}>💻 Код</option>
-                                <option value="fas fa-database" ${t.icon==='fas fa-database'?'selected':''}>🗄️ БД</option>
-                                <option value="fas fa-file-word" ${t.icon==='fas fa-file-word'?'selected':''}>📄 Word</option>
-                                <option value="fas fa-file-excel" ${t.icon==='fas fa-file-excel'?'selected':''}>📊 Excel</option>
-                                <option value="fas fa-file-powerpoint" ${t.icon==='fas fa-file-powerpoint'?'selected':''}>📽️ PPT</option>
-                                <option value="fas fa-paint-brush" ${t.icon==='fas fa-paint-brush'?'selected':''}>🎨 Кисть</option>
-                                <option value="fas fa-vector-square" ${t.icon==='fas fa-vector-square'?'selected':''}>🔷 Вектор</option>
-                                <option value="fas fa-edit" ${t.icon==='fas fa-edit'?'selected':''}>✏️ Правка</option>
-                                <option value="fas fa-brain" ${t.icon==='fas fa-brain'?'selected':''}>🧠 AI</option>
-                                <option value="fas fa-search" ${t.icon==='fas fa-search'?'selected':''}>🔍 Поиск</option>
-                                <option value="fas fa-image" ${t.icon==='fas fa-image'?'selected':''}>🖼️ Фото</option>
-                            </select>
-                            <input type="number" value="${t.percent}" data-id="${t.id}" class="t-pct" min="0" max="100" style="width:65px;">%
-                            <input type="text" value="${t.subtitle || ''}" data-id="${t.id}" class="t-sub" placeholder="Подпись" style="width:130px;">
-                            <span style="display:flex;gap:3px;">
-                                <button class="btn btn-sm" onclick="moveTech(${t.id}, -1)" title="Вверх">▲</button>
-                                <button class="btn btn-sm" onclick="moveTech(${t.id}, 1)" title="Вниз">▼</button>
-                            </span>
-                            <button class="btn btn-sm btn-red" onclick="del('techstack',${t.id})">✕</button>
-                        </div>
-                    `).join('')}
-                    ${items.length === 0 ? '<p style="color:#999;padding:10px;">Нет навыков в этой категории</p>' : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    if (allCategories.length === 0) {
-        container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">Нет категорий. Создайте первую!</p>';
-    }
-}
-
-function addTechItem(categoryName) {
-    fetch('/api/techstack', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category: categoryName, name: 'Новый навык', icon: 'fa-code', percent: 50, subtitle: '' })
-    })
-    .then(r => r.json())
-    .then(d => { if (d.success) loadAll(); });
-}
-
-function moveTech(id, direction) {
-    const item = allTechstack.find(t => t.id === id);
-    if (!item) return;
-    const siblings = allTechstack.filter(t => t.category === item.category).sort((a,b) => a.sort_order - b.sort_order);
-    const idx = siblings.findIndex(t => t.id === id);
-    if (idx === -1) return;
-    if (direction === -1 && idx === 0) return;
-    if (direction === 1 && idx === siblings.length - 1) return;
-    
-    const swapIdx = idx + direction;
-    const temp = siblings[idx].sort_order;
-    siblings[idx].sort_order = siblings[swapIdx].sort_order;
-    siblings[swapIdx].sort_order = temp;
-    
-    Promise.all([
-        fetch(`/api/techstack/${siblings[idx].id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(siblings[idx])
-        }),
-        fetch(`/api/techstack/${siblings[swapIdx].id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(siblings[swapIdx])
-        })
-    ]).then(() => loadAll());
-}
-
-// Автосохранение при изменении полей
-document.addEventListener('change', function(e) {
-    if (e.target.closest('#categoriesContainer')) {
-        const row = e.target.closest('.edit-row');
-        if (!row) return;
-        const id = e.target.dataset.id;
-        if (!id) return;
-        const name = row.querySelector('.t-name')?.value || '';
-        const icon = row.querySelector('.t-icon')?.value || 'fa-code';
-        const percent = row.querySelector('.t-pct')?.value || 50;
-        const subtitle = row.querySelector('.t-sub')?.value || '';
-        const item = allTechstack.find(t => t.id === parseInt(id));
-        const category = item ? item.category : '';
-        
-        fetch(`/api/techstack/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, icon, percent, subtitle, category, sort_order: item ? item.sort_order : 0 })
-        });
-    }
-});
-
-// ──────────────────────────────────────
-// УНИВЕРСАЛЬНОЕ УДАЛЕНИЕ
-// ──────────────────────────────────────
-function del(type, id) {
-    if (!confirm('Точно удалить?')) return;
-    fetch(`/api/${type}/${id}`, { method: 'DELETE' })
-        .then(() => {
-            loadGallery();
-            loadCerts();
-            loadWorks();
-            loadAll();
-        });
-}
-
-// ──────────────────────────────────────
-// ЗАГРУЗКА ПРИ СТАРТЕ
-// ──────────────────────────────────────
-loadGallery();
-loadCerts();
-loadWorks();
-loadAll();
-
-// Музыка
-function loadMusic() {
-    fetch('/api/music').then(r => r.json()).then(items => {
-        document.getElementById('musicList').innerHTML = items.map(i =>
-            `<div class="edit-row"><span style="flex:1">🎵 ${i.title}</span><button class="btn btn-red btn-sm" onclick="del('music',${i.id})">✕</button></div>`
-        ).join('');
-    });
-}
-document.getElementById('musicForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    fetch('/api/music', { method: 'POST', body: new FormData(this) })
-        .then(r => r.json()).then(d => { if (d.success) { showMsg('musicSuccess'); this.reset(); loadMusic(); } });
-});
-loadMusic();
-
+loadGallery();loadCerts();loadWorks();loadMusic();loadAll();
 </script>
-
 </body>
 </html>
