@@ -244,75 +244,131 @@ function initWaterfallGame() {
         }
     }
 
-    // ═════════════════════════════
-    // РЕКА — ЧИСТАЯ И МОЩНАЯ
+        // ═════════════════════════════
+    // РЕКА — EPIC EDITION
     // ═════════════════════════════
     function drawRiver() {
         const bass = smoothBass || 0;
         const baseY = canvas.height * 0.73;
-        const energy = bass;
-        const rhythm = Math.sin(time * 0.035) * bass;
-        const melody = Math.sin(time * 0.017) * 0.5 + 0.5;
+        const e = bass;
+        const r = Math.sin(time * 0.035) * bass;
+        const m = Math.sin(time * 0.017) * 0.5 + 0.5;
+        const drop = (bass > 0.35 && Math.random() < 0.3) ? 1 : 0; // Молния
 
-        // Зеркало воды
-        const mirror = ctx.createLinearGradient(0, baseY - 25, 0, canvas.height);
-        mirror.addColorStop(0, 'rgba(120, 200, 240, 0.06)');
-        mirror.addColorStop(0.2, 'rgba(80, 170, 220, 0.13)');
-        mirror.addColorStop(0.6, 'rgba(30, 100, 160, 0.22)');
-        mirror.addColorStop(1, 'rgba(10, 40, 90, 0.35)');
-        ctx.fillStyle = mirror;
+        // Глубина
+        const depth = ctx.createLinearGradient(0, baseY - 20, 0, canvas.height);
+        depth.addColorStop(0, 'rgba(100, 190, 240, 0.08)');
+        depth.addColorStop(0.3, 'rgba(40, 140, 210, 0.18)');
+        depth.addColorStop(0.7, 'rgba(10, 60, 130, 0.28)');
+        depth.addColorStop(1, 'rgba(5, 20, 60, 0.45)');
+        ctx.fillStyle = depth;
         ctx.fillRect(0, baseY, canvas.width, canvas.height - baseY);
 
-        // 3 слоя волн
-        const layers = [
-            { h: 5 + energy * 30, s: 0.7 + energy * 2, a: 0.1, c: `hsla(${190 + melody * 20}, 55%, 58%,` },
-            { h: 7 + rhythm * 22, s: 0.85 + energy * 1.5, a: 0.14, c: `hsla(${185 + melody * 18}, 65%, 62%,` },
-            { h: 3 + energy * 16, s: 1.1 + energy * 3, a: 0.08, c: `hsla(${195 + melody * 15}, 50%, 68%,` },
-        ];
+        // Свечение из глубины
+        if (e > 0.1) {
+            const glow1 = ctx.createRadialGradient(canvas.width * 0.25, baseY + 40, 5, canvas.width * 0.25, baseY + 30, canvas.width * 0.5);
+            glow1.addColorStop(0, `rgba(0, 255, 180, ${e * 0.35})`);
+            glow1.addColorStop(1, 'rgba(0, 255, 180, 0)');
+            ctx.fillStyle = glow1;
+            ctx.fillRect(0, baseY - 30, canvas.width, canvas.height - baseY + 30);
 
+            const glow2 = ctx.createRadialGradient(canvas.width * 0.7, baseY + 35, 5, canvas.width * 0.7, baseY + 25, canvas.width * 0.45);
+            glow2.addColorStop(0, `rgba(0, 220, 255, ${e * 0.3})`);
+            glow2.addColorStop(1, 'rgba(0, 220, 255, 0)');
+            ctx.fillStyle = glow2;
+            ctx.fillRect(0, baseY - 30, canvas.width, canvas.height - baseY + 30);
+        }
+
+        // Волны
+        const layers = [
+            { h: 5 + e * 32, s: 0.7 + e * 2.5, a: 0.12, c: `hsla(${190 + m * 20}, 55%, 58%,` },
+            { h: 7 + r * 24, s: 0.85 + e * 1.8, a: 0.16, c: `hsla(${185 + m * 18}, 65%, 62%,` },
+            { h: 3 + e * 18, s: 1.1 + e * 3.5, a: 0.09, c: `hsla(${195 + m * 15}, 50%, 68%,` },
+        ];
         layers.forEach(l => {
             ctx.fillStyle = l.c + l.a + ')';
             for (let x = 0; x < canvas.width; x += 4) {
-                const y = baseY + Math.sin((x + time * l.s) / 110) * l.h +
-                          Math.cos((x - time * l.s * 0.65) / 75) * l.h * 0.5 +
-                          Math.sin((x * 0.025 + time * 0.28)) * 3;
+                const y = baseY + Math.sin((x + time * l.s) / 110) * l.h + Math.cos((x - time * l.s * 0.65) / 75) * l.h * 0.5 + Math.sin(x * 0.025 + time * 0.28) * 3;
                 ctx.fillRect(x, y, 5, 3);
             }
         });
 
         // Пена
-        if (energy > 0.06) {
-            const fa = Math.min(energy * 2.2, 0.6);
+        if (e > 0.05) {
+            const fa = Math.min(e * 2.5, 0.7);
             for (let i = 0; i < 14; i++) {
                 const fx = (time * 1.8 + i * canvas.width / 14 + Math.sin(i * 3.7) * 55) % canvas.width;
-                const fy = baseY + Math.sin((fx + time * 0.9) / 100) * (6 + energy * 25) - 5;
+                const fy = baseY + Math.sin((fx + time * 0.9) / 100) * (6 + e * 25) - 5;
                 ctx.fillStyle = `rgba(255, 255, 255, ${fa * 0.7})`;
                 ctx.beginPath();
-                ctx.arc(fx, fy, 2 + Math.random() * 5 * energy, 0, Math.PI);
+                ctx.arc(fx, fy, 2 + Math.random() * 5 * e, 0, Math.PI);
                 ctx.fill();
             }
         }
 
-        // Блики
-        const sc = Math.floor(12 + energy * 22);
+        // Лазерные блики (длинные линии)
+        if (e > 0.1) {
+            for (let i = 0; i < 5; i++) {
+                const lx = (time * 0.8 + i * canvas.width / 5) % canvas.width;
+                const ly = baseY + 8 + Math.sin(lx / 30 + time * 0.4) * (3 + e * 6);
+                const grad = ctx.createLinearGradient(lx, ly, lx + 15 + e * 20, ly);
+                grad.addColorStop(0, `rgba(255, 255, 255, ${e * 0.6})`);
+                grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(lx, ly, 15 + e * 20, 1.5);
+            }
+        }
+
+        // Блики-звёздочки
+        const sc = Math.floor(8 + e * 18);
         for (let i = 0; i < sc; i++) {
-            const sx = (time * (0.5 + energy) + i * canvas.width / sc + Math.sin(i * 4.8) * 25) % canvas.width;
-            const sy = baseY + 10 + Math.sin(sx / 38 + time * 0.55) * (5 + energy * 10);
-            const sh = 0.05 + Math.abs(Math.sin(time * 0.08 + i * 0.75)) * (0.1 + energy * 0.3);
+            const sx = (time * (0.6 + e) + i * canvas.width / sc) % canvas.width;
+            const sy = baseY + 10 + Math.sin(sx / 35 + time * 0.5) * (4 + e * 8);
+            const sh = 0.06 + Math.abs(Math.sin(time * 0.07 + i * 0.8)) * (0.12 + e * 0.35);
+            // Крестик-звёздочка
             ctx.fillStyle = `rgba(255, 255, 255, ${sh})`;
+            ctx.fillRect(sx - 2, sy, 5, 1);
+            ctx.fillRect(sx, sy - 2, 1, 5);
             ctx.fillRect(sx, sy, 2, 2);
         }
 
-        // Бит-круги
-        if (energy > 0.2) {
-            const pa = (energy - 0.2) * 2.5;
-            for (let i = 0; i < 3; i++) {
-                const px = canvas.width * 0.12 + i * canvas.width * 0.38;
-                ctx.strokeStyle = `rgba(255, 255, 255, ${pa * 0.3})`;
+        // Молнии при дропе
+        if (drop) {
+            const lx = canvas.width * 0.1 + Math.random() * canvas.width * 0.8;
+            ctx.strokeStyle = `rgba(200, 240, 255, ${0.5 + Math.random() * 0.5})`;
+            ctx.lineWidth = 1.5;
+            ctx.shadowColor = 'rgba(200, 240, 255, 0.8)';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.moveTo(lx, baseY + 5);
+            ctx.lineTo(lx + (Math.random() - 0.5) * 30, baseY - 15);
+            ctx.lineTo(lx + (Math.random() - 0.5) * 20, baseY - 30);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        // Водовороты
+        if (e > 0.3) {
+            for (let i = 0; i < 2; i++) {
+                const vx = canvas.width * 0.2 + i * canvas.width * 0.6;
+                const vy = baseY + 25;
+                const vr = 15 + e * 20;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${e * 0.2})`;
                 ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.arc(px, baseY + 12, energy * 55 * (0.5 + i * 0.25), 0, Math.PI * 2);
+                ctx.arc(vx, vy, vr, time * 0.02, time * 0.02 + Math.PI * 1.5);
                 ctx.stroke();
+            }
+        }
+
+        // Цифровые частицы над водой
+        if (e > 0.15) {
+            for (let i = 0; i < 6; i++) {
+                const px = (time * 1.5 + i * canvas.width / 6) % canvas.width;
+                const py = baseY - 10 - Math.abs(Math.sin(time * 0.05 + i)) * 40;
+                ctx.fillStyle = `rgba(0, 255, 200, ${e * 0.4})`;
+                ctx.font = '10px monospace';
+                ctx.fillText(Math.random() > 0.5 ? '0' : '1', px, py);
             }
         }
     }
