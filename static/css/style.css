@@ -1238,3 +1238,115 @@ body.dark-theme .empty-work .work-icon i {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-8px); }
 }
+/* ═══════════════════════════════════════════ */
+/* ИГРОВОЙ ФОН ГАЛЕРЕИ */
+/* ═══════════════════════════════════════════ */
+
+.gallery {
+    position: relative;
+    overflow: hidden;
+    min-height: 600px;
+}
+
+#waterfallCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+/* Собачка с лодкой */
+#dogBoat {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    cursor: grab;
+    transition: transform 0.1s;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#dogBoat:active {
+    cursor: grabbing;
+}
+
+#dogBoat.dragging {
+    transform: scale(1.1);
+}
+
+#dogEmoji {
+    font-size: 40px;
+    transition: transform 0.3s;
+}
+
+#boatEmoji {
+    font-size: 50px;
+    margin-top: -10px;
+}
+
+#dogBoat:hover #dogEmoji {
+    transform: translateY(-5px);
+}
+
+#dogBoat.petted #dogEmoji {
+    transform: translateY(-10px) scale(1.2);
+}
+
+/* Сердечко при поглаживании */
+.heart-bubble {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.5s ease;
+}
+
+.heart-bubble.show {
+    opacity: 1;
+    top: -50px;
+}
+
+/* Островок */
+#island {
+    position: absolute;
+    bottom: 30px;
+    right: 15%;
+    font-size: 60px;
+    z-index: 2;
+    cursor: pointer;
+    animation: islandFloat 3s ease-in-out infinite;
+}
+
+@keyframes islandFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* Счётчик */
+#petCounter {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 5;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    backdrop-filter: blur(5px);
+}
+
+#petCount {
+    color: var(--primary-color);
+    font-size: 18px;
+}

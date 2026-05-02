@@ -121,11 +121,27 @@
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- ГАЛЕРЕЯ -->
+        <!-- ═══════════════════════════════════════════ -->
+    <!-- ГАЛЕРЕЯ С ИГРОВЫМ ФОНОМ -->
     <!-- ═══════════════════════════════════════════ -->
     <section class="gallery animate-on-scroll" id="gallery">
-        <div class="container">
+        <!-- Canvas для водопадов и реки -->
+        <canvas id="waterfallCanvas"></canvas>
+        
+        <!-- Собачка в лодке -->
+        <div id="dogBoat" draggable="true">
+            <div id="dogEmoji">🐕</div>
+            <div id="boatEmoji">⛵</div>
+            <div class="heart-bubble" id="heartBubble">❤️</div>
+        </div>
+        
+        <!-- Островок -->
+        <div id="island">🏝️</div>
+        
+        <!-- Счётчик поглаживаний -->
+        <div id="petCounter">🦴 Поглажено: <span id="petCount">0</span> раз</div>
+        
+        <div class="container" style="position:relative;z-index:2;">
             <h2 class="section-title">Галерея фото</h2>
             <div class="gallery-grid" id="galleryGrid">
                 {% for item in gallery %}
