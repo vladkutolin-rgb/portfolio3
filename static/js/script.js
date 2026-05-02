@@ -262,10 +262,10 @@ function drawSkillsChart() {
         }
         
         // Легенда
-        legend += `<div style="display:flex;align-items:center;margin-bottom:5px;flex-wrap:wrap;">
-            <span style="background:${color};min-width:14px;width:14px;height:14px;border-radius:3px;display:inline-block;margin-right:8px;"></span>
-            <span style="font-size:12px;line-height:1.3;word-break:break-word;">${name} — ${value}%</span>
-        </div>`;
+       legend += `<div style="display:flex;align-items:flex-start;margin-bottom:8px;gap:8px;">
+    <span style="background:${color};min-width:14px;width:14px;height:14px;border-radius:3px;display:inline-block;margin-top:2px;flex-shrink:0;"></span>
+    <span style="font-size:13px;line-height:1.4;color:var(--text-color);">${name} — <strong>${value}%</strong></span>
+</div>`;
         
         angle += slice;
     });
