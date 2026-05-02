@@ -1167,14 +1167,14 @@ body.dark-theme footer .footer-links a {
     padding: 40px 20px !important;
     animation: emptyFloat 4s ease-in-out infinite;
     cursor: default !important;
-    border: 1px solid transparent;
+    border: 1px solid transparent !important;
     transition: all 0.5s ease !important;
 }
 
 .empty-placeholder-card:hover {
     transform: translateY(-8px) !important;
     box-shadow: 0 20px 40px rgba(0, 163, 54, 0.35) !important;
-    border-color: var(--primary-color) !important;
+    border-color: transparent !important;
 }
 
 .empty-placeholder-card .empty-card-icon {
@@ -1210,13 +1210,13 @@ body.dark-theme .empty-placeholder-card .empty-card-icon i {
 .empty-work {
     animation: emptyFloat 4s ease-in-out infinite !important;
     cursor: default !important;
-    border: 1px solid transparent;
+    border: 1px solid transparent !important;
 }
 
 .empty-work:hover {
     transform: translateY(-8px) !important;
     box-shadow: 0 20px 40px rgba(0, 163, 54, 0.35) !important;
-    border-color: var(--primary-color) !important;
+    border-color: transparent !important;
 }
 
 .empty-work .work-icon i {
