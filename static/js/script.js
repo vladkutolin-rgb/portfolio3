@@ -316,16 +316,16 @@ function initWaterfallGame() {
     const leftWaterfall = [];
     const rightWaterfall = [];
     const riverDrops = [];
-    const maxDrops = 70;
+    const maxDrops = 60;
     
     function createDrop(side) {
         return {
-            x: side === 'left' ? canvas.width * 0.08 + (Math.random() - 0.5) * 40 :
-                canvas.width * 0.92 + (Math.random() - 0.5) * 40,
+            x: side === 'left' ? canvas.width * 0.08 + (Math.random() - 0.5) * 35 :
+                canvas.width * 0.92 + (Math.random() - 0.5) * 35,
             y: Math.random() * canvas.height * 0.4,
             speed: 1.5 + Math.random() * 3,
-            size: 2 + Math.random() * 4,
-            opacity: 0.25 + Math.random() * 0.45,
+            size: 2 + Math.random() * 3,
+            opacity: 0.2 + Math.random() * 0.4,
             splashed: false
         };
     }
@@ -336,33 +336,32 @@ function initWaterfallGame() {
     }
     
     let waveOffset = 0;
-    let tsunamiHeight = 0;
-    window.currentTsunami = 0;
+    window.tsunamiHeight = 0;
     
     function drawRiverWaves() {
-        const riverY = canvas.height * 0.78 + tsunamiHeight * 0.3;
-        const waveHeight = 12 + tsunamiHeight * 0.5;
+        const riverY = canvas.height * 0.75 + (window.tsunamiHeight || 0) * 0.3;
+        const waveHeight = 10 + (window.tsunamiHeight || 0) * 0.4;
         
         for (let x = 0; x < canvas.width; x += 2) {
-            const y = riverY + Math.sin((x + waveOffset) / 150) * waveHeight +
-                      Math.cos((x - waveOffset * 0.7) / 100) * waveHeight * 0.6;
-            const alpha = 0.12 + Math.abs(Math.sin((x + waveOffset) / 150)) * 0.12;
+            const y = riverY + Math.sin((x + waveOffset) / 140) * waveHeight +
+                      Math.cos((x - waveOffset * 0.7) / 90) * waveHeight * 0.5;
+            const alpha = 0.1 + Math.abs(Math.sin((x + waveOffset) / 140)) * 0.1;
             ctx.fillStyle = `rgba(0, 180, 220, ${alpha})`;
-            ctx.fillRect(x, y, 4, 3);
+            ctx.fillRect(x, y, 3, 3);
         }
     }
     
     function drawWaterfall(particles, x, width) {
         particles.forEach((p) => {
             p.y += p.speed;
-            if (p.y > canvas.height * 0.78 && !p.splashed) {
+            if (p.y > canvas.height * 0.75 && !p.splashed) {
                 p.splashed = true;
-                for (let s = 0; s < 4; s++) {
+                for (let s = 0; s < 3; s++) {
                     riverDrops.push({
                         x: x + (Math.random() - 0.5) * width,
-                        y: canvas.height * 0.78,
-                        vx: (Math.random() - 0.5) * 4,
-                        vy: -Math.random() * 6,
+                        y: canvas.height * 0.75,
+                        vx: (Math.random() - 0.5) * 3,
+                        vy: -Math.random() * 5,
                         life: 1,
                         size: 2 + Math.random() * 3
                     });
@@ -372,7 +371,7 @@ function initWaterfallGame() {
             }
             ctx.fillStyle = `rgba(0, 180, 230, ${p.opacity})`;
             ctx.beginPath();
-            ctx.ellipse(p.x, p.y, p.size, p.size * 1.6, 0, 0, Math.PI * 2);
+            ctx.ellipse(p.x, p.y, p.size, p.size * 1.5, 0, 0, Math.PI * 2);
             ctx.fill();
         });
     }
@@ -384,7 +383,7 @@ function initWaterfallGame() {
             d.vy += 0.1;
             d.life -= 0.02;
             if (d.life > 0) {
-                ctx.fillStyle = `rgba(255, 255, 255, ${d.life * 0.6})`;
+                ctx.fillStyle = `rgba(255, 255, 255, ${d.life * 0.5})`;
                 ctx.beginPath();
                 ctx.arc(d.x, d.y, d.size * d.life, 0, Math.PI * 2);
                 ctx.fill();
@@ -396,18 +395,18 @@ function initWaterfallGame() {
     }
     
     function drawRocks() {
-        ctx.fillStyle = 'rgba(60, 65, 70, 0.25)';
+        ctx.fillStyle = 'rgba(60, 65, 70, 0.2)';
         ctx.beginPath();
         ctx.moveTo(0, canvas.height * 0.05);
-        ctx.lineTo(canvas.width * 0.12, canvas.height * 0.15);
-        ctx.lineTo(canvas.width * 0.1, canvas.height * 0.85);
+        ctx.lineTo(canvas.width * 0.1, canvas.height * 0.15);
+        ctx.lineTo(canvas.width * 0.08, canvas.height * 0.85);
         ctx.lineTo(0, canvas.height);
         ctx.closePath();
         ctx.fill();
         ctx.beginPath();
         ctx.moveTo(canvas.width, canvas.height * 0.05);
-        ctx.lineTo(canvas.width * 0.88, canvas.height * 0.15);
-        ctx.lineTo(canvas.width * 0.9, canvas.height * 0.85);
+        ctx.lineTo(canvas.width * 0.9, canvas.height * 0.15);
+        ctx.lineTo(canvas.width * 0.92, canvas.height * 0.85);
         ctx.lineTo(canvas.width, canvas.height);
         ctx.closePath();
         ctx.fill();
@@ -417,35 +416,32 @@ function initWaterfallGame() {
         if (!canvas.isConnected) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawRocks();
-        drawWaterfall(leftWaterfall, canvas.width * 0.08, 40);
-        drawWaterfall(rightWaterfall, canvas.width * 0.92, 40);
+        drawWaterfall(leftWaterfall, canvas.width * 0.07, 35);
+        drawWaterfall(rightWaterfall, canvas.width * 0.93, 35);
         drawRiverWaves();
         drawRiverSplashes();
         
-        if (tsunamiHeight > 0) tsunamiHeight *= 0.95;
-        if (tsunamiHeight < 0.5) tsunamiHeight = 0;
+        if (window.tsunamiHeight > 0) window.tsunamiHeight *= 0.94;
+        if (window.tsunamiHeight < 0.3) window.tsunamiHeight = 0;
         
-        waveOffset += 1.2;
+        waveOffset += 1;
         requestAnimationFrame(animate);
     }
     
     animate();
     
-    // Цунами!
     window.triggerTsunami = function() {
-        tsunamiHeight = 80;
-        setTimeout(() => {
-            const wave = document.getElementById('tsunamiWave');
-            if (wave) {
-                wave.style.height = '150px';
-                setTimeout(() => wave.style.height = '0', 1000);
-            }
-        }, 300);
+        window.tsunamiHeight = 60;
+        const wave = document.getElementById('tsunamiWave');
+        if (wave) {
+            wave.style.height = '120px';
+            setTimeout(() => wave.style.height = '0', 1200);
+        }
     };
 }
 
 // ═══════════════════════════════════════════
-// СОБАЧКА — КИДАЕТСЯ С ФИЗИКОЙ
+// СОБАЧКА — ПЛАВАЕТ, КИДАЕТСЯ, ГЛАДИТСЯ
 // ═══════════════════════════════════════════
 
 function initDogBoat() {
@@ -455,11 +451,12 @@ function initDogBoat() {
     
     let isDragging = false, startX, startY, prevX, prevY, velocityX = 0, velocityY = 0;
     let animId, startLeft, startTop;
+    let petCount = 0;
     
     function setPos(x, y) {
         const rect = gallery.getBoundingClientRect();
-        x = Math.max(40, Math.min(x, rect.width - 90));
-        y = Math.max(40, Math.min(y, rect.height - 100));
+        x = Math.max(30, Math.min(x, rect.width - 80));
+        y = Math.max(50, Math.min(y, rect.height - 80));
         dogBoat.style.left = x + 'px';
         dogBoat.style.top = y + 'px';
         dogBoat.style.bottom = 'auto';
@@ -469,47 +466,45 @@ function initDogBoat() {
     function physics() {
         const rect = gallery.getBoundingClientRect();
         let x = parseFloat(dogBoat.style.left) || rect.width / 2;
-        let y = parseFloat(dogBoat.style.top) || rect.height - 100;
+        let y = parseFloat(dogBoat.style.top) || rect.height * 0.7;
         
         x += velocityX;
         y += velocityY;
-        velocityX *= 0.92;
-        velocityY *= 0.92;
+        velocityX *= 0.93;
+        velocityY *= 0.93;
         
-        if (x <= 40) { x = 40; velocityX = Math.abs(velocityX) * 0.4; }
-        if (x >= rect.width - 90) { x = rect.width - 90; velocityX = -Math.abs(velocityX) * 0.4; }
-        if (y <= 40) { y = 40; velocityY = Math.abs(velocityY) * 0.4; }
-        if (y >= rect.height - 100) { y = rect.height - 100; velocityY = -Math.abs(velocityY) * 0.4; }
+        if (x <= 30) { x = 30; velocityX = Math.abs(velocityX) * 0.3; }
+        if (x >= rect.width - 80) { x = rect.width - 80; velocityX = -Math.abs(velocityX) * 0.3; }
+        if (y <= 50) { y = 50; velocityY = Math.abs(velocityY) * 0.3; }
+        if (y >= rect.height - 80) { y = rect.height - 80; velocityY = -Math.abs(velocityY) * 0.3; }
         
         dogBoat.style.left = x + 'px';
         dogBoat.style.top = y + 'px';
         dogBoat.style.transform = 'none';
         
-        if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+        if (Math.abs(velocityX) > 0.08 || Math.abs(velocityY) > 0.08) {
             animId = requestAnimationFrame(physics);
-        } else {
-            dogBoat.classList.remove('thrown');
         }
     }
     
     dogBoat.addEventListener('mousedown', function(e) {
         isDragging = true;
-        dogBoat.classList.add('thrown');
         cancelAnimationFrame(animId);
         prevX = e.clientX;
         prevY = e.clientY;
         startX = e.clientX;
         startY = e.clientY;
         const rect = dogBoat.getBoundingClientRect();
-        startLeft = parseFloat(dogBoat.style.left) || rect.left;
-        startTop = parseFloat(dogBoat.style.top) || rect.top;
+        startLeft = rect.left;
+        startTop = rect.top;
         dogBoat.style.cursor = 'grabbing';
         e.preventDefault();
     });
     
     document.addEventListener('mousemove', function(e) {
         if (!isDragging) return;
-        setPos(startLeft + e.clientX - startX, startTop + e.clientY - startY);
+        const galleryRect = gallery.getBoundingClientRect();
+        setPos(e.clientX - galleryRect.left - 40, e.clientY - galleryRect.top - 30);
         prevX = e.clientX;
         prevY = e.clientY;
     });
@@ -518,45 +513,99 @@ function initDogBoat() {
         if (!isDragging) return;
         isDragging = false;
         dogBoat.style.cursor = 'grab';
-        velocityX = (e.clientX - prevX) * 5;
-        velocityY = (e.clientY - prevY) * 5;
+        velocityX = (e.clientX - prevX) * 6;
+        velocityY = (e.clientY - prevY) * 6;
         physics();
     });
     
-    // Двойной клик — погладить с сердечками
+    // Тач
+    dogBoat.addEventListener('touchstart', function(e) {
+        isDragging = true;
+        cancelAnimationFrame(animId);
+        const t = e.touches[0];
+        prevX = t.clientX; prevY = t.clientY;
+        startX = t.clientX; startY = t.clientY;
+        const rect = dogBoat.getBoundingClientRect();
+        startLeft = rect.left; startTop = rect.top;
+    }, {passive: false});
+    
+    document.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        const t = e.touches[0];
+        const gr = gallery.getBoundingClientRect();
+        setPos(t.clientX - gr.left - 40, t.clientY - gr.top - 30);
+        prevX = t.clientX; prevY = t.clientY;
+    }, {passive: false});
+    
+    document.addEventListener('touchend', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        const t = e.changedTouches[0];
+        velocityX = (t.clientX - prevX) * 4;
+        velocityY = (t.clientY - prevY) * 4;
+        physics();
+    });
+    
+    // Двойной клик — погладить
     dogBoat.addEventListener('dblclick', function(e) {
         e.preventDefault();
+        e.stopPropagation();
+        petCount++;
         dogBoat.classList.add('petted');
         setTimeout(() => dogBoat.classList.remove('petted'), 600);
+        
+        // Сердечки
         const rect = dogBoat.getBoundingClientRect();
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 6; i++) {
             const heart = document.createElement('div');
             heart.className = 'dog-heart';
-            heart.textContent = ['❤️','💕','💖','🦴','✨'][i];
-            heart.style.left = (rect.left + rect.width/2 - 15 + (Math.random()-0.5)*40) + 'px';
-            heart.style.top = (rect.top + (Math.random()-0.5)*20) + 'px';
+            heart.textContent = ['❤️','💕','💖','🦴','✨','🐾'][i];
+            heart.style.position = 'fixed';
+            heart.style.left = (rect.left + rect.width/2 - 15 + (Math.random()-0.5)*50) + 'px';
+            heart.style.top = (rect.top + (Math.random()-0.5)*30) + 'px';
+            heart.style.fontSize = '20px';
+            heart.style.pointerEvents = 'none';
+            heart.style.zIndex = '9999';
+            heart.style.animation = 'heartFly 1s forwards';
             heart.style.animationDelay = i * 0.1 + 's';
             document.body.appendChild(heart);
             setTimeout(() => heart.remove(), 1200);
         }
+        
+        // Лабрадор лает каждые 3 поглаживания
+        if (petCount % 3 === 0) {
+            const bark = document.createElement('div');
+            bark.textContent = 'Гав! 🐕';
+            const br = dogBoat.getBoundingClientRect();
+            bark.style.cssText = `
+                position:fixed; left:${br.left + br.width/2 - 30}px; top:${br.top - 30}px;
+                font-size:16px; z-index:9999; pointer-events:none;
+                animation: barkUp 1.2s forwards;
+            `;
+            document.body.appendChild(bark);
+            setTimeout(() => bark.remove(), 1300);
+        }
     });
     
-    // Авто-плавание
+    // Авто-плавание по реке
     let autoAngle = 0;
     setInterval(() => {
-        if (!isDragging && (!animId || Math.abs(velocityX) < 0.1)) {
-            autoAngle += 0.015;
+        if (!isDragging && (!animId || Math.abs(velocityX) < 0.08)) {
+            autoAngle += 0.012;
             const rect = gallery.getBoundingClientRect();
-            setPos(rect.width/2 + Math.sin(autoAngle)*60, rect.height - 95 + Math.cos(autoAngle*0.7)*20);
+            setPos(rect.width/2 + Math.sin(autoAngle)*70, rect.height*0.7 + Math.cos(autoAngle*0.6)*15);
         }
     }, 50);
     
-    const rect = gallery.getBoundingClientRect();
-    setPos(rect.width/2, rect.height - 95);
+    // Начальная позиция
+    setTimeout(() => {
+        const rect = gallery.getBoundingClientRect();
+        setPos(rect.width/2, rect.height * 0.7);
+    }, 500);
 }
 
 // ═══════════════════════════════════════════
-// ПУЗЫРИ — МЕДЛЕННЕЕ, МЕНЬШЕ, КРАСИВЕЕ
+// ПУЗЫРИ С СЕРТИФИКАТАМИ
 // ═══════════════════════════════════════════
 
 function initBubbleGame() {
@@ -573,44 +622,79 @@ function initBubbleGame() {
     resize();
     window.addEventListener('resize', resize);
     
+    // Получаем данные сертификатов
+    const certDataItems = document.querySelectorAll('.cert-data-item');
+    const certificates = [];
+    certDataItems.forEach(item => {
+        certificates.push({
+            photo: item.dataset.photo,
+            title: item.dataset.title,
+            desc: item.dataset.desc,
+            org: item.dataset.org,
+            year: item.dataset.year,
+            course: item.dataset.course
+        });
+    });
+    
     const bubbles = [];
-    const maxBubbles = 22;
     let popCount = 0;
     
+    // Создаём пузыри — по одному на каждый сертификат + немного пустых
+    const totalBubbles = Math.max(15, certificates.length + 5);
+    
     function createBubble(fromBottom = false) {
+        const hasCert = certificates.length > 0 && Math.random() < 0.7;
+        let certData = null;
+        if (hasCert) {
+            certData = certificates[Math.floor(Math.random() * certificates.length)];
+        }
+        
         return {
             x: Math.random() * canvas.width,
-            y: fromBottom ? canvas.height + 30 : Math.random() * canvas.height,
-            size: 6 + Math.random() * 18,
-            speed: 0.4 + Math.random() * 1.2,
-            opacity: 0.2 + Math.random() * 0.25,
-            hue: 185 + Math.random() * 35,
+            y: fromBottom ? canvas.height + 50 : Math.random() * canvas.height,
+            size: hasCert ? 35 + Math.random() * 25 : 10 + Math.random() * 18,
+            speed: 0.3 + Math.random() * 0.8,
+            opacity: 0.2 + Math.random() * 0.2,
+            hue: hasCert ? 185 : 185 + Math.random() * 30,
             wobble: Math.random() * Math.PI * 2,
-            wobbleSpeed: 0.01 + Math.random() * 0.03,
+            wobbleSpeed: 0.006 + Math.random() * 0.02,
             popped: false,
-            popAnim: 0
+            popAnim: 0,
+            cert: certData
         };
     }
     
-    for (let i = 0; i < maxBubbles; i++) {
+    for (let i = 0; i < totalBubbles; i++) {
         bubbles.push(createBubble());
     }
+    
+    // Загружаем фото сертификатов в Image объекты
+    const certImages = {};
+    certificates.forEach((cert, i) => {
+        const img = new Image();
+        img.src = cert.photo;
+        certImages[cert.photo] = img;
+    });
     
     function drawBubbles() {
         bubbles.forEach(b => {
             if (b.popped) {
                 b.popAnim += 0.06;
+                // Разлетающиеся капли
+                const pieces = b.cert ? 8 : 4;
+                for (let i = 0; i < pieces; i++) {
+                    const angle = (Math.PI*2/pieces)*i + b.popAnim * 3;
+                    const dist = b.popAnim * b.size * 3;
+                    ctx.fillStyle = `rgba(120,200,255,${1-b.popAnim})`;
+                    ctx.beginPath();
+                    ctx.arc(b.x + Math.cos(angle)*dist, b.y + Math.sin(angle)*dist, b.size*0.15*(1-b.popAnim), 0, Math.PI*2);
+                    ctx.fill();
+                }
                 if (b.popAnim > 1) {
                     Object.assign(b, createBubble(true));
                     b.popped = false;
                     b.popAnim = 0;
                 }
-                // Анимация лопанья
-                ctx.strokeStyle = `rgba(120,200,255,${1-b.popAnim})`;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, b.size * (1 + b.popAnim * 2), 0, Math.PI * 2);
-                ctx.stroke();
                 return;
             }
             
@@ -618,43 +702,97 @@ function initBubbleGame() {
             b.x += Math.sin(b.wobble) * 0.5;
             b.wobble += b.wobbleSpeed;
             
-            if (b.y < -40) Object.assign(b, createBubble(true));
+            if (b.y < -80) Object.assign(b, createBubble(true));
             
-            const gradient = ctx.createRadialGradient(
-                b.x - b.size*0.3, b.y - b.size*0.3, b.size*0.1,
-                b.x, b.y, b.size
-            );
-            gradient.addColorStop(0, `hsla(${b.hue}, 60%, 80%, ${b.opacity+0.15})`);
-            gradient.addColorStop(1, `hsla(${b.hue}, 60%, 55%, ${b.opacity})`);
+            // Пузырь
+            const gradient = ctx.createRadialGradient(b.x - b.size*0.25, b.y - b.size*0.3, b.size*0.05, b.x, b.y, b.size);
+            gradient.addColorStop(0, `hsla(${b.hue}, 50%, 85%, ${b.opacity+0.25})`);
+            gradient.addColorStop(0.6, `hsla(${b.hue}, 50%, 60%, ${b.opacity+0.1})`);
+            gradient.addColorStop(1, `hsla(${b.hue}, 45%, 40%, ${b.opacity*0.5})`);
             
             ctx.fillStyle = gradient;
             ctx.beginPath();
             ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
             ctx.fill();
             
-            ctx.fillStyle = `rgba(255,255,255,${b.opacity*0.5})`;
+            // Обводка
+            ctx.strokeStyle = `rgba(255,255,255,${b.opacity*0.4})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Сертификат внутри
+            if (b.cert && b.size > 25) {
+                const img = certImages[b.cert.photo];
+                if (img && img.complete) {
+                    // Фото сертификата в круглом пузыре
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(b.x, b.y, b.size * 0.65, 0, Math.PI * 2);
+                    ctx.clip();
+                    ctx.drawImage(img, b.x - b.size*0.65, b.y - b.size*0.45, b.size*1.3, b.size*0.9);
+                    ctx.restore();
+                }
+                // Название под пузырём
+                ctx.fillStyle = `rgba(255,255,255,0.9)`;
+                ctx.font = 'bold 10px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(b.cert.title.length > 20 ? b.cert.title.slice(0,18)+'..' : b.cert.title, b.x, b.y + b.size + 14);
+            }
+            
+            // Блик
+            ctx.fillStyle = `rgba(255,255,255,${b.opacity*0.6})`;
             ctx.beginPath();
-            ctx.arc(b.x - b.size*0.3, b.y - b.size*0.3, b.size*0.25, 0, Math.PI*2);
+            ctx.arc(b.x - b.size*0.25, b.y - b.size*0.3, b.size*0.2, 0, Math.PI*2);
             ctx.fill();
         });
     }
     
+    // Лопать пузыри
     canvas.addEventListener('mousemove', function(e) {
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
-        bubbles.forEach(b => {
-            if (!b.popped && Math.hypot(mx - b.x, my - b.y) < b.size + 6) {
+        
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+            const b = bubbles[i];
+            if (!b.popped && Math.hypot(mx - b.x, my - b.y) < b.size + 2) {
+                // Если лопнули пузырь с сертификатом — показываем его
+                if (b.cert) {
+                    showCertPopup(b.cert, b.x, b.y);
+                }
                 b.popped = true;
+                b.popAnim = 0;
                 popCount++;
-                document.getElementById('bubbleCount').textContent = popCount;
+                const counterEl = document.getElementById('bubbleCount');
+                if (counterEl) counterEl.textContent = popCount;
+                
                 if (popCount % 20 === 0 && window.triggerTsunami) {
                     window.triggerTsunami();
                     const alert = document.getElementById('tsunamiAlert');
                     if (alert) { alert.classList.add('show'); setTimeout(() => alert.classList.remove('show'), 2000); }
                 }
+                break;
             }
-        });
+        }
+    });
+    
+    canvas.addEventListener('click', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+            const b = bubbles[i];
+            if (!b.popped && Math.hypot(mx - b.x, my - b.y) < b.size + 8) {
+                if (b.cert) showCertPopup(b.cert, b.x, b.y);
+                b.popped = true;
+                b.popAnim = 0;
+                popCount++;
+                const counterEl = document.getElementById('bubbleCount');
+                if (counterEl) counterEl.textContent = popCount;
+                break;
+            }
+        }
     });
     
     function animate() {
@@ -666,9 +804,66 @@ function initBubbleGame() {
     animate();
 }
 
-// Запуск
-window.addEventListener('load', () => {
-    initWaterfallGame();
-    initDogBoat();
-    initBubbleGame();
-});
+// Всплывающее окно сертификата
+function showCertPopup(cert, x, y) {
+    const existing = document.querySelector('.cert-popup');
+    if (existing) existing.remove();
+    
+    const popup = document.createElement('div');
+    popup.className = 'cert-popup';
+    popup.innerHTML = `
+        <span class="cert-popup-close">&times;</span>
+        <img src="${cert.photo}" alt="${cert.title}" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;">
+        <h3>${cert.title}</h3>
+        <p>${cert.desc || ''}</p>
+        <p><strong>${cert.org || ''}</strong> &middot; ${cert.year || ''}</p>
+        <span class="course-badge">${cert.course} курс</span>
+    `;
+    popup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        z-index: 10000;
+        max-width: 350px;
+        text-align: center;
+        animation: popIn 0.3s ease;
+    `;
+    document.body.appendChild(popup);
+    
+    popup.querySelector('.cert-popup-close').addEventListener('click', () => popup.remove());
+    popup.addEventListener('click', (e) => { if (e.target === popup) popup.remove(); });
+    setTimeout(() => { if (popup.isConnected) popup.remove(); }, 8000);
+}
+
+// Стиль для попапа
+const popupStyle = document.createElement('style');
+popupStyle.textContent = `
+    @keyframes popIn {
+        from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+    .cert-popup-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+    }
+    .cert-popup-close:hover { color: #f00; }
+    .cert-popup .course-badge {
+        display: inline-block;
+        background: #00a336;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 13px;
+        margin-top: 8px;
+    }
+`;
+document.head.appendChild(popupStyle);
