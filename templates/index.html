@@ -134,10 +134,10 @@
                     <p>{{ item[2] }}</p>
                 </div>
                 {% endfor %}
-                                {% if not gallery %}
-                <div class="gallery-item empty-gallery">
-                    <div class="gallery-empty-icon"><i class="fas fa-images"></i></div>
-                    <p>Здесь скоро появятся фотографии с мероприятий</p>
+                {% if not gallery %}
+                <div class="gallery-item empty-placeholder-card">
+                    <div class="empty-card-icon"><i class="fas fa-images"></i></div>
+                    <p>Фотографии с мероприятий появятся здесь</p>
                 </div>
                 {% endif %}
             </div>
@@ -169,9 +169,9 @@
                     </div>
                 </div>
                 {% endfor %}
-                                {% if not certificates %}
-                <div class="certificate-item empty-cert">
-                    <div class="cert-empty-icon"><i class="fas fa-award"></i></div>
+                               {% if not certificates %}
+                <div class="certificate-item empty-placeholder-card">
+                    <div class="empty-card-icon"><i class="fas fa-award"></i></div>
                     <div class="certificate-info">
                         <h3>Пока нет сертификатов</h3>
                         <p>Сертификаты и достижения появятся здесь</p>
