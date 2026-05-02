@@ -134,9 +134,9 @@
                     <p>{{ item[2] }}</p>
                 </div>
                 {% endfor %}
-                {% if not gallery %}
-                <div class="empty-placeholder">
-                    <i class="fas fa-images"></i>
+                                {% if not gallery %}
+                <div class="gallery-item empty-gallery">
+                    <div class="gallery-empty-icon"><i class="fas fa-images"></i></div>
                     <p>Здесь скоро появятся фотографии с мероприятий</p>
                 </div>
                 {% endif %}
@@ -169,10 +169,13 @@
                     </div>
                 </div>
                 {% endfor %}
-                {% if not certificates %}
-                <div class="empty-placeholder">
-                    <i class="fas fa-scroll"></i>
-                    <p>Сертификаты появятся позже</p>
+                                {% if not certificates %}
+                <div class="certificate-item empty-cert">
+                    <div class="cert-empty-icon"><i class="fas fa-award"></i></div>
+                    <div class="certificate-info">
+                        <h3>Пока нет сертификатов</h3>
+                        <p>Сертификаты и достижения появятся здесь</p>
+                    </div>
                 </div>
                 {% endif %}
             </div>
@@ -197,9 +200,9 @@
                     {% endif %}
                 </div>
                 {% endfor %}
-                {% if not works %}
-                <div class="empty-placeholder works-empty">
-                    <i class="fas fa-laptop-code"></i>
+                                {% if not works %}
+                <div class="work-item empty-work">
+                    <div class="work-icon"><i class="fas fa-laptop-code"></i></div>
                     <h3>Пока нет работ</h3>
                     <p>Я работаю над новыми проектами — они появятся здесь совсем скоро!</p>
                 </div>

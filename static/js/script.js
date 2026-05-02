@@ -192,3 +192,99 @@ window.addEventListener('load', () => {
     setTimeout(initParticles,800);
     animateOnScroll();
 });
+// ═══════════════════════════════════════════
+// КРУГОВАЯ ДИАГРАММА
+// ═══════════════════════════════════════════
+function drawSkillsChart() {
+    const canvas = document.getElementById('skillsChart');
+    if (!canvas) return;
+    
+    const container = canvas.parentElement;
+    const size = Math.min(container.offsetWidth - 40, 280);
+    canvas.width = size;
+    canvas.height = size;
+    
+    const ctx = canvas.getContext('2d');
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = size * 0.38;
+    
+    // Собираем данные из тех-стека
+    const catData = {};
+    document.querySelectorAll('.tech-category').forEach(cat => {
+        const name = cat.querySelector('h4').textContent;
+        const percents = [];
+        cat.querySelectorAll('.skill-percentage').forEach(sp => {
+            percents.push(parseInt(sp.textContent));
+        });
+        if (percents.length > 0) {
+            catData[name] = Math.round(percents.reduce((a,b) => a+b, 0) / percents.length);
+        }
+    });
+    
+    const items = Object.entries(catData);
+    if (items.length === 0) return;
+    
+    const colors = ['#00a336', '#00d44c', '#4dabf7', '#ffd700', '#ff6b6b', '#a29bfe', '#fd79a8', '#00cec9'];
+    const total = items.reduce((s, [,v]) => s + v, 0);
+    let angle = -Math.PI / 2;
+    
+    // Легенда
+    let legend = '';
+    
+    ctx.clearRect(0, 0, size, size);
+    
+    items.forEach(([name, value], i) => {
+        const slice = (value / total) * 2 * Math.PI;
+        const color = colors[i % colors.length];
+        
+        // Сектор
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, angle, angle + slice);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Процент внутри сектора
+        const mid = angle + slice / 2;
+        const tx = cx + Math.cos(mid) * r * 0.65;
+        const ty = cy + Math.sin(mid) * r * 0.65;
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(value + '%', tx, ty);
+        
+        // Легенда
+        legend += `<div style="display:flex;align-items:center;margin-bottom:6px;">
+            <span style="background:${color};width:14px;height:14px;border-radius:3px;display:inline-block;margin-right:8px;flex-shrink:0;"></span>
+            <span style="font-size:12px;color:var(--text-color);">${name} — ${value}%</span>
+        </div>`;
+        
+        angle += slice;
+    });
+    
+    // Круг в центре (пончик)
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.5, 0, 2 * Math.PI);
+    ctx.fillStyle = 'var(--bg-color, #fff)';
+    ctx.fill();
+    
+    const legendEl = document.getElementById('chartLegend');
+    if (legendEl) legendEl.innerHTML = legend;
+}
+
+// Запускаем диаграмму при загрузке и при скролле
+window.addEventListener('load', () => {
+    setTimeout(drawSkillsChart, 800);
+});
+window.addEventListener('scroll', () => {
+    const about = document.getElementById('about');
+    if (about && about.classList.contains('animated')) {
+        drawSkillsChart();
+    }
+});

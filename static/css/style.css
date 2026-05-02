@@ -1164,3 +1164,67 @@ body.dark-theme footer .footer-links a {
     .btn { padding: 12px 25px; font-size: 16px; }
     .scroll-to-top { bottom: 20px; right: 20px; width: 40px; height: 40px; }
 }
+/* ═══════════════════════════════════════════ */
+/* ЗАГЛУШКИ ДЛЯ ПУСТЫХ БЛОКОВ */
+/* ═══════════════════════════════════════════ */
+
+/* Пустая работа */
+.empty-work {
+    animation: floatElement 4s ease-in-out infinite !important;
+    cursor: default !important;
+    opacity: 0.7;
+}
+.empty-work:hover {
+    transform: translateY(-5px) !important;
+}
+.empty-work .work-icon i {
+    color: #ccc !important;
+}
+body.dark-theme .empty-work .work-icon i {
+    color: #444 !important;
+}
+
+/* Пустая галерея */
+.empty-gallery {
+    cursor: default !important;
+    text-align: center;
+    padding: 50px 20px !important;
+    animation: floatElement 4s ease-in-out infinite !important;
+    opacity: 0.7;
+}
+.gallery-empty-icon {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 15px;
+}
+body.dark-theme .gallery-empty-icon {
+    color: #444;
+}
+.empty-gallery:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+}
+
+/* Пустой сертификат */
+.empty-cert {
+    cursor: default !important;
+    text-align: center;
+    animation: floatElement 4s ease-in-out infinite !important;
+    opacity: 0.7;
+}
+.empty-cert:hover {
+    transform: translateY(-5px) !important;
+}
+.cert-empty-icon {
+    font-size: 64px;
+    color: #ccc;
+    padding: 30px 0 0;
+}
+body.dark-theme .cert-empty-icon {
+    color: #444;
+}
+
+@keyframes floatElement {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
