@@ -9,9 +9,7 @@
 </head>
 <body>
 
-    <!-- ═══════════════════════════════════════════ -->
     <!-- ШАПКА -->
-    <!-- ═══════════════════════════════════════════ -->
     <header>
         <div class="container header-container">
             <a href="#" class="logo">Портфо<span>лио</span></a>
@@ -31,263 +29,135 @@
         </div>
     </header>
 
-    <!-- ═══════════════════════════════════════════ -->
     <!-- ГЕРОЙ -->
-    <!-- ═══════════════════════════════════════════ -->
     <section class="hero animate-on-scroll" id="home">
         <div class="container hero-content">
             <div class="hero-text">
                 <h1 class="neon-text">Привет, я <span>Владислав</span><br>Студент и будущий специалист</h1>
-                <p>Я учусь на Администратора баз данных и активно развиваюсь в IT-сфере. Здесь вы найдете информацию о моих достижениях, проектах и сертификатах.</p>
-                <div class="typing-container">
-                    <h3>Моя цель: <span class="typing-text" id="typingText"></span><span class="cursor">|</span></h3>
-                </div>
+                <p>Я учусь на Администратора баз данных и активно развиваюсь в IT-сфере.</p>
+                <div class="typing-container"><h3>Моя цель: <span class="typing-text" id="typingText"></span><span class="cursor">|</span></h3></div>
                 <a href="#about" class="btn">Узнать больше</a>
             </div>
-            <div class="hero-image">
-                <img src="{{ avatar }}" alt="Владислав" class="profile-img">
-            </div>
+            <div class="hero-image"><img src="{{ avatar }}" class="profile-img"></div>
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════ -->
     <!-- ОБО МНЕ -->
-    <!-- ═══════════════════════════════════════════ -->
     <section id="about" class="animate-on-scroll">
         <div id="particles-js"></div>
         <div class="container">
             <h2 class="section-title">Обо мне</h2>
             <div class="about-content">
-                
-                <!-- Левая колонка: текст + тех-стек -->
                 <div class="about-text">
-                    <p>Я студент IT-направления, увлечённый программированием. За время обучения освоил несколько программ и технологий, которые помогают мне создавать интересные проекты.</p>
-                    <p>Мои сильные стороны: внимание к деталям, способность быстро осваивать новые технологии и работать в команде. Я постоянно стремлюсь к профессиональному развитию и принимаю участие в различных образовательных мероприятиях.</p>
-                    <p>В будущем планирую стать full-stack разработчиком и создавать полезные и инновационные продукты, которые будут решать реальные проблемы пользователей.</p>
+                    <p>Я студент IT-направления, увлечённый программированием. За время обучения освоил несколько программ и технологий.</p>
+                    <p>Мои сильные стороны: внимание к деталям, способность быстро осваивать новые технологии и работать в команде.</p>
+                    <p>В будущем планирую стать full-stack разработчиком и создавать полезные и инновационные продукты.</p>
                     
-                    <!-- Счётчики -->
                     <div class="achievement-counter">
-                        <div class="counter-item">
-                            <i class="fas fa-certificate"></i>
-                            <span class="counter" data-target="{{ certificates|length }}">0</span>
-                            <p>Сертификатов</p>
-                        </div>
-                        <div class="counter-item">
-                            <i class="fas fa-project-diagram"></i>
-                            <span class="counter" data-target="{{ works|length }}">0</span>
-                            <p>Проектов</p>
-                        </div>
-                        <div class="counter-item">
-                            <i class="fas fa-code"></i>
-                            <span class="counter" data-target="{{ techstack|length }}">0</span>
-                            <p>Технологий</p>
-                        </div>
+                        <div class="counter-item"><i class="fas fa-certificate"></i><span class="counter" data-target="{{ certificates|length }}">0</span><p>Сертификатов</p></div>
+                        <div class="counter-item"><i class="fas fa-project-diagram"></i><span class="counter" data-target="{{ works|length }}">0</span><p>Проектов</p></div>
+                        <div class="counter-item"><i class="fas fa-code"></i><span class="counter" data-target="{{ techstack|length }}">0</span><p>Технологий</p></div>
                     </div>
 
-                    <!-- Технологический стек -->
                     <div class="tech-stack">
                         <h3>Мой технологический стек</h3>
                         {% for cat in categories %}
-                        <div class="tech-category">
-                            <h4>{{ cat[1] }}</h4>
-                            <div class="tech-icons">
-                                {% for t in techstack %}
-                                    {% if t[1] == cat[1] %}
-                                    <div class="tech-item">
-                                        <i class="{{ t[3] }}"></i>
-                                        <span>{{ t[2] }}</span>
-                                        {% if t[5] %}<span class="software-subtitle">{{ t[5] }}</span>{% endif %}
-                                        <div class="skill-percentage">{{ t[4] }}%</div>
-                                        <div class="percentage-bar">
-                                            <div class="percentage-fill" data-width="{{ t[4] }}"></div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
+                        <div class="tech-category"><h4>{{ cat[1] }}</h4><div class="tech-icons">
+                            {% for t in techstack %}{% if t[1] == cat[1] %}
+                            <div class="tech-item"><i class="{{ t[3] }}"></i><span>{{ t[2] }}</span>{% if t[5] %}<span class="software-subtitle">{{ t[5] }}</span>{% endif %}<div class="skill-percentage">{{ t[4] }}%</div><div class="percentage-bar"><div class="percentage-fill" data-width="{{ t[4] }}"></div></div></div>
+                            {% endif %}{% endfor %}
+                        </div></div>
                         {% endfor %}
                     </div>
                 </div>
-
-                <!-- Правая колонка: диаграмма -->
                 <div class="about-stats">
                     <h3>Распределение навыков</h3>
                     <canvas id="skillsChart"></canvas>
                     <div id="chartLegend"></div>
                 </div>
-                
             </div>
         </div>
     </section>
 
-           <!-- ═══════════════════════════════════════════ -->
-    <!-- ГАЛЕРЕЯ С ВОДОПАДАМИ -->
-    <!-- ═══════════════════════════════════════════ -->
+    <!-- ГАЛЕРЕЯ -->
     <section class="gallery animate-on-scroll" id="gallery">
         <canvas id="waterfallCanvas"></canvas>
-                <!-- Элементы цунами -->
         <div id="tsunamiWave"></div>
         <div id="tsunamiAlert">🌊 ЦУНАМИ! 🌊</div>
-        
-        <!-- Собачка в лодке -->
         <div id="dogBoat">
             <div id="boatBack">⛵</div>
             <div id="dogEmoji">🐕</div>
         </div>
-        
         <div class="container" style="position:relative;z-index:2;">
             <h2 class="section-title">Галерея фото</h2>
             <div class="gallery-grid" id="galleryGrid">
                 {% for item in gallery %}
-                <div class="gallery-item">
-                    <img src="{{ item[1] }}" alt="{{ item[2] }}" data-full="{{ item[1] }}">
-                    <p>{{ item[2] }}</p>
-                </div>
+                <div class="gallery-item"><img src="{{ item[1] }}" alt="{{ item[2] }}" data-full="{{ item[1] }}"><p>{{ item[2] }}</p></div>
                 {% endfor %}
                 {% if not gallery %}
-                <div class="gallery-item empty-placeholder-card">
-                    <div class="empty-card-icon"><i class="fas fa-images"></i></div>
-                    <p>Фотографии с мероприятий появятся здесь</p>
-                </div>
+                <div class="gallery-item empty-placeholder-card"><div class="empty-card-icon"><i class="fas fa-images"></i></div><p>Фотографии с мероприятий появятся здесь</p></div>
                 {% endif %}
             </div>
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- СЕРТИФИКАТЫ В ПУЗЫРЯХ -->
-    <!-- ═══════════════════════════════════════════ -->
+    <!-- СЕРТИФИКАТЫ -->
     <section id="certificates" class="animate-on-scroll">
         <canvas id="bubbleCanvas"></canvas>
-        
         <div id="bubbleCounter">🫧 Лопнуто: <span id="bubbleCount">0</span></div>
-        
-        <!-- Сертификаты (скрыты, будут показаны в пузырях) -->
         <div id="certData" style="display:none;">
             {% for cert in certificates %}
-            <div class="cert-data-item" 
-                 data-photo="{{ cert[1] }}" 
-                 data-title="{{ cert[2] }}" 
-                 data-desc="{{ cert[3] }}" 
-                 data-org="{{ cert[4] }}" 
-                 data-year="{{ cert[5] }}" 
-                 data-course="{{ cert[6] }}">
-            </div>
+            <div class="cert-data-item" data-photo="{{ cert[1] }}" data-title="{{ cert[2] }}" data-desc="{{ cert[3] }}" data-org="{{ cert[4] }}" data-year="{{ cert[5] }}" data-course="{{ cert[6] }}"></div>
             {% endfor %}
         </div>
-        
         <div class="container" style="position:relative;z-index:2;">
             <h2 class="section-title">Мои сертификаты</h2>
-            <div class="course-filter">
-                <button class="filter-btn active" data-course="all">Все</button>
-                <button class="filter-btn" data-course="1">1 курс</button>
-                <button class="filter-btn" data-course="2">2 курс</button>
-                <button class="filter-btn" data-course="3">3 курс</button>
-                <button class="filter-btn" data-course="4">4 курс</button>
-            </div>
-            
-            <!-- Сетка для тех что не в пузырях (если нет сертификатов) -->
             <div class="certificates-grid" id="certificatesGrid">
                 {% if not certificates %}
-                <div class="certificate-item empty-placeholder-card">
-                    <div class="empty-card-icon"><i class="fas fa-award"></i></div>
-                    <div class="certificate-info">
-                        <h3>Пока нет сертификатов</h3>
-                        <p>Сертификаты и достижения появятся здесь</p>
-                    </div>
-                </div>
+                <div class="certificate-item empty-placeholder-card"><div class="empty-card-icon"><i class="fas fa-award"></i></div><div class="certificate-info"><h3>Пока нет сертификатов</h3><p>Сертификаты и достижения появятся здесь</p></div></div>
                 {% endif %}
             </div>
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════ -->
     <!-- МОИ РАБОТЫ -->
-    <!-- ═══════════════════════════════════════════ -->
     <section class="works animate-on-scroll" id="works">
         <div class="container">
             <h2 class="section-title">Мои работы</h2>
-            <p class="works-intro">Здесь я размещаю свои учебные и личные проекты. Вы можете скачать готовые работы или посмотреть код.</p>
+            <p class="works-intro">Здесь я размещаю свои учебные и личные проекты.</p>
             <div class="works-grid">
                 {% for work in works %}
-                <div class="work-item">
-                    <div class="work-icon"><i class="fas {{ work[3] }}"></i></div>
-                    <h3>{{ work[1] }}</h3>
-                    <p>{{ work[2] }}</p>
-                    {% if work[4] %}
-                    <a href="/{{ work[4] }}" class="btn" download="{{ work[1] }}">📥 Скачать</a>
-                    {% endif %}
-                </div>
+                <div class="work-item"><div class="work-icon"><i class="fas {{ work[3] }}"></i></div><h3>{{ work[1] }}</h3><p>{{ work[2] }}</p>{% if work[4] %}<a href="/{{ work[4] }}" class="btn" download>📥 Скачать</a>{% endif %}</div>
                 {% endfor %}
-                                {% if not works %}
-                <div class="work-item empty-work">
-                    <div class="work-icon"><i class="fas fa-laptop-code"></i></div>
-                    <h3>Пока нет работ</h3>
-                    <p>Я работаю над новыми проектами — они появятся здесь совсем скоро!</p>
-                </div>
+                {% if not works %}
+                <div class="work-item empty-work"><div class="work-icon"><i class="fas fa-laptop-code"></i></div><h3>Пока нет работ</h3><p>Я работаю над новыми проектами!</p></div>
                 {% endif %}
             </div>
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════ -->
     <!-- ПОДВАЛ -->
-    <!-- ═══════════════════════════════════════════ -->
     <footer>
         <div class="container">
             <div class="footer-content">
-                <div class="footer-column">
-                    <h3>Портфолио</h3>
-                    <p>Мои достижения, сертификаты и проекты за время обучения.</p>
-                    <div class="social-icons">
-                        <a href="#" title="ВКонтакте"><i class="fab fa-vk"></i></a>
-                        <a href="https://t.me/Id1vlad1" title="Telegram"><i class="fab fa-telegram"></i></a>
-                    </div>
-                </div>
-                <div class="footer-column">
-                    <h3>Навигация</h3>
-                    <ul class="footer-links">
-                        <li><a href="#home">Главная</a></li>
-                        <li><a href="#about">Обо мне</a></li>
-                        <li><a href="#gallery">Галерея</a></li>
-                        <li><a href="#certificates">Сертификаты</a></li>
-                        <li><a href="#works">Мои работы</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Контакты</h3>
-                    <ul class="footer-links">
-                        <li><i class="fas fa-envelope"></i> vlad.kutolin@bk.ru</li>
-                        <li><i class="fas fa-phone"></i> +7 (999) 166-39-38</li>
-                        <li><i class="fas fa-map-marker-alt"></i> Россия, Благовещенск</li>
-                        <li><i class="fas fa-university"></i> АПК</li>
-                    </ul>
-                </div>
+                <div class="footer-column"><h3>Портфолио</h3><p>Мои достижения и проекты.</p><div class="social-icons"><a href="#"><i class="fab fa-vk"></i></a><a href="https://t.me/Id1vlad1"><i class="fab fa-telegram"></i></a></div></div>
+                <div class="footer-column"><h3>Навигация</h3><ul class="footer-links"><li><a href="#home">Главная</a></li><li><a href="#about">Обо мне</a></li><li><a href="#gallery">Галерея</a></li><li><a href="#certificates">Сертификаты</a></li><li><a href="#works">Мои работы</a></li></ul></div>
+                <div class="footer-column"><h3>Контакты</h3><ul class="footer-links"><li><i class="fas fa-envelope"></i> vlad.kutolin@bk.ru</li><li><i class="fas fa-phone"></i> +7 (999) 166-39-38</li><li><i class="fas fa-map-marker-alt"></i> Россия, Благовещенск</li></ul></div>
             </div>
-            <div class="copyright">
-                <p>&copy; 2025 Владислав. Все права защищены.</p>
-            </div>
+            <div class="copyright">&copy; 2025 Владислав</div>
         </div>
     </footer>
 
-    <!-- Кнопка "Вверх" -->
     <button class="scroll-to-top" id="scrollToTop"><i class="fas fa-chevron-up"></i></button>
 
-    <!-- ═══════════════════════════════════════════ -->
     <!-- ПРОСМОТРЩИК ФОТО -->
-    <!-- ═══════════════════════════════════════════ -->
     <div id="imageViewer">
         <span id="closeViewer">&times;</span>
         <button id="prevBtn">&#10094;</button>
         <img id="viewerImage" src="" alt="">
         <button id="nextBtn">&#10095;</button>
         <p id="viewerCaption"></p>
-        <div class="zoom-controls">
-            <button id="zoomInBtn">+</button>
-            <button id="zoomOutBtn">−</button>
-            <button id="resetZoomBtn">↺</button>
-        </div>
+        <div class="zoom-controls"><button id="zoomInBtn">+</button><button id="zoomOutBtn">−</button><button id="resetZoomBtn">↺</button></div>
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
