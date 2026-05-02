@@ -120,7 +120,22 @@ function initWaterfallGame(){
     function createDrop(side){return{x:side==='left'?canvas.width*0.08+(Math.random()-0.5)*35:canvas.width*0.92+(Math.random()-0.5)*35,y:Math.random()*canvas.height*0.4,speed:1.5+Math.random()*3,size:2+Math.random()*3,opacity:0.2+Math.random()*0.4,splashed:false};}
     for(let i=0;i<60;i++){leftWF.push(createDrop('left'));rightWF.push(createDrop('right'));}
     let waveOffset=0;window.tsunamiHeight=0;
-    function drawRiverWaves(){const ry=canvas.height*0.75+(window.tsunamiHeight||0)*0.3,wh=10+(window.tsunamiHeight||0)*0.4;for(let x=0;x<canvas.width;x+=2){const y=ry+Math.sin((x+waveOffset)/140)*wh+Math.cos((x-waveOffset*0.7)/90)*wh*0.5,alpha=0.1+Math.abs(Math.sin((x+waveOffset)/140))*0.1;ctx.fillStyle=`rgba(0,180,220,${alpha})`;ctx.fillRect(x,y,3,3);}}
+       function drawRiverWaves() {
+        const bassEffect = smoothBass || 0;
+        const riverY = canvas.height * 0.75 + (window.tsunamiHeight || 0) * 0.3;
+        const waveHeight = 10 + bassEffect * 25 + (window.tsunamiHeight || 0) * 0.4;
+        const speed = 1 + bassEffect * 2;
+
+        for (let x = 0; x < canvas.width; x += 2) {
+            const y = riverY + Math.sin((x + waveOffset * speed) / 140) * waveHeight +
+                      Math.cos((x - waveOffset * speed * 0.7) / 90) * waveHeight * 0.5;
+            const alpha = 0.1 + Math.abs(Math.sin((x + waveOffset * speed) / 140)) * 0.1 + bassEffect * 0.1;
+            ctx.fillStyle = `rgba(0, 180, 220, ${alpha})`;
+            ctx.fillRect(x, y, 3, 3);
+        }
+        
+        waveOffset += 1 + bassEffect;
+    }
     function drawWaterfall(particles,x,w){particles.forEach(p=>{p.y+=p.speed;if(p.y>canvas.height*0.75&&!p.splashed){p.splashed=true;for(let s=0;s<3;s++)riverDrops.push({x:x+(Math.random()-0.5)*w,y:canvas.height*0.75,vx:(Math.random()-0.5)*3,vy:-Math.random()*5,life:1,size:2+Math.random()*3});p.y=Math.random()*canvas.height*0.3;p.splashed=false;}ctx.fillStyle=`rgba(0,180,230,${p.opacity})`;ctx.beginPath();ctx.ellipse(p.x,p.y,p.size,p.size*1.5,0,0,Math.PI*2);ctx.fill();});}
     function drawSplashes(){riverDrops.forEach(d=>{d.x+=d.vx;d.y+=d.vy;d.vy+=0.1;d.life-=0.02;if(d.life>0){ctx.fillStyle=`rgba(255,255,255,${d.life*0.5})`;ctx.beginPath();ctx.arc(d.x,d.y,d.size*d.life,0,Math.PI*2);ctx.fill();}});for(let i=riverDrops.length-1;i>=0;i--)if(riverDrops[i].life<=0)riverDrops.splice(i,1);}
     function drawRocks(){ctx.fillStyle='rgba(60,65,70,0.2)';ctx.beginPath();ctx.moveTo(0,canvas.height*0.05);ctx.lineTo(canvas.width*0.1,canvas.height*0.15);ctx.lineTo(canvas.width*0.08,canvas.height*0.85);ctx.lineTo(0,canvas.height);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(canvas.width,canvas.height*0.05);ctx.lineTo(canvas.width*0.9,canvas.height*0.15);ctx.lineTo(canvas.width*0.92,canvas.height*0.85);ctx.lineTo(canvas.width,canvas.height);ctx.closePath();ctx.fill();}
@@ -204,22 +219,123 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 // ═══════════════════════════════════════════
-// МУЗЫКА
+// МУЗЫКА + ПЛАВНЫЕ ВОЛНЫ
 // ═══════════════════════════════════════════
-let audioCtx,analyser,audioSource,bassLevel=0,musicPlaylist=[],currentTrack=0,isMusicPlaying=false;
-const musicAudio=document.getElementById('musicAudio'),musicToggle=document.getElementById('musicToggle'),musicTitle=document.getElementById('musicTitle'),musicVolume=document.getElementById('musicVolume'),musicNext=document.getElementById('musicNext');
-function loadMusicPlaylist(){fetch('/api/music').then(r=>r.json()).then(tracks=>{musicPlaylist=tracks;if(tracks.length>0)loadTrack(0);});}
-function loadTrack(index){if(musicPlaylist.length===0)return;currentTrack=index;const t=musicPlaylist[currentTrack];musicAudio.src='/'+t.file_path;musicTitle.textContent=t.title;if(isMusicPlaying)musicAudio.play();}
-function toggleMusic(){if(musicPlaylist.length===0)return;if(isMusicPlaying){musicAudio.pause();isMusicPlaying=false;musicToggle.textContent='🔇';}else{if(!audioCtx)initAudio();musicAudio.play();isMusicPlaying=true;musicToggle.textContent='🔊';}}
-function initAudio(){audioCtx=new(window.AudioContext||window.webkitAudioContext)();analyser=audioCtx.createAnalyser();analyser.fftSize=64;audioSource=audioCtx.createMediaElementSource(musicAudio);audioSource.connect(analyser);analyser.connect(audioCtx.destination);}
-function getBass(){if(!analyser)return 0;const d=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(d);let b=0;for(let i=0;i<8;i++)b+=d[i];return b/8/255;}
-setInterval(()=>{if(isMusicPlaying&&analyser){bassLevel=getBass();if(window.tsunamiHeight!==undefined)window.tsunamiHeight=Math.max(window.tsunamiHeight||0,bassLevel*40);}},50);
-setInterval(()=>{const dog=document.getElementById('dogBoat');if(dog&&isMusicPlaying&&bassLevel>0){const bounce=bassLevel*15,ct=parseFloat(dog.style.top)||0;dog.style.transition='top 0.1s ease';dog.style.top=(ct-bounce*0.3)+'px';setTimeout(()=>{dog.style.top=(ct+bounce*0.3)+'px';},50);}},100);
-if(musicToggle)musicToggle.addEventListener('click',toggleMusic);
-if(musicNext)musicNext.addEventListener('click',()=>{if(musicPlaylist.length===0)return;loadTrack((currentTrack+1)%musicPlaylist.length);if(isMusicPlaying)musicAudio.play();});
-if(musicVolume)musicVolume.addEventListener('input',()=>{musicAudio.volume=musicVolume.value/100;});
-musicAudio.addEventListener('ended',()=>{if(musicPlaylist.length>0){loadTrack((currentTrack+1)%musicPlaylist.length);musicAudio.play();}});
-musicAudio.volume=0.3;if(musicVolume)musicVolume.value=30;
+let audioCtx, analyser, audioSource;
+let musicPlaylist = [], currentTrack = 0, isMusicPlaying = false;
+let smoothBass = 0; // Плавный бас
+
+const musicAudio = document.getElementById('musicAudio');
+const musicToggle = document.getElementById('musicToggle');
+const musicTitle = document.getElementById('musicTitle');
+const musicVolume = document.getElementById('musicVolume');
+const musicNext = document.getElementById('musicNext');
+
+function loadMusicPlaylist() {
+    fetch('/api/music')
+        .then(r => r.json())
+        .then(tracks => {
+            musicPlaylist = tracks;
+            if (tracks.length > 0) loadTrack(0);
+        });
+}
+
+function loadTrack(index) {
+    if (musicPlaylist.length === 0) return;
+    currentTrack = index;
+    const t = musicPlaylist[currentTrack];
+    musicAudio.src = '/' + t.file_path;
+    musicTitle.textContent = t.title;
+    if (isMusicPlaying) musicAudio.play();
+}
+
+function toggleMusic() {
+    if (musicPlaylist.length === 0) return;
+    if (isMusicPlaying) {
+        musicAudio.pause();
+        isMusicPlaying = false;
+        musicToggle.textContent = '🔇';
+    } else {
+        if (!audioCtx) initAudio();
+        musicAudio.play();
+        isMusicPlaying = true;
+        musicToggle.textContent = '🔊';
+    }
+}
+
+function initAudio() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 128;
+    analyser.smoothingTimeConstant = 0.85; // Плавное сглаживание
+    audioSource = audioCtx.createMediaElementSource(musicAudio);
+    audioSource.connect(analyser);
+    analyser.connect(audioCtx.destination);
+}
+
+// Плавное обновление баса
+function updateBass() {
+    if (!analyser || !isMusicPlaying) {
+        smoothBass *= 0.9; // Затухание когда нет музыки
+        return;
+    }
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    
+    // Берём низкие частоты (бас)
+    let rawBass = 0;
+    for (let i = 0; i < 10; i++) rawBass += data[i];
+    rawBass = rawBass / 10 / 255;
+    
+    // Плавное сглаживание
+    smoothBass = smoothBass * 0.7 + rawBass * 0.3;
+}
+
+// Обновляем 30 раз в секунду (плавно)
+setInterval(updateBass, 33);
+
+// Вода реагирует на плавный бас
+setInterval(() => {
+    if (smoothBass > 0.01 && window.tsunamiHeight !== undefined) {
+        window.tsunamiHeight = smoothBass * 50;
+    }
+}, 100);
+
+// Собачка плавно качается
+setInterval(() => {
+    const dog = document.getElementById('dogBoat');
+    if (!dog || smoothBass < 0.02) return;
+    const bounce = Math.sin(Date.now() / 200) * smoothBass * 20;
+    const baseTop = parseFloat(dog.style.top) || dog.getBoundingClientRect().top;
+    dog.style.transition = 'top 0.15s ease-out';
+    dog.style.top = (baseTop + bounce) + 'px';
+}, 50);
+
+// Кнопки
+if (musicToggle) musicToggle.addEventListener('click', toggleMusic);
+if (musicNext) musicNext.addEventListener('click', () => {
+    if (musicPlaylist.length === 0) return;
+    loadTrack((currentTrack + 1) % musicPlaylist.length);
+    if (isMusicPlaying) musicAudio.play();
+});
+if (musicVolume) musicVolume.addEventListener('input', () => {
+    musicAudio.volume = musicVolume.value / 100;
+});
+
+musicAudio.addEventListener('ended', () => {
+    if (musicPlaylist.length > 0) {
+        loadTrack((currentTrack + 1) % musicPlaylist.length);
+        musicAudio.play();
+    }
+});
+
+musicAudio.volume = 0.3;
+if (musicVolume) musicVolume.value = 30;
+
+// Загрузка плейлиста
+window.addEventListener('load', () => {
+    setTimeout(loadMusicPlaylist, 1000);
+});
 
 // ═══════════════════════════════════════════
 // ЗАПУСК
