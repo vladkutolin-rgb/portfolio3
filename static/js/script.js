@@ -627,7 +627,7 @@ function initBubbleGame() {
         return {
             x: Math.random() * canvas.width,
             y: fromBottom ? canvas.height + 50 : Math.random() * canvas.height,
-            size: hasCert ? 35 + Math.random() * 20 : 8 + Math.random() * 14,
+            size: hasCert ? 45 + Math.random() * 25 : 10 + Math.random() * 14,
             speed: 0.25 + Math.random() * 0.7,
             opacity: 0.2 + Math.random() * 0.2,
             hue: hasCert ? 190 : 185 + Math.random() * 30,
@@ -635,37 +635,76 @@ function initBubbleGame() {
             wobbleSpeed: 0.005 + Math.random() * 0.02,
             popped: false,
             popAnim: 0,
-            cert: certData
+            cert: certData,
+            // Для физики лопания
+            pieces: [],
+            popStartTime: 0
         };
     }
 
     for (let i = 0; i < totalBubbles; i++) bubbles.push(createBubble());
 
-    const certImages = {};
-    certificates.forEach(cert => {
-        const img = new Image();
-        img.src = cert.photo;
-        certImages[cert.photo] = img;
-    });
+    function popBubble(b) {
+        if (b.popped) return;
+        b.popped = true;
+        b.popAnim = 0;
+        b.popStartTime = performance.now();
+        // Создаём осколки
+        b.pieces = [];
+        const pieceCount = b.cert ? 12 : 6;
+        for (let i = 0; i < pieceCount; i++) {
+            const angle = (Math.PI * 2 / pieceCount) * i;
+            b.pieces.push({
+                x: b.x,
+                y: b.y,
+                vx: Math.cos(angle) * (2 + Math.random() * 4),
+                vy: Math.sin(angle) * (2 + Math.random() * 4),
+                size: b.size * (0.1 + Math.random() * 0.2),
+                life: 1
+            });
+        }
+        popCount++;
+        const el = document.getElementById('bubbleCount');
+        if (el) el.textContent = popCount;
+
+        if (b.cert) {
+            // Открываем просмотр сертификата
+            openCertViewer(b.cert);
+        }
+
+        if (popCount % 20 === 0 && window.triggerTsunami) {
+            window.triggerTsunami();
+            const a = document.getElementById('tsunamiAlert');
+            if (a) { a.classList.add('show'); setTimeout(() => a.classList.remove('show'), 2000); }
+        }
+    }
 
     function drawBubbles() {
+        const now = performance.now();
+
         bubbles.forEach(b => {
             if (b.popped) {
-                b.popAnim += 0.06;
-                const pieces = b.cert ? 8 : 4;
-                for (let i = 0; i < pieces; i++) {
-                    const angle = (Math.PI * 2 / pieces) * i + b.popAnim * 3;
-                    const dist = b.popAnim * b.size * 2.5;
-                    ctx.fillStyle = `rgba(120,200,255,${1 - b.popAnim})`;
-                    ctx.beginPath();
-                    ctx.arc(b.x + Math.cos(angle) * dist, b.y + Math.sin(angle) * dist, b.size * 0.12 * (1 - b.popAnim), 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                if (b.popAnim > 1) {
+                // Анимируем осколки
+                const elapsed = (now - b.popStartTime) / 1000;
+                if (elapsed > 1.5) {
+                    // Пересоздаём пузырь
                     Object.assign(b, createBubble(true));
-                    b.popped = false;
-                    b.popAnim = 0;
+                    return;
                 }
+
+                b.pieces.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.1;
+                    p.life = Math.max(0, 1 - elapsed / 1.5);
+
+                    if (p.life > 0) {
+                        ctx.fillStyle = `rgba(120,200,255,${p.life * 0.8})`;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
                 return;
             }
 
@@ -674,7 +713,11 @@ function initBubbleGame() {
             b.wobble += b.wobbleSpeed;
             if (b.y < -80) Object.assign(b, createBubble(true));
 
-            const gradient = ctx.createRadialGradient(b.x - b.size * 0.25, b.y - b.size * 0.3, b.size * 0.05, b.x, b.y, b.size);
+            // Пузырь
+            const gradient = ctx.createRadialGradient(
+                b.x - b.size * 0.25, b.y - b.size * 0.3, b.size * 0.05,
+                b.x, b.y, b.size
+            );
             gradient.addColorStop(0, `hsla(${b.hue}, 50%, 85%, ${b.opacity + 0.25})`);
             gradient.addColorStop(0.6, `hsla(${b.hue}, 50%, 60%, ${b.opacity + 0.1})`);
             gradient.addColorStop(1, `hsla(${b.hue}, 45%, 40%, ${b.opacity * 0.5})`);
@@ -684,48 +727,68 @@ function initBubbleGame() {
             ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
             ctx.fill();
             ctx.strokeStyle = `rgba(255,255,255,${b.opacity * 0.35})`;
-            ctx.lineWidth = 1.2;
+            ctx.lineWidth = 1.5;
             ctx.stroke();
 
-            if (b.cert && b.size > 22) {
-                const img = certImages[b.cert.photo];
-                if (img && img.complete) {
+            // Сертификат в пузыре — фото
+            if (b.cert && b.size > 30) {
+                const img = new Image();
+                img.src = b.cert.photo;
+                if (img.complete) {
                     ctx.save();
                     ctx.beginPath();
-                    ctx.arc(b.x, b.y, b.size * 0.6, 0, Math.PI * 2);
+                    ctx.arc(b.x, b.y, b.size * 0.5, 0, Math.PI * 2);
                     ctx.clip();
-                    ctx.drawImage(img, b.x - b.size * 0.6, b.y - b.size * 0.4, b.size * 1.2, b.size * 0.8);
+                    ctx.drawImage(img, b.x - b.size * 0.5, b.y - b.size * 0.35, b.size, b.size * 0.7);
                     ctx.restore();
                 }
-                ctx.fillStyle = 'rgba(255,255,255,0.85)';
-                ctx.font = 'bold 10px "Segoe UI", sans-serif';
+            } else if (b.cert) {
+                // Маленький пузырь — иконка
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.font = `${b.size * 0.8}px serif`;
                 ctx.textAlign = 'center';
-                const shortTitle = b.cert.title.length > 18 ? b.cert.title.slice(0, 16) + '..' : b.cert.title;
-                ctx.fillText(shortTitle, b.x, b.y + b.size + 13);
+                ctx.textBaseline = 'middle';
+                ctx.fillText('📜', b.x, b.y);
             }
 
-            ctx.fillStyle = `rgba(255,255,255,${b.opacity * 0.6})`;
+            // Название под пузырём
+            if (b.cert) {
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.font = 'bold 10px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                const shortTitle = b.cert.title.length > 16 ? b.cert.title.slice(0, 14) + '..' : b.cert.title;
+                ctx.fillText(shortTitle, b.x, b.y + b.size + 14);
+            }
+
+            // Блик
+            ctx.fillStyle = `rgba(255,255,255,${b.opacity * 0.5})`;
             ctx.beginPath();
             ctx.arc(b.x - b.size * 0.2, b.y - b.size * 0.25, b.size * 0.18, 0, Math.PI * 2);
             ctx.fill();
         });
     }
 
+    // Обработчик мыши
     canvas.addEventListener('mousemove', function(e) {
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
-        for (let i = bubbles.length - 1; i >= 0; i--) {
+        for (let i = 0; i < bubbles.length; i++) {
             const b = bubbles[i];
-            if (!b.popped && Math.hypot(mx - b.x, my - b.y) < b.size + 2) {
-                if (b.cert) showCertPopup(b.cert);
-                b.popped = true; b.popAnim = 0;
-                popCount++;
-                const el = document.getElementById('bubbleCount'); if (el) el.textContent = popCount;
-                if (popCount % 20 === 0 && window.triggerTsunami) {
-                    window.triggerTsunami();
-                    const a = document.getElementById('tsunamiAlert'); if (a) { a.classList.add('show'); setTimeout(() => a.classList.remove('show'), 2000); }
-                }
+            if (!b.popped && Math.hypot(mx - b.x, my - b.y) < b.size) {
+                popBubble(b);
+            }
+        }
+    });
+
+    canvas.addEventListener('click', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        for (let i = 0; i < bubbles.length; i++) {
+            const b = bubbles[i];
+            if (!b.popped && Math.hypot(mx - b.x, my - b.y) < b.size + 5) {
+                popBubble(b);
                 break;
             }
         }
@@ -740,25 +803,119 @@ function initBubbleGame() {
     animate();
 }
 
-function showCertPopup(cert) {
-    const existing = document.querySelector('.cert-popup');
-    if (existing) existing.remove();
-    const popup = document.createElement('div');
-    popup.className = 'cert-popup';
-    popup.innerHTML = `
-        <span class="cert-popup-close">&times;</span>
-        <img src="${cert.photo}" alt="${cert.title}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:10px;">
-        <h3 style="margin:5px 0;color:#333;">${cert.title}</h3>
-        <p style="color:#777;font-size:13px;">${cert.desc || ''}</p>
-        <p style="color:#555;font-size:13px;"><strong>${cert.org || ''}</strong> &middot; ${cert.year || ''}</p>
-        <span style="display:inline-block;background:#00a336;color:white;padding:4px 12px;border-radius:15px;font-size:12px;margin-top:5px;">${cert.course} курс</span>
-    `;
-    popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:20px;border-radius:15px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:10000;max-width:350px;text-align:center;animation:popIn 0.3s ease;';
-    document.body.appendChild(popup);
-    popup.querySelector('.cert-popup-close').addEventListener('click', () => popup.remove());
-    popup.addEventListener('click', (e) => { if (e.target === popup) popup.remove(); });
-    setTimeout(() => { if (popup.isConnected) popup.remove(); }, 6000);
+// Просмотрщик сертификатов (как фото в галерее)
+let certViewerItems = [];
+let certViewerIndex = 0;
+
+function openCertViewer(cert) {
+    // Собираем все сертификаты
+    const allCerts = [];
+    document.querySelectorAll('.cert-data-item').forEach(item => {
+        allCerts.push({
+            photo: item.dataset.photo,
+            title: item.dataset.title,
+            desc: item.dataset.desc,
+            org: item.dataset.org,
+            year: item.dataset.year,
+            course: item.dataset.course
+        });
+    });
+
+    certViewerItems = allCerts;
+    certViewerIndex = allCerts.findIndex(c => c.photo === cert.photo);
+    if (certViewerIndex < 0) certViewerIndex = 0;
+
+    showCertInViewer();
 }
+
+function showCertInViewer() {
+    const cert = certViewerItems[certViewerIndex];
+    if (!cert) return;
+
+    const viewer = document.getElementById('imageViewer');
+    const vImg = document.getElementById('viewerImage');
+    const vCap = document.getElementById('viewerCaption');
+
+    if (!viewer || !vImg) return;
+
+    vImg.src = cert.photo;
+    vCap.innerHTML = `
+        <strong>${cert.title}</strong><br>
+        <span style="font-size:13px;">${cert.desc || ''}</span><br>
+        <span style="font-size:12px;opacity:0.7;">${cert.org || ''} &middot; ${cert.year || ''} &middot; ${cert.course} курс</span>
+    `;
+    viewer.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    vImg.style.transform = 'translate(-50%, -50%) scale(1)';
+}
+
+// Переопределяем навигацию для просмотрщика
+document.addEventListener('DOMContentLoaded', () => {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const viewer = document.getElementById('imageViewer');
+    const closeBtn = document.getElementById('closeViewer');
+    const vImg = document.getElementById('viewerImage');
+
+    // Расширяем навигацию
+    if (prevBtn) {
+        const origPrev = prevBtn.onclick;
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (viewer.style.display === 'block' && certViewerItems.length > 0) {
+                certViewerIndex = (certViewerIndex - 1 + certViewerItems.length) % certViewerItems.length;
+                showCertInViewer();
+            } else {
+                // Галерея
+                const gItems = Array.from(document.querySelectorAll('#galleryGrid .gallery-item'))
+                    .filter(i => window.getComputedStyle(i).display !== 'none');
+                const curSrc = vImg.src;
+                let idx = gItems.findIndex(i => {
+                    const img = i.querySelector('img');
+                    return img && (img.getAttribute('data-full') === curSrc || img.src === curSrc);
+                });
+                if (idx < 0) idx = 0;
+                idx = (idx - 1 + gItems.length) % gItems.length;
+                const item = gItems[idx];
+                const img = item.querySelector('img');
+                vImg.src = img.getAttribute('data-full') || img.src;
+                document.getElementById('viewerCaption').textContent = img.alt || '';
+            }
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (viewer.style.display === 'block' && certViewerItems.length > 0 && vImg.src.includes(certViewerItems[0]?.photo?.split('/').pop()?.slice(0, 10) || '____')) {
+                certViewerIndex = (certViewerIndex + 1) % certViewerItems.length;
+                showCertInViewer();
+            } else {
+                const gItems = Array.from(document.querySelectorAll('#galleryGrid .gallery-item'))
+                    .filter(i => window.getComputedStyle(i).display !== 'none');
+                const curSrc = vImg.src;
+                let idx = gItems.findIndex(i => {
+                    const img = i.querySelector('img');
+                    return img && (img.getAttribute('data-full') === curSrc || img.src === curSrc);
+                });
+                if (idx < 0) idx = 0;
+                idx = (idx + 1) % gItems.length;
+                const item = gItems[idx];
+                const img = item.querySelector('img');
+                vImg.src = img.getAttribute('data-full') || img.src;
+                document.getElementById('viewerCaption').textContent = img.alt || '';
+            }
+        });
+    }
+
+    if (closeBtn && viewer) {
+        closeBtn.addEventListener('click', () => {
+            viewer.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            certViewerItems = [];
+        });
+    }
+});
 
 // Дополнительные стили
 const extraStyles = document.createElement('style');
