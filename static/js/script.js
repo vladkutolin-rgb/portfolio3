@@ -573,7 +573,7 @@ function initDogBoat(){
 }
 
 // ═══════════════════════════════════════════
-// МЕДИТАТИВНОЕ СВЕТОВОЕ ШОУ
+// ПРОСТЫЕ ПУЗЫРИ + ПЕРЕХОД В МЕДУЗЫ
 // ═══════════════════════════════════════════
 function initBubbleGame() {
     const canvas = document.getElementById('bubbleCanvas');
@@ -581,8 +581,9 @@ function initBubbleGame() {
     if (!canvas || !section) return;
 
     const ctx = canvas.getContext('2d');
-    let W, H, time = 0, popCount = 0;
-    let mouseX = -100, mouseY = -100;
+    let W, H, time = 0;
+    let popCount = 0;
+    let fallingSouls = []; // Души, падающие в медузы
 
     function resize() {
         W = section.offsetWidth;
@@ -593,165 +594,391 @@ function initBubbleGame() {
     resize();
     window.addEventListener('resize', resize);
 
-    canvas.addEventListener('mousemove', e => {
-        const r = canvas.getBoundingClientRect();
-        mouseX = e.clientX - r.left;
-        mouseY = e.clientY - r.top;
-    });
-
-    // Орбы — светящиеся шары
-    const orbs = [];
-    for (let i = 0; i < 12; i++) {
-        orbs.push({
-            x: W * 0.2 + Math.random() * W * 0.6,
-            y: H * 0.2 + Math.random() * H * 0.6,
-            baseX: 0, baseY: 0,
-            size: 30 + Math.random() * 50,
-            hue: (i / 12) * 360,
-            phase: Math.random() * Math.PI * 2,
-            speed: 0.3 + Math.random() * 0.7
+    const bubbles = [];
+    for (let i = 0; i < 20; i++) {
+        bubbles.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            size: 8 + Math.random() * 20,
+            speed: 0.3 + Math.random() * 0.8,
+            opacity: 0.2 + Math.random() * 0.25,
+            hue: 180 + Math.random() * 40,
+            wobble: Math.random() * Math.PI * 2,
+            wobbleSpeed: 0.005 + Math.random() * 0.015,
+            popped: false,
+            popTime: 0,
+            popParticles: []
         });
     }
-    orbs.forEach(o => { o.baseX = o.x; o.baseY = o.y; });
 
-    function draw() {
-        time += 0.016;
-        const bass = smoothBass || 0;
-        const energy = bass;
+    function popBubble(b) {
+        if (b.popped) return;
+        b.popped = true;
+        b.popTime = performance.now();
+        b.popParticles = [];
+        
+        // Частицы разлета
+        for (let i = 0; i < 10; i++) {
+            const angle = (Math.PI * 2 / 10) * i;
+            b.popParticles.push({
+                x: b.x, y: b.y,
+                vx: Math.cos(angle) * (1 + Math.random() * 3),
+                vy: Math.sin(angle) * (1 + Math.random() * 3),
+                life: 1,
+                size: b.size * 0.1
+            });
+        }
 
-        // Глубокий фон
-        const bgGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W*0.7);
-        bgGrad.addColorStop(0, `rgba(0, 30, 60, ${0.3 + energy * 0.3})`);
-        bgGrad.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, W, H);
-
-        // ══════════════════════════
-        // ОРБЫ — ПЛАВНОЕ ДВИЖЕНИЕ
-        // ══════════════════════════
-        orbs.forEach(o => {
-            // Плавное движение по кругу + реакция на музыку
-            const orbitR = 80 + energy * 150;
-            o.x = o.baseX + Math.cos(time * o.speed + o.phase) * orbitR;
-            o.y = o.baseY + Math.sin(time * o.speed * 0.7 + o.phase) * orbitR * 0.7;
-            
-            // Лёгкое притяжение к курсору
-            if (mouseX > 0 && mouseY > 0) {
-                const dx = mouseX - o.x, dy = mouseY - o.y;
-                const dist = Math.hypot(dx, dy);
-                if (dist < 200) {
-                    o.x += dx * 0.02;
-                    o.y += dy * 0.02;
-                }
-            }
-
-            // Многослойное свечение
-            for (let layer = 3; layer >= 0; layer--) {
-                const lr = o.size * (0.5 + layer * 0.5);
-                const alpha = (0.08 - layer * 0.015) * (1 + energy);
-                const glow = ctx.createRadialGradient(o.x, o.y, lr * 0.1, o.x, o.y, lr);
-                glow.addColorStop(0, `hsla(${o.hue}, 70%, 65%, ${alpha * 2})`);
-                glow.addColorStop(0.5, `hsla(${o.hue}, 60%, 50%, ${alpha})`);
-                glow.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = glow;
-                ctx.beginPath();
-                ctx.arc(o.x, o.y, lr, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // Ядро
-            const core = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.size * 0.4);
-            core.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-            core.addColorStop(0.3, `hsla(${o.hue}, 60%, 80%, 0.6)`);
-            core.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = core;
-            ctx.beginPath();
-            ctx.arc(o.x, o.y, o.size * 0.4, 0, Math.PI * 2);
-            ctx.fill();
+        // Душа падает вниз → станет медузой
+        fallingSouls.push({
+            x: b.x,
+            y: b.y,
+            targetY: H,
+            life: 1,
+            hue: b.hue,
+            size: b.size
         });
 
-        // ══════════════════════════
-        // СВЯЗИ МЕЖДУ ОРБАМИ
-        // ══════════════════════════
-        for (let i = 0; i < orbs.length; i++) {
-            for (let j = i + 1; j < orbs.length; j++) {
-                const dx = orbs[j].x - orbs[i].x;
-                const dy = orbs[j].y - orbs[i].y;
-                const dist = Math.hypot(dx, dy);
-                const maxDist = 250 + energy * 200;
-                
-                if (dist < maxDist) {
-                    const alpha = (1 - dist / maxDist) * (0.04 + energy * 0.08);
-                    const midHue = (orbs[i].hue + orbs[j].hue) / 2;
-                    ctx.strokeStyle = `hsla(${midHue}, 60%, 60%, ${alpha})`;
-                    ctx.lineWidth = 0.5;
-                    ctx.shadowColor = `hsla(${midHue}, 70%, 55%, ${alpha})`;
-                    ctx.shadowBlur = 3;
-                    ctx.beginPath();
-                    ctx.moveTo(orbs[i].x, orbs[i].y);
-                    ctx.lineTo(orbs[j].x, orbs[j].y);
-                    ctx.stroke();
-                    ctx.shadowBlur = 0;
-                }
-            }
-        }
-
-        // ══════════════════════════
-        // ПАРЯЩИЕ ЧАСТИЦЫ
-        // ══════════════════════════
-        const particleCount = 30 + Math.floor(energy * 40);
-        for (let i = 0; i < particleCount; i++) {
-            const px = (Math.sin(time * 0.7 + i * 0.5) * 0.5 + 0.5) * W;
-            const py = (Math.cos(time * 0.6 + i * 0.4) * 0.5 + 0.5) * H;
-            const ps = 1 + Math.abs(Math.sin(time + i)) * 2;
-            const ph = (i / particleCount) * 360 + time * 20;
-            ctx.fillStyle = `hsla(${ph % 360}, 60%, 70%, ${0.3 + energy * 0.4})`;
-            ctx.shadowColor = `hsla(${ph % 360}, 70%, 60%, 0.5)`;
-            ctx.shadowBlur = 4;
-            ctx.beginPath();
-            ctx.arc(px, py, ps, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-
-        // ══════════════════════════
-        // ВСПЫШКИ ПРИ БАСАХ
-        // ══════════════════════════
-        if (energy > 0.35) {
-            const flashAlpha = (energy - 0.35) * 0.2;
-            const flash = ctx.createRadialGradient(W/2, H/2, W*0.2, W/2, H/2, W*0.8);
-            flash.addColorStop(0, `rgba(255, 255, 255, ${flashAlpha})`);
-            flash.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = flash;
-            ctx.fillRect(0, 0, W, H);
-        }
-
-        // Счётчик
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        ctx.font = '12px "Segoe UI", sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(`💫 ${popCount}`, W - 20, 30);
-    }
-
-    // Клик по холсту — вспышка
-    canvas.addEventListener('click', e => {
         popCount++;
         const el = document.getElementById('bubbleCount');
         if (el) el.textContent = popCount;
+
         if (popCount % 20 === 0 && window.triggerTsunami) {
             window.triggerTsunami();
             const a = document.getElementById('tsunamiAlert');
             if (a) { a.classList.add('show'); setTimeout(() => a.classList.remove('show'), 2000); }
         }
+    }
+
+    function drawBubbles() {
+        const now = performance.now();
+        const bass = smoothBass || 0;
+
+        bubbles.forEach(b => {
+            if (b.popped) {
+                const elapsed = (now - b.popTime) / 1000;
+                if (elapsed > 1.2) {
+                    Object.assign(b, {
+                        x: Math.random() * W,
+                        y: H + 40,
+                        size: 8 + Math.random() * 20,
+                        speed: 0.3 + Math.random() * 0.8,
+                        opacity: 0.2 + Math.random() * 0.25,
+                        hue: 180 + Math.random() * 40,
+                        popped: false,
+                        popParticles: []
+                    });
+                    return;
+                }
+                b.popParticles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.05;
+                    p.life -= 0.03;
+                    if (p.life > 0) {
+                        ctx.fillStyle = `rgba(180, 220, 255, ${p.life * 0.6})`;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+                return;
+            }
+
+            b.y -= b.speed * (1 + bass);
+            b.x += Math.sin(b.wobble) * 0.3;
+            b.wobble += b.wobbleSpeed;
+            if (b.y < -40) { b.y = H + 40; b.x = Math.random() * W; }
+
+            const grad = ctx.createRadialGradient(b.x - b.size*0.2, b.y - b.size*0.2, b.size*0.05, b.x, b.y, b.size);
+            grad.addColorStop(0, `hsla(${b.hue}, 55%, 85%, ${b.opacity + 0.2})`);
+            grad.addColorStop(0.6, `hsla(${b.hue}, 50%, 60%, ${b.opacity + 0.1})`);
+            grad.addColorStop(1, `hsla(${b.hue}, 40%, 35%, ${b.opacity * 0.5})`);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = `rgba(255,255,255,${b.opacity * 0.5})`;
+            ctx.beginPath();
+            ctx.arc(b.x - b.size*0.2, b.y - b.size*0.2, b.size*0.18, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Падающие души
+        fallingSouls.forEach((s, i) => {
+            s.y += (s.targetY - s.y) * 0.05;
+            s.life -= 0.01;
+            const alpha = s.life * 0.6;
+            ctx.fillStyle = `hsla(${s.hue}, 60%, 70%, ${alpha})`;
+            ctx.shadowColor = `hsla(${s.hue}, 70%, 60%, ${alpha})`;
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // Когда душа достигла дна → создаём медузу
+        for (let i = fallingSouls.length - 1; i >= 0; i--) {
+            if (fallingSouls[i].y >= H - 20 || fallingSouls[i].life <= 0) {
+                if (window.spawnJellyfish) {
+                    window.spawnJellyfish(fallingSouls[i].x, fallingSouls[i].hue, fallingSouls[i].size);
+                }
+                fallingSouls.splice(i, 1);
+            }
+        }
+    }
+
+    canvas.addEventListener('mousemove', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        for (let i = 0; i < bubbles.length; i++) {
+            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 4) {
+                popBubble(bubbles[i]);
+            }
+        }
     });
 
     function animate() {
         if (!canvas.isConnected) return;
-        draw();
+        ctx.clearRect(0, 0, W, H);
+        drawBubbles();
         requestAnimationFrame(animate);
     }
     animate();
 }
+
+// ═══════════════════════════════════════════
+// МЕДУЗЫ — ФИЗИКА + ТАНЕЦ ПОД МУЗЫКУ
+// ═══════════════════════════════════════════
+function initJellyfish() {
+    const canvas = document.getElementById('bubbleCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    let jellyfishes = [];
+    const MAX_JELLYFISH = 7;
+    let W, H;
+    
+    function updateSize() {
+        const section = document.getElementById('certificates');
+        if (section) {
+            W = section.offsetWidth;
+            H = section.offsetHeight;
+        }
+    }
+    updateSize();
+    window.addEventListener('resize', updateSize);
+
+    function createJellyfish(x, hue, size) {
+        return {
+            x: x || Math.random() * W,
+            y: H + 30, // Рождается снизу
+            targetY: H * 0.2 + Math.random() * H * 0.5,
+            size: (size || 20) * 1.5,
+            hue: hue || 180 + Math.random() * 30,
+            opacity: 0.7 + Math.random() * 0.3,
+            // Физика купола
+            bellPhase: Math.random() * Math.PI * 2,
+            bellSpeed: 0.03 + Math.random() * 0.04,
+            bellContract: 0, // 0-1 степень сжатия
+            // Щупальца
+            tentacles: [],
+            tentacleCount: 5 + Math.floor(Math.random() * 4),
+            // Движение
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: -0.2 - Math.random() * 0.5,
+            baseX: 0,
+            baseY: 0,
+            phase: Math.random() * Math.PI * 2,
+            // Время жизни
+            life: 1,
+            maxLife: 0.3 + Math.random() * 0.4, // 30-70 сек
+            born: performance.now(),
+            // Частицы биолюминесценции
+            particles: []
+        };
+    }
+
+    // Создаём щупальца для медузы
+    function initTentacles(j) {
+        j.tentacles = [];
+        for (let i = 0; i < j.tentacleCount; i++) {
+            j.tentacles.push({
+                angle: (Math.PI * 2 / j.tentacleCount) * i + (Math.random() - 0.5) * 0.5,
+                length: j.size * (0.6 + Math.random() * 1.2),
+                segments: 6 + Math.floor(Math.random() * 8),
+                phase: Math.random() * Math.PI * 2,
+                speed: 0.02 + Math.random() * 0.04,
+                amplitude: 3 + Math.random() * 8
+            });
+        }
+    }
+
+    // Спавн медузы из пузыря
+    window.spawnJellyfish = function(x, hue, size) {
+        // Удаляем старую если больше лимита
+        if (jellyfishes.length >= MAX_JELLYFISH) {
+            const oldest = jellyfishes.reduce((a, b) => a.born < b.born ? a : b);
+            oldest.life = 0;
+        }
+        const j = createJellyfish(x, hue, size);
+        initTentacles(j);
+        j.baseX = j.x;
+        j.baseY = j.targetY;
+        jellyfishes.push(j);
+    };
+
+    function drawJellyfish(j, time, bass) {
+        const now = performance.now();
+        const elapsed = (now - j.born) / 1000;
+        const maxLifeSec = j.maxLife * 100;
+        j.life = Math.max(0, 1 - elapsed / maxLifeSec);
+        
+        if (j.life <= 0) return false;
+
+        // Всплытие к целевой позиции
+        j.y += (j.targetY - j.y) * 0.02;
+        j.baseY = j.y;
+
+        // Движение под музыку
+        const energy = bass;
+        j.bellSpeed = 0.03 + energy * 0.1;
+        j.bellPhase += j.bellSpeed;
+        j.bellContract = Math.abs(Math.sin(j.bellPhase)) * (0.3 + energy * 0.7);
+
+        // Горизонтальное плавание
+        j.x += Math.sin(time * 0.5 + j.phase) * 0.5;
+        j.x += j.vx;
+        if (j.x < 50) j.vx += 0.1;
+        if (j.x > W - 50) j.vx -= 0.1;
+        j.vx *= 0.99;
+
+        // ═══════════════════
+        // КУПОЛ
+        // ═══════════════════
+        const bellWidth = j.size;
+        const bellHeight = j.size * 0.7;
+        const contractY = -j.bellContract * bellHeight * 0.5;
+
+        // Основной купол
+        const bellGrad = ctx.createRadialGradient(
+            j.x, j.y + contractY, bellWidth * 0.05,
+            j.x, j.y, bellWidth * 0.5
+        );
+        bellGrad.addColorStop(0, `hsla(${j.hue}, 40%, 85%, ${j.opacity * 0.9})`);
+        bellGrad.addColorStop(0.4, `hsla(${j.hue}, 50%, 65%, ${j.opacity * 0.6})`);
+        bellGrad.addColorStop(0.8, `hsla(${j.hue}, 55%, 40%, ${j.opacity * 0.3})`);
+        bellGrad.addColorStop(1, `hsla(${j.hue}, 60%, 25%, ${j.opacity * 0.1})`);
+
+        ctx.fillStyle = bellGrad;
+        ctx.beginPath();
+        ctx.ellipse(j.x, j.y + contractY, bellWidth * 0.5, bellHeight * 0.5, 0, Math.PI, 0);
+        ctx.fill();
+
+        // Свечение купола
+        const glowGrad = ctx.createRadialGradient(j.x, j.y, bellWidth * 0.2, j.x, j.y, bellWidth * 0.8);
+        glowGrad.addColorStop(0, `hsla(${j.hue}, 60%, 70%, ${j.opacity * 0.3 * (1 + energy)})`);
+        glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glowGrad;
+        ctx.beginPath();
+        ctx.arc(j.x, j.y, bellWidth * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ═══════════════════
+        // ЩУПАЛЬЦА
+        // ═══════════════════
+        j.tentacles.forEach(t => {
+            t.phase += t.speed * (1 + energy * 3);
+            const baseX = j.x + Math.cos(t.angle) * bellWidth * 0.3;
+            const baseY = j.y + bellHeight * 0.3;
+
+            ctx.strokeStyle = `hsla(${j.hue}, 50%, 55%, ${j.opacity * 0.7})`;
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(baseX, baseY);
+
+            // Волновое движение щупальца
+            const segLength = t.length / t.segments;
+            for (let s = 1; s <= t.segments; s++) {
+                const progress = s / t.segments;
+                const waveX = Math.sin(t.phase + progress * 4) * t.amplitude * progress;
+                const waveY = progress * t.length;
+                const sx = baseX + waveX;
+                const sy = baseY + waveY;
+                ctx.lineTo(sx, sy);
+            }
+
+            ctx.stroke();
+
+            // Свечение на кончике
+            const tipX = baseX + Math.sin(t.phase + 4) * t.amplitude;
+            const tipY = baseY + t.length;
+            ctx.fillStyle = `rgba(180, 240, 255, ${j.opacity * 0.6})`;
+            ctx.shadowColor = `rgba(150, 220, 255, ${j.opacity * 0.8})`;
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(tipX, tipY, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // ═══════════════════
+        // БИОЛЮМИНЕСЦЕНЦИЯ
+        // ═══════════════════
+        if (Math.random() < 0.3 + energy * 0.5) {
+            j.particles.push({
+                x: j.x + (Math.random() - 0.5) * j.size,
+                y: j.y + Math.random() * j.size,
+                life: 1,
+                size: 1 + Math.random() * 2
+            });
+        }
+
+        j.particles.forEach((p, i) => {
+            p.y += 0.3;
+            p.life -= 0.03;
+            if (p.life > 0) {
+                ctx.fillStyle = `rgba(150, 240, 255, ${p.life * 0.7})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+        for (let i = j.particles.length - 1; i >= 0; i--) {
+            if (j.particles[i].life <= 0) j.particles.splice(i, 1);
+        }
+
+        return true;
+    }
+
+    function animate(time) {
+        if (!canvas.isConnected) return;
+        updateSize();
+        const bass = smoothBass || 0;
+
+        // Удаляем мёртвых
+        jellyfishes = jellyfishes.filter(j => j.life > 0);
+
+        // Рисуем медуз
+        jellyfishes.forEach(j => drawJellyfish(j, time * 0.001, bass));
+    }
+
+    // Интегрируем в основной цикл
+    const origAnimate = window._bubbleAnimate;
+    window._bubbleAnimate = function(time) {
+        if (origAnimate) origAnimate(time);
+        animate(time);
+    };
+}
+
+// Запуск медуз после загрузки
+window.addEventListener('load', () => {
+    setTimeout(initJellyfish, 1500);
+});
 
 // ═══════════════════════════════════════════
 // ДОП СТИЛИ
