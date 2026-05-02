@@ -813,7 +813,7 @@ function initBubbleGame() {
 }
 
 // ═══════════════════════════════════════════
-// ХРУСТАЛЬНЫЙ БАЛЕТ — АБСОЛЮТНЫЙ ШЕДЕВР
+// БОГИ ГЛУБИНЫ — НОВЫЙ ВИЗУАЛ
 // ═══════════════════════════════════════════
 function initJellyfish() {
     const canvas = document.getElementById('jellyfishCanvas');
@@ -836,48 +836,56 @@ function initJellyfish() {
     window.addEventListener('resize', resize);
 
     let jellyfishes = [];
-    const MAX = 8;
+    const MAX = 7;
+    let globalShockwaves = [];
 
     function createJellyfish(x, hue, size) {
         const j = {
             x: x || Math.random() * W,
-            y: H + 60,
-            targetY: H * 0.08 + Math.random() * H * 0.65,
+            y: H + 80,
+            targetY: H * 0.1 + Math.random() * H * 0.55,
             targetX: x || Math.random() * W,
-            size: Math.max(25, (size || 20) * 2.2),
+            size: Math.max(28, (size || 20) * 2.5),
             hue: hue || 185 + Math.random() * 25,
             life: 1, born: performance.now(),
-            maxLife: 35 + Math.random() * 55,
+            maxLife: 40 + Math.random() * 60,
             bellPhase: Math.random() * Math.PI * 2,
             bellContract: 0,
             tentacles: [],
-            tentacleCount: 8 + Math.floor(Math.random() * 8),
+            tentacleCount: 10 + Math.floor(Math.random() * 8),
             vx: 0, vy: 0,
             flowOffset: Math.random() * Math.PI * 2,
-            sparkles: [], trail: [],
-            bassMemory: 0, melodyMemory: 0,
-            crystalEdges: []
+            particles: [], trail: [],
+            bassMemory: 0,
+            crownSpikes: [],
+            auraPhase: Math.random() * Math.PI * 2,
+            dnaSpirals: []
         };
 
-        // Внутренние грани кристалла
-        for (let i = 0; i < 9; i++) {
-            j.crystalEdges.push({
-                angle: (Math.PI / 9) * i,
+        // Корона (светящиеся шипы над куполом)
+        for (let i = 0; i < 7; i++) {
+            j.crownSpikes.push({
+                angle: (Math.PI / 7) * i - Math.PI * 0.15,
+                length: j.size * 0.2 + Math.random() * j.size * 0.3,
                 phase: Math.random() * Math.PI * 2,
-                speed: 0.02 + Math.random() * 0.04
+                speed: 0.03 + Math.random() * 0.05
             });
         }
 
+        // ДНК-спирали (двойные щупальца)
         for (let i = 0; i < j.tentacleCount; i++) {
             const baseAngle = (Math.PI * 2 / j.tentacleCount) * i;
             j.tentacles.push({
-                baseAngle: baseAngle, angle: baseAngle,
-                length: j.size * (0.5 + Math.random() * 1.8),
-                segments: 15 + Math.floor(Math.random() * 12),
+                baseAngle: baseAngle,
+                angle: baseAngle,
+                length: j.size * (0.6 + Math.random() * 1.6),
+                segments: 20 + Math.floor(Math.random() * 15),
                 phase: Math.random() * Math.PI * 2,
-                speed: 0.01 + Math.random() * 0.03,
-                amplitude: 1.5 + Math.random() * 5,
-                subThreads: 2 + Math.floor(Math.random() * 3)
+                speed: 0.012 + Math.random() * 0.035,
+                amplitude: 2 + Math.random() * 6,
+                // ДНК: две нити
+                strandPhase: Math.random() * Math.PI * 2,
+                strandRadius: 2 + Math.random() * 4
             });
         }
         return j;
@@ -886,211 +894,269 @@ function initJellyfish() {
     window.spawnJellyfish = function(x, hue, size) {
         if (jellyfishes.length >= MAX) {
             const old = jellyfishes.shift();
-            for (let i = 0; i < 25; i++) {
-                old.sparkles.push({
-                    x: old.x + (Math.random() - 0.5) * old.size,
-                    y: old.y + (Math.random() - 0.5) * old.size,
-                    vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 4,
-                    life: 1, size: 1 + Math.random() * 3, hue: old.hue
+            // Эпичный уход
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                old.particles.push({
+                    x: old.x, y: old.y,
+                    vx: Math.cos(angle) * (2 + Math.random() * 5),
+                    vy: Math.sin(angle) * (2 + Math.random() * 5) - 2,
+                    life: 1, size: 1 + Math.random() * 4,
+                    hue: old.hue + Math.random() * 40
                 });
             }
         }
         jellyfishes.push(createJellyfish(x, hue, size));
     };
 
-    function drawJellyfish(j, bass, melody) {
+    function drawJellyfish(j, bass) {
         const now = performance.now();
         const elapsed = (now - j.born) / 1000;
         j.life = Math.max(0, 1 - elapsed / j.maxLife);
         if (j.life <= 0) return false;
 
-        // Плавное всплытие
         j.y += (j.targetY - j.y) * 0.015;
         j.x += (j.targetX - j.x) * 0.008;
-
-        // Память музыки
         j.bassMemory = j.bassMemory * 0.85 + bass * 0.15;
-        j.melodyMemory = j.melodyMemory * 0.9 + melody * 0.1;
         j.bellPhase += 0.025 + j.bassMemory * 0.1;
         j.bellContract = Math.abs(Math.sin(j.bellPhase)) * (0.2 + j.bassMemory * 0.8);
+        j.auraPhase += 0.02 + j.bassMemory * 0.08;
 
-        // Плавание под музыку
-        j.x += Math.sin(time * 0.3 + j.flowOffset) * (1 + bass * 3);
-        j.y += Math.cos(time * 0.25 + j.flowOffset * 1.3) * (0.5 + melody * 1.5);
+        j.x += Math.sin(time * 0.3 + j.flowOffset) * (0.6 + bass * 3);
+        j.y += Math.cos(time * 0.22 + j.flowOffset * 1.3) * (0.3 + bass * 1.5);
 
-        if (j.x < 70) j.targetX += 0.5;
-        if (j.x > W - 70) j.targetX -= 0.5;
-        if (j.y < 80) j.targetY += 0.5;
-        if (j.y > H - 80) j.targetY -= 0.5;
-        j.targetY = Math.max(80, Math.min(H - 80, j.targetY));
+        if (j.x < 80) j.targetX += 0.6;
+        if (j.x > W - 80) j.targetX -= 0.6;
+        if (j.y < 100) j.targetY += 0.6;
+        if (j.y > H - 100) j.targetY -= 0.6;
 
-        const bw = j.size, bh = j.size * 0.6;
+        const bw = j.size, bh = j.size * 0.55;
         const cy = -j.bellContract * bh * 0.5;
         const alpha = j.life * (0.6 + j.bassMemory * 0.4);
 
         // ═══════════════════════════
-        // БОЖЕСТВЕННЫЙ ОРЕОЛ
+        // РАДУЖНАЯ АУРА
         // ═══════════════════════════
-        for (let layer = 4; layer >= 0; layer--) {
-            const lr = bw * (0.4 + layer * 0.35);
-            const la = alpha * (0.1 - layer * 0.018) * (1 + j.bassMemory);
-            const halo = ctx.createRadialGradient(j.x, j.y, lr * 0.1, j.x, j.y, lr);
-            halo.addColorStop(0, `hsla(${j.hue}, 40%, 80%, ${la * 2.5})`);
-            halo.addColorStop(0.5, `hsla(${j.hue}, 45%, 55%, ${la})`);
-            halo.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = halo;
+        for (let layer = 5; layer >= 0; layer--) {
+            const lr = bw * (0.3 + layer * 0.3);
+            const la = alpha * (0.08 - layer * 0.012) * (1 + j.bassMemory);
+            const auraHue = (j.hue + layer * 15 + Math.sin(j.auraPhase) * 20 + time * 10) % 360;
+            const aura = ctx.createRadialGradient(j.x, j.y, lr * 0.2, j.x, j.y, lr);
+            aura.addColorStop(0, `hsla(${auraHue}, 50%, 75%, ${la * 2})`);
+            aura.addColorStop(0.5, `hsla(${auraHue}, 55%, 50%, ${la})`);
+            aura.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = aura;
             ctx.beginPath();
             ctx.arc(j.x, j.y, lr, 0, Math.PI * 2);
             ctx.fill();
         }
 
         // ═══════════════════════════
-        // ЖИВОЙ КРИСТАЛЛ
+        // КОРОНА (СВЕТЯЩИЕСЯ ШИПЫ)
         // ═══════════════════════════
-        const crystal = ctx.createRadialGradient(j.x, j.y + cy - bh*0.15, bw*0.02, j.x, j.y + cy, bw*0.48);
-        crystal.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.95})`);
-        crystal.addColorStop(0.15, `hsla(${j.hue}, 20%, 90%, ${alpha * 0.8})`);
-        crystal.addColorStop(0.5, `hsla(${j.hue}, 30%, 60%, ${alpha * 0.45})`);
-        crystal.addColorStop(0.85, `hsla(${j.hue}, 40%, 30%, ${alpha * 0.15})`);
-        crystal.addColorStop(1, `hsla(${j.hue}, 50%, 15%, 0)`);
-        ctx.fillStyle = crystal;
-        ctx.beginPath();
-        ctx.ellipse(j.x, j.y + cy, bw*0.45, bh*0.5, 0, Math.PI, 0);
-        ctx.fill();
+        j.crownSpikes.forEach(spike => {
+            spike.phase += spike.speed * (1 + j.bassMemory * 3);
+            const pulseLength = spike.length * (0.8 + Math.abs(Math.sin(spike.phase)) * 0.4);
+            const sx = j.x + Math.cos(spike.angle) * bw * 0.3;
+            const sy = j.y + cy - bh * 0.3;
+            const ex = j.x + Math.cos(spike.angle) * (bw * 0.3 + pulseLength);
+            const ey = j.y + cy - bh * 0.3 - pulseLength * 0.7;
 
-        // Грани кристалла
-        j.crystalEdges.forEach(edge => {
-            edge.phase += edge.speed * (1 + j.bassMemory * 3);
-            const refractAlpha = 0.15 + Math.abs(Math.sin(edge.phase)) * 0.2;
-            const sx = j.x + Math.cos(edge.angle) * bw * 0.04;
-            const sy = j.y + cy - Math.sin(edge.angle) * bh * 0.42;
-            const ex = j.x + Math.cos(edge.angle) * bw * 0.43;
-            const ey = j.y + cy - Math.sin(edge.angle) * bh * 0.15;
-            
-            const edgeGrad = ctx.createLinearGradient(sx, sy, ex, ey);
-            edgeGrad.addColorStop(0, `rgba(255, 255, 255, 0)`);
-            edgeGrad.addColorStop(0.5, `rgba(255, 255, 255, ${refractAlpha})`);
-            edgeGrad.addColorStop(1, `rgba(255, 255, 255, 0)`);
-            ctx.strokeStyle = edgeGrad;
-            ctx.lineWidth = 1.5;
+            const spikeGrad = ctx.createLinearGradient(sx, sy, ex, ey);
+            spikeGrad.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.9})`);
+            spikeGrad.addColorStop(1, `hsla(${j.hue}, 50%, 60%, 0)`);
+            ctx.strokeStyle = spikeGrad;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = `rgba(200, 240, 255, ${alpha * 0.7})`;
+            ctx.shadowBlur = 6;
             ctx.beginPath();
             ctx.moveTo(sx, sy);
-            ctx.quadraticCurveTo(j.x + Math.cos(edge.angle)*bw*0.25, j.y+cy-Math.sin(edge.angle)*bh*0.3, ex, ey);
-            ctx.stroke();
-        });
-
-        // Оболочка
-        ctx.strokeStyle = `hsla(${j.hue}, 25%, 95%, ${alpha * 0.6})`;
-        ctx.lineWidth = 1.5;
-        ctx.shadowColor = `hsla(${j.hue}, 30%, 90%, ${alpha * 0.4})`;
-        ctx.shadowBlur = 8;
-        ctx.beginPath();
-        ctx.ellipse(j.x, j.y + cy, bw*0.45, bh*0.5, 0, Math.PI, 0);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // ═══════════════════════════
-        // ПРОЗРАЧНЫЕ ЛЕНТЫ
-        // ═══════════════════════════
-        j.tentacles.forEach(t => {
-            t.phase += t.speed * (1 + j.bassMemory * 4);
-            t.angle = t.baseAngle + Math.sin(time * 0.5 + t.phase) * 0.2;
-
-            const bx = j.x + Math.cos(t.angle) * bw * 0.25;
-            const by = j.y + bh * 0.2;
-
-            // Внешний контур
-            ctx.strokeStyle = `hsla(${j.hue}, 30%, 75%, ${alpha * 0.5})`;
-            ctx.lineWidth = 1.8;
-            ctx.lineCap = 'round';
-            ctx.shadowColor = `hsla(${j.hue}, 40%, 70%, ${alpha * 0.3})`;
-            ctx.shadowBlur = 4;
-            ctx.beginPath();
-            ctx.moveTo(bx, by);
-            let lx = bx, ly = by;
-            for (let s = 1; s <= t.segments; s++) {
-                const prog = s / t.segments;
-                const w1 = Math.sin(t.phase + prog * 5.5) * t.amplitude * prog;
-                const w2 = Math.cos(t.phase * 0.8 + prog * 3.5) * t.amplitude * prog * 0.4;
-                lx = bx + w1; ly = by + prog * t.length + w2;
-                ctx.lineTo(lx, ly);
-            }
+            ctx.quadraticCurveTo(
+                j.x + Math.cos(spike.angle) * (bw * 0.3 + pulseLength * 0.5),
+                j.y + cy - bh * 0.3 - pulseLength * 0.4,
+                ex, ey
+            );
             ctx.stroke();
             ctx.shadowBlur = 0;
 
-            // Внутренняя нить
-            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.25})`;
-            ctx.lineWidth = 0.6;
-            ctx.beginPath();
-            ctx.moveTo(bx, by);
-            for (let s = 1; s <= t.segments; s++) {
-                const prog = s / t.segments;
-                const w1 = Math.sin(t.phase + prog * 5.5) * t.amplitude * prog * 0.5;
-                const w2 = Math.cos(t.phase * 0.8 + prog * 3.5) * t.amplitude * prog * 0.2;
-                ctx.lineTo(bx + w1, by + prog * t.length + w2);
-            }
-            ctx.stroke();
-
-            // Дочерние нити
-            for (let sub = 0; sub < t.subThreads; sub++) {
-                ctx.strokeStyle = `hsla(${j.hue}, 25%, 65%, ${alpha * 0.2})`;
-                ctx.lineWidth = 0.4;
-                ctx.beginPath();
-                ctx.moveTo(bx, by + t.length * 0.2);
-                for (let s = 1; s <= t.segments; s++) {
-                    const prog = s / t.segments;
-                    const wx = Math.sin(t.phase * 1.2 + prog * 4.5 + sub) * t.amplitude * 0.5 * prog;
-                    const wy = prog * t.length * 0.7;
-                    ctx.lineTo(bx + wx, by + wy + t.length * 0.25);
-                }
-                ctx.stroke();
-            }
-
-            // Светящийся кончик
-            const tipGlow = ctx.createRadialGradient(lx, ly, 0, lx, ly, 4 + j.bassMemory * 10);
-            tipGlow.addColorStop(0, `rgba(220, 245, 255, ${alpha * 0.9})`);
-            tipGlow.addColorStop(1, 'rgba(0,0,0,0)');
+            // Сияние на кончике
+            const tipGlow = ctx.createRadialGradient(ex, ey, 0, ex, ey, 4 + j.bassMemory * 6);
+            tipGlow.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            tipGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
             ctx.fillStyle = tipGlow;
             ctx.beginPath();
-            ctx.arc(lx, ly, 4 + j.bassMemory * 10, 0, Math.PI * 2);
+            ctx.arc(ex, ey, 4 + j.bassMemory * 6, 0, Math.PI * 2);
             ctx.fill();
         });
 
         // ═══════════════════════════
-        // ИСКРЫ
+        // ВИТРАЖНЫЙ КУПОЛ
         // ═══════════════════════════
-        if (Math.random() < 0.35 + j.bassMemory * 0.5) {
-            j.sparkles.push({
-                x: j.x + (Math.random() - 0.5) * j.size * 0.5,
+        // Внутреннее ядро
+        const core = ctx.createRadialGradient(j.x, j.y + cy - bh*0.2, bw*0.02, j.x, j.y + cy, bw*0.5);
+        core.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+        core.addColorStop(0.1, `hsla(${j.hue}, 15%, 90%, ${alpha * 0.85})`);
+        core.addColorStop(0.4, `hsla(${j.hue}, 25%, 65%, ${alpha * 0.5})`);
+        core.addColorStop(0.7, `hsla(${j.hue}, 35%, 40%, ${alpha * 0.2})`);
+        core.addColorStop(1, `hsla(${j.hue}, 45%, 20%, 0)`);
+        ctx.fillStyle = core;
+        ctx.beginPath();
+        ctx.ellipse(j.x, j.y + cy, bw*0.48, bh*0.52, 0, Math.PI, 0);
+        ctx.fill();
+
+        // Витра��ные сектора
+        for (let i = 0; i < 8; i++) {
+            const sectorAngle = (Math.PI / 8) * i;
+            const nextAngle = (Math.PI / 8) * (i + 1);
+            const sectorHue = (j.hue + i * 8 + time * 5) % 360;
+            
+            ctx.fillStyle = `hsla(${sectorHue}, 30%, 70%, ${alpha * 0.1})`;
+            ctx.beginPath();
+            ctx.moveTo(j.x, j.y + cy);
+            ctx.arc(j.x, j.y + cy, bw*0.48, Math.PI - nextAngle, Math.PI - sectorAngle);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Оболочка
+        ctx.strokeStyle = `hsla(${j.hue}, 20%, 90%, ${alpha * 0.65})`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = `hsla(${j.hue}, 30%, 85%, ${alpha * 0.5})`;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.ellipse(j.x, j.y + cy, bw*0.48, bh*0.52, 0, Math.PI, 0);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // ═══════════════════════════
+        // ДНК-СПИРАЛИ (ЩУПАЛЬЦА)
+        // ═══════════════════════════
+        j.tentacles.forEach(t => {
+            t.phase += t.speed * (1 + j.bassMemory * 4);
+            t.strandPhase += 0.04 * (1 + j.bassMemory * 3);
+            t.angle = t.baseAngle + Math.sin(time * 0.4 + t.phase) * 0.2;
+
+            const bx = j.x + Math.cos(t.angle) * bw * 0.28;
+            const by = j.y + bh * 0.2;
+
+            // Рисуем ДНК (две переплетённые нити)
+            for (let strand = 0; strand < 2; strand++) {
+                const strandOffset = strand * Math.PI;
+                
+                ctx.strokeStyle = strand === 0 
+                    ? `hsla(${j.hue}, 35%, 70%, ${alpha * 0.6})`
+                    : `hsla(${(j.hue + 30) % 360}, 35%, 65%, ${alpha * 0.45})`;
+                ctx.lineWidth = strand === 0 ? 1.6 : 1.0;
+                ctx.lineCap = 'round';
+                
+                ctx.beginPath();
+                ctx.moveTo(bx, by);
+
+                let lx = bx, ly = by;
+                for (let s = 1; s <= t.segments; s++) {
+                    const prog = s / t.segments;
+                    const helixX = Math.sin(t.strandPhase + prog * 8 + strandOffset) * t.strandRadius;
+                    const helixY = Math.cos(t.strandPhase + prog * 8 + strandOffset) * t.strandRadius * 0.5;
+                    const wave1 = Math.sin(t.phase + prog * 5) * t.amplitude * prog;
+                    const wave2 = Math.cos(t.phase * 0.7 + prog * 3.5) * t.amplitude * prog * 0.3;
+                    
+                    lx = bx + wave1 + helixX;
+                    ly = by + prog * t.length + wave2 + helixY;
+                    ctx.lineTo(lx, ly);
+                }
+                ctx.stroke();
+
+                // Свечение на последнем сегменте
+                if (strand === 0) {
+                    const tipGlow = ctx.createRadialGradient(lx, ly, 0, lx, ly, 3 + j.bassMemory * 8);
+                    tipGlow.addColorStop(0, `rgba(220, 245, 255, ${alpha * 0.85})`);
+                    tipGlow.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = tipGlow;
+                    ctx.beginPath();
+                    ctx.arc(lx, ly, 3 + j.bassMemory * 8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Электрические разряды между соседними щупальцами
+            if (j.bassMemory > 0.4 && Math.random() < 0.3) {
+                const nextT = j.tentacles[(j.tentacles.indexOf(t) + 1) % j.tentacles.length];
+                const midX = (bx + (j.x + Math.cos(nextT.angle) * bw * 0.28)) / 2;
+                const midY = (by + (j.y + bh * 0.2)) / 2 + t.length * 0.3;
+                
+                ctx.strokeStyle = `rgba(200, 240, 255, ${alpha * 0.7})`;
+                ctx.lineWidth = 0.8;
+                ctx.shadowColor = 'rgba(150, 220, 255, 0.8)';
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.moveTo(bx + Math.sin(t.phase) * t.amplitude * 0.3, by + t.length * 0.3);
+                
+                // Ломаная молния
+                let lx2 = bx + Math.sin(t.phase) * t.amplitude * 0.3;
+                let ly2 = by + t.length * 0.3;
+                for (let z = 0; z < 3; z++) {
+                    lx2 = midX + (Math.random() - 0.5) * 40;
+                    ly2 = midY + (Math.random() - 0.5) * 40;
+                    ctx.lineTo(lx2, ly2);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        });
+
+        // ═══════════════════════════
+        // МИКРО-ВОДОВОРОТЫ
+        // ═══════════════════════════
+        for (let i = 0; i < 3; i++) {
+            const vx = j.x + Math.cos(time * 0.5 + i * 2) * bw * 0.8;
+            const vy = j.y + Math.sin(time * 0.4 + i * 2) * bw * 0.5;
+            const vr = 8 + j.bassMemory * 15;
+            
+            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.12})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.arc(vx, vy, vr, time * 0.3 + i, time * 0.3 + i + Math.PI * 1.5);
+            ctx.stroke();
+        }
+
+        // ═══════════════════════════
+        // ЧАСТИЦЫ
+        // ═══════════════════════════
+        if (Math.random() < 0.4 + j.bassMemory * 0.5) {
+            j.particles.push({
+                x: j.x + (Math.random() - 0.5) * j.size * 0.6,
                 y: j.y + (Math.random() - 0.5) * j.size * 0.3,
-                vx: (Math.random() - 0.5) * 0.4, vy: -0.3 - Math.random() * 1.5,
-                life: 1, size: 0.4 + Math.random() * 1.8, hue: j.hue + Math.random() * 20
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: -0.5 - Math.random() * 2,
+                life: 1, size: 0.5 + Math.random() * 2.5,
+                hue: j.hue + Math.random() * 30
             });
         }
-        j.sparkles.forEach(p => {
+        j.particles.forEach(p => {
             p.x += p.vx; p.y += p.vy;
-            p.life -= 0.022;
+            p.life -= 0.02;
             if (p.life > 0) {
-                ctx.fillStyle = `rgba(230, 248, 255, ${p.life * 0.8})`;
-                ctx.shadowColor = `rgba(200, 235, 255, ${p.life * 0.5})`;
-                ctx.shadowBlur = 3;
+                ctx.fillStyle = `rgba(230, 248, 255, ${p.life * 0.85})`;
+                ctx.shadowColor = `rgba(200, 235, 255, ${p.life * 0.6})`;
+                ctx.shadowBlur = 4;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
             }
         });
-        j.sparkles = j.sparkles.filter(p => p.life > 0);
+        j.particles = j.particles.filter(p => p.life > 0);
 
         // Шлейф
-        j.trail.push({ x: j.x, y: j.y + cy, life: 1 });
-        if (j.trail.length > 10) j.trail.shift();
+        j.trail.push({ x: j.x, y: j.y + cy, life: 1, hue: j.hue });
+        if (j.trail.length > 12) j.trail.shift();
         j.trail.forEach((t, i) => {
-            t.life -= 0.035;
+            t.life -= 0.03;
             if (t.life > 0) {
-                ctx.fillStyle = `hsla(${j.hue}, 30%, 65%, ${t.life * 0.12})`;
+                const trailHue = (t.hue + i * 5 + time * 10) % 360;
+                ctx.fillStyle = `hsla(${trailHue}, 35%, 60%, ${t.life * 0.1})`;
                 ctx.beginPath();
-                ctx.arc(t.x, t.y, j.size * 0.15 * (i/10) * t.life, 0, Math.PI * 2);
+                ctx.arc(t.x, t.y, j.size * 0.12 * (i/12) * t.life, 0, Math.PI * 2);
                 ctx.fill();
             }
         });
@@ -1102,10 +1168,9 @@ function initJellyfish() {
         if (!canvas.isConnected) return;
         time = ts * 0.001;
         const bass = smoothBass || 0;
-        const melody = Math.sin(time * 0.47) * 0.5 + 0.5;
         ctx.clearRect(0, 0, W, H);
         jellyfishes = jellyfishes.filter(j => j.life > 0);
-        jellyfishes.forEach(j => drawJellyfish(j, bass, melody));
+        jellyfishes.forEach(j => drawJellyfish(j, bass));
         requestAnimationFrame(animate);
     }
     requestAnimationFrame(animate);
