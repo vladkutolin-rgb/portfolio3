@@ -108,729 +108,295 @@ window.addEventListener('load',()=>setTimeout(drawSkillsChart,1000));
 window.addEventListener('scroll',()=>{if(document.getElementById('about')?.classList.contains('animated')&&!chartDrawn){drawSkillsChart();chartDrawn=true;}});
 
 // ═══════════════════════════════════════════
-// ВОДОПАДЫ + РЕКА — LEGENDARY EDITION
+// СИМФОНИЯ СВЕТА — ЕДИНАЯ ВСЕЛЕННАЯ
+// ═══════════════════════════════════════════
+
+// Глобальные переменные
+window.energyCount = 0;
+window.symphonyTime = 0;
+window.symphonyBass = 0;
+
+// ═══════════════════════════════════════════
+// ЗВЁЗДНОЕ НЕБО
+// ═══════════════════════════════════════════
+function initStarfield(canvas) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const gallery = document.querySelector('.gallery');
+    let W, H;
+    const stars = [];
+    
+    function resize() {
+        if (!gallery) return;
+        W = gallery.offsetWidth;
+        H = gallery.offsetHeight;
+        canvas.width = W;
+        canvas.height = H;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0'; canvas.style.left = '0';
+        canvas.style.zIndex = '0';
+        canvas.style.pointerEvents = 'none';
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    
+    for (let i = 0; i < 80; i++) {
+        stars.push({
+            x: Math.random() * 2000,
+            y: Math.random() * H * 0.5,
+            size: 0.5 + Math.random() * 3,
+            brightness: Math.random(),
+            speed: 0.005 + Math.random() * 0.03,
+            twinkle: Math.random() * Math.PI * 2
+        });
+    }
+    
+    function draw(ts) {
+        if (!canvas.isConnected) return;
+        ctx.clearRect(0, 0, W, H);
+        const bass = window.symphonyBass || 0;
+        
+        stars.forEach(s => {
+            s.twinkle += s.speed * (1 + bass);
+            const alpha = 0.3 + Math.abs(Math.sin(s.twinkle)) * 0.7 * (1 + bass);
+            
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size * (1 + bass * 0.5), 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Крупные звёзды — крестик
+            if (s.size > 2 && alpha > 0.8) {
+                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(s.x - s.size * 3, s.y);
+                ctx.lineTo(s.x + s.size * 3, s.y);
+                ctx.moveTo(s.x, s.y - s.size * 3);
+                ctx.lineTo(s.x, s.y + s.size * 3);
+                ctx.stroke();
+            }
+        });
+        
+        // Падающие звёзды
+        if (bass > 0.4 && Math.random() < 0.1) {
+            const sx = Math.random() * W;
+            const sy = Math.random() * H * 0.3;
+            ctx.strokeStyle = `rgba(255, 255, 255, 0.8)`;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(sx - 50, sy + 30);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+        
+        requestAnimationFrame(() => draw(performance.now()));
+    }
+    requestAnimationFrame(draw);
+}
+
+// ═══════════════════════════════════════════
+// ВОДОПАДЫ + РЕКА + СОБАЧКА (ОСТАВЛЯЕМ)
 // ═══════════════════════════════════════════
 function initWaterfallGame() {
-    const canvas = document.getElementById('waterfallCanvas');
+    const canvas = document.getElementById('symphonyCanvas');
     const gallery = document.querySelector('.gallery');
     if (!canvas || !gallery) return;
 
     const ctx = canvas.getContext('2d');
+    let W, H, time = 0;
+    let splashes = [];
 
     function resize() {
-        canvas.width = gallery.offsetWidth;
-        canvas.height = gallery.offsetHeight;
+        W = gallery.offsetWidth;
+        H = gallery.offsetHeight;
+        canvas.width = W;
+        canvas.height = H;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0'; canvas.style.left = '0';
+        canvas.style.zIndex = '1';
+        canvas.style.pointerEvents = 'none';
     }
     resize();
     window.addEventListener('resize', resize);
 
-    const leftWF = [], rightWF = [], splashes = [], fireworks = [], stars = [];
-    let dogTrail = [];
-
-    // Звёзды
-    for (let i = 0; i < 40; i++) {
-        stars.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height * 0.6,
-            size: 0.5 + Math.random() * 2,
-            twinkle: Math.random() * Math.PI * 2,
-            speed: 0.01 + Math.random() * 0.03
-        });
+    const leftWF = [], rightWF = [];
+    for (let i = 0; i < 50; i++) {
+        leftWF.push({ x: W * 0.07 + (Math.random()-0.5)*25, y: Math.random()*H*0.4, speed: 1.5+Math.random()*3, size: 1.5+Math.random()*3, opacity: 0.2+Math.random()*0.4, hue: 190+Math.random()*25, splashed: false });
+        rightWF.push({ x: W * 0.93 + (Math.random()-0.5)*25, y: Math.random()*H*0.4, speed: 1.5+Math.random()*3, size: 1.5+Math.random()*3, opacity: 0.2+Math.random()*0.4, hue: 190+Math.random()*25, splashed: false });
     }
 
-    function createDrop(side) {
-        const bx = side === 'left' ? canvas.width * 0.07 : canvas.width * 0.93;
-        return {
-            x: bx + (Math.random() - 0.5) * 25,
-            y: Math.random() * canvas.height * 0.4,
-            speed: 1.5 + Math.random() * 3,
-            size: 1.5 + Math.random() * 3,
-            opacity: 0.2 + Math.random() * 0.4,
-            hue: 190 + Math.random() * 25,
-            splashed: false
-        };
-    }
-
-    for (let i = 0; i < 60; i++) {
-        leftWF.push(createDrop('left'));
-        rightWF.push(createDrop('right'));
-    }
-
-    let time = 0;
     window.tsunamiHeight = 0;
     let tsunamiFlash = 0;
-    window.dogPos = { x: canvas.width / 2, y: canvas.height * 0.7 };
 
-    // ═══════════════════
-    // ЗВЁЗДНОЕ НЕБО
-    // ═══════════════════
-    function drawStars() {
-        stars.forEach(s => {
-            s.twinkle += s.speed;
-            const alpha = 0.3 + Math.abs(Math.sin(s.twinkle)) * 0.7;
-            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-            ctx.fill();
-            // Крестик у ярких звёзд
-            if (s.size > 1.5 && alpha > 0.7) {
-                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
-                ctx.lineWidth = 0.5;
-                ctx.beginPath();
-                ctx.moveTo(s.x - s.size * 2, s.y);
-                ctx.lineTo(s.x + s.size * 2, s.y);
-                ctx.moveTo(s.x, s.y - s.size * 2);
-                ctx.lineTo(s.x, s.y + s.size * 2);
-                ctx.stroke();
-            }
-        });
-    }
-
-    // ═══════════════════
-    // РАДУГА
-    // ═══════════════════
-    function drawRainbow() {
-        const rx = canvas.width / 2;
-        const ry = canvas.height * 0.15;
-        const rr = canvas.width * 0.5;
-        const colors = ['#ff0000', '#ff8800', '#ffff00', '#00ff00', '#0088ff', '#8800ff'];
-        colors.forEach((color, i) => {
-            ctx.strokeStyle = color;
-            ctx.globalAlpha = 0.08;
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.arc(rx, ry, rr - i * 5, Math.PI, 0);
-            ctx.stroke();
-        });
-        ctx.globalAlpha = 1;
-    }
-
-    // ═══════════════════
-    // СКАЛЫ
-    // ═══════════════════
     function drawRocks() {
-        const lg = ctx.createLinearGradient(0, 0, canvas.width * 0.13, 0);
-        lg.addColorStop(0, 'rgba(40, 45, 50, 0.5)');
-        lg.addColorStop(0.5, 'rgba(50, 55, 60, 0.25)');
-        lg.addColorStop(1, 'rgba(55, 60, 65, 0)');
+        const lg = ctx.createLinearGradient(0, 0, W*0.13, 0);
+        lg.addColorStop(0, 'rgba(40,45,50,0.5)'); lg.addColorStop(1, 'rgba(55,60,65,0)');
         ctx.fillStyle = lg;
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height * 0.05);
-        ctx.quadraticCurveTo(canvas.width * 0.06, canvas.height * 0.18, canvas.width * 0.1, canvas.height * 0.5);
-        ctx.lineTo(canvas.width * 0.07, canvas.height * 0.85);
-        ctx.lineTo(0, canvas.height);
-        ctx.closePath();
-        ctx.fill();
-
-        const rg = ctx.createLinearGradient(canvas.width, 0, canvas.width * 0.87, 0);
-        rg.addColorStop(0, 'rgba(40, 45, 50, 0.5)');
-        rg.addColorStop(0.5, 'rgba(50, 55, 60, 0.25)');
-        rg.addColorStop(1, 'rgba(55, 60, 65, 0)');
+        ctx.beginPath(); ctx.moveTo(0, H*0.05); ctx.quadraticCurveTo(W*0.06, H*0.18, W*0.1, H*0.5); ctx.lineTo(W*0.07, H*0.85); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+        
+        const rg = ctx.createLinearGradient(W, 0, W*0.87, 0);
+        rg.addColorStop(0, 'rgba(40,45,50,0.5)'); rg.addColorStop(1, 'rgba(55,60,65,0)');
         ctx.fillStyle = rg;
-        ctx.beginPath();
-        ctx.moveTo(canvas.width, canvas.height * 0.05);
-        ctx.quadraticCurveTo(canvas.width * 0.94, canvas.height * 0.18, canvas.width * 0.9, canvas.height * 0.5);
-        ctx.lineTo(canvas.width * 0.93, canvas.height * 0.85);
-        ctx.lineTo(canvas.width, canvas.height);
-        ctx.closePath();
-        ctx.fill();
+        ctx.beginPath(); ctx.moveTo(W, H*0.05); ctx.quadraticCurveTo(W*0.94, H*0.18, W*0.9, H*0.5); ctx.lineTo(W*0.93, H*0.85); ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
     }
 
-    // ═══════════════════
-    // ВОДОПАД
-    // ═══════════════════
-    function drawWaterfall(particles, x, width) {
-        const mist = ctx.createLinearGradient(x, canvas.height * 0.05, x, canvas.height * 0.7);
-        mist.addColorStop(0, 'rgba(220, 240, 255, 0.15)');
-        mist.addColorStop(0.4, 'rgba(170, 215, 250, 0.18)');
-        mist.addColorStop(1, 'rgba(100, 180, 220, 0.03)');
-        ctx.fillStyle = mist;
-        ctx.fillRect(x - width/2, canvas.height * 0.02, width, canvas.height * 0.72);
+    function drawWaterfall(particles, x, w) {
+        const mist = ctx.createLinearGradient(x, H*0.05, x, H*0.7);
+        mist.addColorStop(0, 'rgba(220,240,255,0.15)'); mist.addColorStop(1, 'rgba(100,180,220,0.02)');
+        ctx.fillStyle = mist; ctx.fillRect(x-w/2, H*0.02, w, H*0.72);
 
         particles.forEach(p => {
             p.y += p.speed;
-            if (p.y > canvas.height * 0.72 && !p.splashed) {
+            if (p.y > H*0.72 && !p.splashed) {
                 p.splashed = true;
-                // ВЗРЫВНЫЕ БРЫЗГИ
-                for (let s = 0; s < 10; s++) {
-                    splashes.push({
-                        x: x + (Math.random() - 0.5) * width,
-                        y: canvas.height * 0.72,
-                        vx: (Math.random() - 0.5) * 8,
-                        vy: -Math.random() * 10 - 3,
-                        life: 1,
-                        size: 1.5 + Math.random() * 4
-                    });
-                }
-                p.y = Math.random() * canvas.height * 0.2;
-                p.splashed = false;
+                for (let s = 0; s < 6; s++) splashes.push({ x: x+(Math.random()-0.5)*w, y: H*0.72, vx: (Math.random()-0.5)*5, vy: -Math.random()*8-2, life: 1, size: 1+Math.random()*3 });
+                p.y = Math.random()*H*0.2; p.splashed = false;
             }
-
             ctx.fillStyle = `hsla(${p.hue}, 60%, 80%, ${p.opacity})`;
-            ctx.beginPath();
-            ctx.ellipse(p.x, p.y, p.size, p.size * 1.8, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity * 0.8})`;
-            ctx.beginPath();
-            ctx.arc(p.x - p.size * 0.2, p.y - p.size * 0.3, p.size * 0.4, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.beginPath(); ctx.ellipse(p.x, p.y, p.size, p.size*1.8, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(255,255,255,${p.opacity*0.7})`;
+            ctx.beginPath(); ctx.arc(p.x-p.size*0.2, p.y-p.size*0.3, p.size*0.4, 0, Math.PI*2); ctx.fill();
         });
     }
 
-    // ═══════════════════
-    // БРЫЗГИ
-    // ═══════════════════
-    function drawSplashes() {
-        splashes.forEach(d => {
-            d.x += d.vx;
-            d.y += d.vy;
-            d.vy += 0.06;
-            d.life -= 0.012;
-            if (d.life > 0) {
-                ctx.fillStyle = `rgba(220, 245, 255, ${d.life * 0.8})`;
-                ctx.beginPath();
-                ctx.arc(d.x, d.y, d.size * d.life, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
-        for (let i = splashes.length - 1; i >= 0; i--) {
-            if (splashes[i].life <= 0) splashes.splice(i, 1);
-        }
-    }
-
-    // ═══════════════════
-    // РЕКА
-    // ═══════════════════
     function drawRiver() {
-        const bass = smoothBass || 0;
-        const baseY = canvas.height * 0.73;
-        const e = bass;
-        const r = Math.sin(time * 0.035) * bass;
-
+        const bass = window.symphonyBass || 0;
+        const baseY = H * 0.72;
+        
         // Зеркало
-        const mirror = ctx.createLinearGradient(0, baseY - 20, 0, canvas.height);
-        mirror.addColorStop(0, 'rgba(100, 190, 240, 0.08)');
-        mirror.addColorStop(0.3, 'rgba(40, 140, 210, 0.16)');
-        mirror.addColorStop(1, 'rgba(5, 30, 80, 0.4)');
-        ctx.fillStyle = mirror;
-        ctx.fillRect(0, baseY, canvas.width, canvas.height - baseY);
+        const mirror = ctx.createLinearGradient(0, baseY-20, 0, H);
+        mirror.addColorStop(0, 'rgba(100,190,240,0.08)'); mirror.addColorStop(1, 'rgba(5,30,80,0.4)');
+        ctx.fillStyle = mirror; ctx.fillRect(0, baseY, W, H-baseY);
 
         // Свечение
-        if (e > 0.1) {
-            const g1 = ctx.createRadialGradient(canvas.width * 0.3, baseY + 30, 5, canvas.width * 0.3, baseY + 25, canvas.width * 0.5);
-            g1.addColorStop(0, `rgba(0, 255, 180, ${e * 0.4})`);
-            g1.addColorStop(1, 'rgba(0, 255, 180, 0)');
-            ctx.fillStyle = g1;
-            ctx.fillRect(0, baseY - 30, canvas.width, canvas.height - baseY + 30);
+        if (bass > 0.15) {
+            const glow = ctx.createRadialGradient(W*0.3, baseY+30, 5, W*0.3, baseY+25, W*0.5);
+            glow.addColorStop(0, `rgba(0,255,180,${bass*0.5})`); glow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = glow; ctx.fillRect(0, baseY-30, W, H-baseY+30);
         }
 
-        // Волны (БОЛЬШИЕ)
+        // Волны
         const layers = [
-            { h: 6 + e * 40, s: 0.6 + e * 2.5, a: 0.14, c: `hsla(${190 + Math.sin(time*0.01)*15}, 50%, 55%,` },
-            { h: 8 + r * 30, s: 0.8 + e * 1.6, a: 0.18, c: `hsla(${185 + Math.cos(time*0.012)*12}, 60%, 60%,` },
-            { h: 4 + e * 22, s: 1 + e * 3.5, a: 0.1, c: `hsla(${195 + Math.sin(time*0.015)*10}, 45%, 65%,` },
+            { h: 6+bass*35, s: 0.6+bass*2, a: 0.13, c: `hsla(${190+Math.sin(time*0.01)*15}, 50%, 55%,` },
+            { h: 8+bass*25, s: 0.8+bass*1.5, a: 0.17, c: `hsla(${185+Math.cos(time*0.012)*12}, 60%, 60%,` },
+            { h: 4+bass*18, s: 1+bass*3, a: 0.09, c: `hsla(${195+Math.sin(time*0.015)*10}, 45%, 65%,` }
         ];
         layers.forEach(l => {
             ctx.fillStyle = l.c + l.a + ')';
-            for (let x = 0; x < canvas.width; x += 4) {
-                const y = baseY + Math.sin((x + time * l.s) / 100) * l.h + Math.cos((x - time * l.s * 0.6) / 65) * l.h * 0.5;
+            for (let x = 0; x < W; x += 4) {
+                const y = baseY + Math.sin((x+time*l.s)/100)*l.h + Math.cos((x-time*l.s*0.6)/65)*l.h*0.5;
                 ctx.fillRect(x, y, 5, 4);
             }
         });
 
         // Пена
-        if (e > 0.04) {
-            const fa = Math.min(e * 3, 0.8);
-            for (let i = 0; i < 16; i++) {
-                const fx = (time * 1.5 + i * canvas.width / 16) % canvas.width;
-                const fy = baseY + Math.sin((fx + time * 0.8) / 90) * (8 + e * 30) - 6;
-                ctx.fillStyle = `rgba(255, 255, 255, ${fa * 0.7})`;
-                ctx.beginPath();
-                ctx.arc(fx, fy, 3 + Math.random() * 6 * e, 0, Math.PI);
-                ctx.fill();
+        if (bass > 0.05) {
+            const fa = Math.min(bass*3, 0.8);
+            for (let i = 0; i < 14; i++) {
+                const fx = (time*1.5 + i*W/14) % W;
+                const fy = baseY + Math.sin((fx+time*0.8)/90)*(8+bass*30)-6;
+                ctx.fillStyle = `rgba(255,255,255,${fa*0.7})`;
+                ctx.beginPath(); ctx.arc(fx, fy, 3+Math.random()*6*bass, 0, Math.PI); ctx.fill();
             }
         }
 
         // Блики
-        const sc = Math.floor(10 + e * 20);
+        const sc = Math.floor(8+bass*20);
         for (let i = 0; i < sc; i++) {
-            const sx = (time * (0.4 + e) + i * canvas.width / sc) % canvas.width;
-            const sy = baseY + 8 + Math.sin(sx / 35 + time * 0.5) * (5 + e * 10);
-            const sh = 0.05 + Math.abs(Math.sin(time * 0.07 + i * 0.7)) * (0.12 + e * 0.35);
-            ctx.fillStyle = `rgba(255, 255, 255, ${sh})`;
-            ctx.fillRect(sx - 2, sy, 5, 1);
-            ctx.fillRect(sx, sy - 2, 1, 5);
-        }
-
-        // След собачки
-        if (window.dogPos) {
-            dogTrail.push({ x: window.dogPos.x, y: baseY + 10, life: 1 });
-            if (dogTrail.length > 30) dogTrail.shift();
-        }
-        dogTrail.forEach((t, i) => {
-            t.life -= 0.03;
-            if (t.life > 0) {
-                ctx.fillStyle = `rgba(255, 255, 255, ${t.life * 0.3})`;
-                ctx.beginPath();
-                ctx.arc(t.x, t.y, (1 - t.life) * 8, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
-
-        // Гигантские круги бита
-        if (e > 0.2) {
-            const pa = (e - 0.2) * 3;
-            for (let i = 0; i < 4; i++) {
-                const px = canvas.width * 0.1 + i * canvas.width * 0.27;
-                ctx.strokeStyle = `rgba(255, 255, 255, ${pa * 0.35})`;
-                ctx.lineWidth = 2;
-                ctx.shadowColor = `rgba(0, 255, 200, ${pa * 0.5})`;
-                ctx.shadowBlur = 15 + e * 15;
-                ctx.beginPath();
-                ctx.arc(px, baseY + 10, e * 80 * (0.5 + i * 0.2), 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-            }
+            const sx = (time*(0.4+bass) + i*W/sc) % W;
+            const sy = baseY + 8 + Math.sin(sx/35+time*0.5)*(5+bass*10);
+            const sh = 0.05 + Math.abs(Math.sin(time*0.07+i*0.7))*(0.12+bass*0.35);
+            ctx.fillStyle = `rgba(255,255,255,${sh})`;
+            ctx.fillRect(sx-2, sy, 5, 1); ctx.fillRect(sx, sy-2, 1, 5);
         }
     }
 
-    // ═══════════════════
-    // ФЕЙЕРВЕРКИ
-    // ═══════════════════
-    function drawFireworks() {
-        if (tsunamiFlash > 0) {
-            for (let i = 0; i < 20; i++) {
-                fireworks.push({
-                    x: canvas.width * 0.3 + Math.random() * canvas.width * 0.4,
-                    y: canvas.height * 0.2 + Math.random() * canvas.height * 0.3,
-                    vx: (Math.random() - 0.5) * 6,
-                    vy: (Math.random() - 0.5) * 6,
-                    life: 1,
-                    hue: 120 + Math.random() * 200
-                });
-            }
-            tsunamiFlash = 0;
-        }
-
-        fireworks.forEach(f => {
-            f.x += f.vx;
-            f.y += f.vy;
-            f.vy += 0.05;
-            f.life -= 0.02;
-            if (f.life > 0) {
-                ctx.fillStyle = `hsla(${f.hue}, 90%, 60%, ${f.life})`;
-                ctx.shadowColor = `hsla(${f.hue}, 100%, 60%, ${f.life})`;
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.arc(f.x, f.y, 3 * f.life, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-        });
-        for (let i = fireworks.length - 1; i >= 0; i--) {
-            if (fireworks[i].life <= 0) fireworks.splice(i, 1);
-        }
-    }
-
-    // ═══════════════════
-    // АНИМАЦИЯ
-    // ═══════════════════
-    function animate() {
+    function animate(ts) {
         if (!canvas.isConnected) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        time += 1;
-
-        drawStars();
-        drawRainbow();
+        time = ts * 0.001;
+        ctx.clearRect(0, 0, W, H);
         drawRocks();
-        drawWaterfall(leftWF, canvas.width * 0.07, 35);
-        drawWaterfall(rightWF, canvas.width * 0.93, 35);
+        drawWaterfall(leftWF, W*0.07, 35);
+        drawWaterfall(rightWF, W*0.93, 35);
         drawRiver();
-        drawSplashes();
-        drawFireworks();
-
-        if (window.tsunamiHeight > 0) window.tsunamiHeight *= 0.9;
-        if (window.tsunamiHeight < 0.3) window.tsunamiHeight = 0;
-
+        
+        splashes.forEach(d => { d.x += d.vx; d.y += d.vy; d.vy += 0.06; d.life -= 0.014; if (d.life > 0) { ctx.fillStyle = `rgba(220,245,255,${d.life*0.8})`; ctx.beginPath(); ctx.arc(d.x, d.y, d.size*d.life, 0, Math.PI*2); ctx.fill(); } });
+        splashes = splashes.filter(d => d.life > 0);
+        
+        if (window.tsunamiHeight > 0) window.tsunamiHeight *= 0.92;
+        if (window.tsunamiHeight < 0.2) window.tsunamiHeight = 0;
+        
         requestAnimationFrame(animate);
     }
+    requestAnimationFrame(animate);
 
-    animate();
-
-       window.triggerTsunami = function() {
-        // ДРОЖАНИЕ ЭКРАНА
-        const galleryEl = document.querySelector('.gallery');
-        if (galleryEl) {
-            galleryEl.style.animation = 'screenShake 0.8s ease-out';
-            setTimeout(() => galleryEl.style.animation = '', 800);
-        }
-
-        // ГИГАНТСКАЯ ВОЛНА
-        window.tsunamiHeight = 90;
-
-        // Волна-дракон
-        const wave = document.getElementById('tsunamiWave');
-        if (wave) {
-            wave.style.height = '200px';
-            wave.style.background = `
-                linear-gradient(0deg, 
-                    rgba(0, 255, 200, 0.95) 0%,
-                    rgba(0, 200, 255, 0.8) 20%,
-                    rgba(0, 150, 255, 0.6) 40%,
-                    rgba(100, 200, 255, 0.4) 60%,
-                    rgba(255, 255, 255, 0.7) 80%,
-                    rgba(255, 255, 255, 0) 100%
-                )
-            `;
-            wave.style.boxShadow = '0 -20px 60px rgba(0, 255, 200, 0.8), 0 -40px 120px rgba(0, 200, 255, 0.5)';
-            wave.style.transition = 'height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            setTimeout(() => {
-                wave.style.height = '0';
-                wave.style.boxShadow = 'none';
-            }, 1800);
-        }
-
-        // МОЛНИИ ПО ВСЕМУ ЭКРАНУ
-        for (let i = 0; i < 8; i++) {
-            setTimeout(() => {
-                const lightning = document.createElement('div');
-                const lx = Math.random() * 80 + 10;
-                lightning.style.cssText = `
-                    position: absolute;
-                    left: ${lx}%;
-                    top: 0;
-                    width: 3px;
-                    height: ${40 + Math.random() * 40}%;
-                    background: linear-gradient(180deg, rgba(255,255,255,1), rgba(0,255,200,0.8), transparent);
-                    z-index: 9;
-                    pointer-events: none;
-                    animation: lightningFlash ${0.1 + Math.random() * 0.3}s ease-out forwards;
-                    transform: rotate(${(Math.random() - 0.5) * 20}deg);
-                `;
-                document.querySelector('.gallery').appendChild(lightning);
-                setTimeout(() => lightning.remove(), 400);
-            }, i * 80);
-        }
-
-                // ЧАСТИЦЫ ВОДЫ ПО ВСЕМУ ЭКРАНУ
-        for (let i = 0; i < 50; i++) {
-            const drop = document.createElement('div');
-            const wx = (Math.random() - 0.5) * 200;
-            const wy = -100 - Math.random() * 200;
-            drop.style.cssText = `
-                position: absolute;
-                left: ${Math.random() * 100}%;
-                top: ${50 + Math.random() * 30}%;
-                width: ${3 + Math.random() * 8}px;
-                height: ${3 + Math.random() * 8}px;
-                background: rgba(0, 255, 200, ${0.6 + Math.random() * 0.4});
-                border-radius: 50%;
-                z-index: 9;
-                pointer-events: none;
-                --wx: ${wx}px;
-                --wy: ${wy}px;
-                animation: waterExplosion ${0.8 + Math.random() * 1.2}s ease-out forwards;
-                animation-delay: ${Math.random() * 0.5}s;
-            `;
-            document.querySelector('.gallery').appendChild(drop);
-            setTimeout(() => drop.remove(), 2000);
-        }
-
-        // ВСПЫШКА
-        const flash = document.createElement('div');
-        flash.style.cssText = `
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            z-index: 7;
-            pointer-events: none;
-            animation: flashBang 0.6s ease-out forwards;
-        `;
-        document.querySelector('.gallery').appendChild(flash);
-        setTimeout(() => flash.remove(), 700);
-
-        // Фейерверки
+    window.triggerTsunami = function() {
+        window.tsunamiHeight = 60;
         tsunamiFlash = 1;
+        const wave = document.getElementById('tsunamiWave');
+        if (wave) { wave.style.height = '130px'; wave.style.background = 'linear-gradient(0deg, rgba(0,230,255,0.9), rgba(0,180,240,0.6), transparent)'; setTimeout(() => wave.style.height = '0', 1500); }
     };
 }
+
 // ═══════════════════════════════════════════
 // СОБАЧКА
 // ═══════════════════════════════════════════
-function initDogBoat(){
-    const dog=document.getElementById('dogBoat'),gallery=document.querySelector('.gallery');
-    if(!dog||!gallery)return;
-    let dragging=false,sx,sy,px,py,vx=0,vy=0,animId,sl,st,petCount=0;
-    function setPos(x,y){const r=gallery.getBoundingClientRect();x=Math.max(30,Math.min(x,r.width-80));y=Math.max(50,Math.min(y,r.height-80));dog.style.left=x+'px';dog.style.top=y+'px';dog.style.bottom='auto';dog.style.transform='none';}
-    function physics(){const r=gallery.getBoundingClientRect();let x=parseFloat(dog.style.left)||r.width/2,y=parseFloat(dog.style.top)||r.height*0.7;x+=vx;y+=vy;vx*=0.93;vy*=0.93;if(x<=30){x=30;vx=Math.abs(vx)*0.3;}if(x>=r.width-80){x=r.width-80;vx=-Math.abs(vx)*0.3;}if(y<=50){y=50;vy=Math.abs(vy)*0.3;}if(y>=r.height-80){y=r.height-80;vy=-Math.abs(vy)*0.3;}dog.style.left=x+'px';dog.style.top=y+'px';dog.style.transform='none';if(Math.abs(vx)>0.08||Math.abs(vy)>0.08)animId=requestAnimationFrame(physics);}
-    dog.addEventListener('mousedown',function(e){dragging=true;cancelAnimationFrame(animId);px=e.clientX;py=e.clientY;sx=e.clientX;sy=e.clientY;const r=dog.getBoundingClientRect();sl=r.left;st=r.top;dog.style.cursor='grabbing';e.preventDefault();});
-    document.addEventListener('mousemove',function(e){if(!dragging)return;const gr=gallery.getBoundingClientRect();setPos(e.clientX-gr.left-40,e.clientY-gr.top-30);px=e.clientX;py=e.clientY;});
-    document.addEventListener('mouseup',function(e){if(!dragging)return;dragging=false;dog.style.cursor='grab';vx=(e.clientX-px)*6;vy=(e.clientY-py)*6;physics();});
-    dog.addEventListener('dblclick',function(e){e.preventDefault();e.stopPropagation();petCount++;dog.classList.add('petted');setTimeout(()=>dog.classList.remove('petted'),600);const r=dog.getBoundingClientRect();for(let i=0;i<6;i++){const heart=document.createElement('div');heart.className='dog-heart';heart.textContent=['❤️','💕','💖','🦴','✨','🐾'][i];heart.style.cssText=`position:fixed;left:${r.left+r.width/2-15+(Math.random()-0.5)*50}px;top:${r.top+(Math.random()-0.5)*30}px;font-size:20px;pointer-events:none;z-index:9999;animation:heartFly 1s forwards;animation-delay:${i*0.1}s;`;document.body.appendChild(heart);setTimeout(()=>heart.remove(),1200);}if(petCount%3===0){const bark=document.createElement('div');bark.textContent='Гав! 🐕';const br=dog.getBoundingClientRect();bark.style.cssText=`position:fixed;left:${br.left+br.width/2-30}px;top:${br.top-30}px;font-size:16px;z-index:9999;pointer-events:none;animation:barkUp 1.2s forwards;`;document.body.appendChild(bark);setTimeout(()=>bark.remove(),1300);}});
-    let autoAngle=0;setInterval(()=>{if(!dragging&&(!animId||Math.abs(vx)<0.08)){autoAngle+=0.012;const r=gallery.getBoundingClientRect();setPos(r.width/2+Math.sin(autoAngle)*70,r.height*0.7+Math.cos(autoAngle*0.6)*15);}},50);
-    setTimeout(()=>{const r=gallery.getBoundingClientRect();setPos(r.width/2,r.height*0.7);},500);
+function initDogBoat() {
+    const dog = document.getElementById('dogBoat'), gallery = document.querySelector('.gallery');
+    if (!dog || !gallery) return;
+    let dragging = false, px, py, vx = 0, vy = 0, animId, sl, st, petCount = 0;
+    
+    function setPos(x, y) {
+        const r = gallery.getBoundingClientRect();
+        x = Math.max(30, Math.min(x, r.width-80)); y = Math.max(50, Math.min(y, r.height-80));
+        dog.style.left = x+'px'; dog.style.top = y+'px'; dog.style.bottom = 'auto'; dog.style.transform = 'none';
+    }
+    
+    function physics() {
+        const r = gallery.getBoundingClientRect();
+        let x = parseFloat(dog.style.left) || r.width/2, y = parseFloat(dog.style.top) || r.height*0.7;
+        x += vx; y += vy; vx *= 0.93; vy *= 0.93;
+        if (x <= 30) { x = 30; vx = Math.abs(vx)*0.3; }
+        if (x >= r.width-80) { x = r.width-80; vx = -Math.abs(vx)*0.3; }
+        if (y <= 50) { y = 50; vy = Math.abs(vy)*0.3; }
+        if (y >= r.height-80) { y = r.height-80; vy = -Math.abs(vy)*0.3; }
+        dog.style.left = x+'px'; dog.style.top = y+'px'; dog.style.transform = 'none';
+        if (Math.abs(vx) > 0.08 || Math.abs(vy) > 0.08) animId = requestAnimationFrame(physics);
+    }
+
+    dog.addEventListener('mousedown', e => { dragging = true; cancelAnimationFrame(animId); px = e.clientX; py = e.clientY; const r = dog.getBoundingClientRect(); sl = r.left; st = r.top; dog.style.cursor = 'grabbing'; e.preventDefault(); });
+    document.addEventListener('mousemove', e => { if (!dragging) return; const gr = gallery.getBoundingClientRect(); setPos(e.clientX-gr.left-40, e.clientY-gr.top-30); px = e.clientX; py = e.clientY; });
+    document.addEventListener('mouseup', e => { if (!dragging) return; dragging = false; dog.style.cursor = 'grab'; vx = (e.clientX-px)*6; vy = (e.clientY-py)*6; physics(); });
+    
+    dog.addEventListener('dblclick', e => { e.preventDefault(); petCount++; dog.classList.add('petted'); setTimeout(() => dog.classList.remove('petted'), 600);
+        const r = dog.getBoundingClientRect();
+        for (let i = 0; i < 6; i++) {
+            const heart = document.createElement('div'); heart.className = 'dog-heart';
+            heart.textContent = ['❤️','💕','💖','🦴','✨','🐾'][i];
+            heart.style.cssText = `position:fixed;left:${r.left+r.width/2-15+(Math.random()-0.5)*50}px;top:${r.top+(Math.random()-0.5)*30}px;font-size:20px;pointer-events:none;z-index:9999;animation:heartFly 1s forwards;animation-delay:${i*0.1}s;`;
+            document.body.appendChild(heart); setTimeout(() => heart.remove(), 1200);
+        }
+    });
+    
+    let autoAngle = 0;
+    setInterval(() => { if (!dragging && (!animId || Math.abs(vx) < 0.08)) { autoAngle += 0.012; const r = gallery.getBoundingClientRect(); setPos(r.width/2+Math.sin(autoAngle)*70, r.height*0.7+Math.cos(autoAngle*0.6)*15); } }, 50);
+    setTimeout(() => { const r = gallery.getBoundingClientRect(); setPos(r.width/2, r.height*0.7); }, 500);
 }
 
 // ═══════════════════════════════════════════
-// ПУЗЫРИ — ЛОПАЮТСЯ ВСЕГДА + ЭПИЧНО
+// ГЛУБИНА: КРИСТАЛЛЫ + СФЕРЫ + ГОЛОГРАММЫ
 // ═══════════════════════════════════════════
-function initBubbleGame() {
-    const canvas = document.getElementById('bubbleCanvas');
-    const section = document.getElementById('certificates');
-    if (!canvas || !section) return;
-
-    const ctx = canvas.getContext('2d');
-    let W, H, popCount = 0;
-    let fallingSouls = [];
-    let mouseX = -100, mouseY = -100;
-
-    function resize() {
-        W = section.offsetWidth;
-        H = section.offsetHeight;
-        canvas.width = W;
-        canvas.height = H;
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    // Отслеживаем мышь ВСЕГДА
-    canvas.addEventListener('mousemove', e => {
-        const r = canvas.getBoundingClientRect();
-        mouseX = e.clientX - r.left;
-        mouseY = e.clientY - r.top;
-    });
-    canvas.addEventListener('click', e => {
-        const r = canvas.getBoundingClientRect();
-        mouseX = e.clientX - r.left;
-        mouseY = e.clientY - r.top;
-        // При клике проверяем ВСЕ пузыри
-        for (let i = bubbles.length - 1; i >= 0; i--) {
-            if (!bubbles[i].popped && Math.hypot(mouseX - bubbles[i].x, mouseY - bubbles[i].y) < bubbles[i].size + 10) {
-                popBubble(bubbles[i]);
-                break;
-            }
-        }
-    });
-
-    const bubbles = [];
-    for (let i = 0; i < 25; i++) {
-        bubbles.push({
-            x: Math.random() * W,
-            y: Math.random() * H,
-            size: 10 + Math.random() * 25,
-            speed: 0.2 + Math.random() * 1,
-            opacity: 0.2 + Math.random() * 0.3,
-            hue: 180 + Math.random() * 50,
-            wobble: Math.random() * Math.PI * 2,
-            wobbleSpeed: 0.005 + Math.random() * 0.02,
-            popped: false,
-            popTime: 0,
-            particles: [],
-            glowPhase: Math.random() * Math.PI * 2
-        });
-    }
-
-    function popBubble(b) {
-        if (b.popped) return;
-        b.popped = true;
-        b.popTime = performance.now();
-        b.particles = [];
-        
-        // ЭПИЧНЫЙ взрыв
-        const count = b.size > 20 ? 20 : 12;
-        for (let i = 0; i < count; i++) {
-            const angle = (Math.PI * 2 / count) * i;
-            const speed = 2 + Math.random() * 6;
-            b.particles.push({
-                x: b.x, y: b.y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
-                life: 1,
-                size: 2 + Math.random() * 4,
-                hue: b.hue + Math.random() * 60 - 30
-            });
-        }
-
-        // Душа → медуза
-        fallingSouls.push({
-            x: b.x,
-            y: b.y,
-            targetY: H + 50,
-            life: 1,
-            hue: b.hue,
-            size: b.size
-        });
-
-        popCount++;
-        const el = document.getElementById('bubbleCount');
-        if (el) el.textContent = popCount;
-
-        if (popCount % 20 === 0 && window.triggerTsunami) {
-            window.triggerTsunami();
-            const a = document.getElementById('tsunamiAlert');
-            if (a) { a.classList.add('show'); setTimeout(() => a.classList.remove('show'), 2000); }
-        }
-    }
-
-    function drawBubbles() {
-        const now = performance.now();
-        const bass = smoothBass || 0;
-
-        bubbles.forEach(b => {
-            if (b.popped) {
-                const elapsed = (now - b.popTime) / 1000;
-                if (elapsed > 1.5) {
-                    Object.assign(b, {
-                        x: Math.random() * W,
-                        y: H + 50,
-                        size: 10 + Math.random() * 25,
-                        speed: 0.2 + Math.random() * 1,
-                        opacity: 0.2 + Math.random() * 0.3,
-                        hue: 180 + Math.random() * 50,
-                        wobble: Math.random() * Math.PI * 2,
-                        wobbleSpeed: 0.005 + Math.random() * 0.02,
-                        popped: false,
-                        particles: []
-                    });
-                    return;
-                }
-                // Частицы взрыва
-                b.particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.vy += 0.04;
-                    p.life -= 0.025;
-                    if (p.life > 0) {
-                        ctx.fillStyle = `hsla(${p.hue}, 80%, 70%, ${p.life})`;
-                        ctx.shadowColor = `hsla(${p.hue}, 90%, 65%, ${p.life * 0.8})`;
-                        ctx.shadowBlur = 8;
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.shadowBlur = 0;
-                    }
-                });
-                // Кольцо взрыва
-                const ringR = elapsed * 100;
-                const ringA = Math.max(0, 1 - elapsed / 1.5);
-                ctx.strokeStyle = `rgba(255, 255, 255, ${ringA})`;
-                ctx.lineWidth = 2;
-                ctx.shadowColor = `rgba(200, 240, 255, ${ringA})`;
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, ringR, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-                return;
-            }
-
-            b.y -= b.speed * (1 + bass * 2);
-            b.x += Math.sin(b.wobble) * 0.5;
-            b.wobble += b.wobbleSpeed * (1 + bass);
-            if (b.y < -50) { b.y = H + 50; b.x = Math.random() * W; }
-            b.glowPhase += 0.03;
-
-            // Свечение
-            const glowAlpha = 0.15 + bass * 0.3;
-            const glow = ctx.createRadialGradient(b.x, b.y, b.size * 0.3, b.x, b.y, b.size * 1.8);
-            glow.addColorStop(0, `hsla(${b.hue}, 60%, 65%, ${glowAlpha})`);
-            glow.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = glow;
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, b.size * 1.8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Тело
-            const grad = ctx.createRadialGradient(b.x - b.size*0.2, b.y - b.size*0.2, b.size*0.05, b.x, b.y, b.size);
-            grad.addColorStop(0, `hsla(${b.hue}, 55%, 88%, ${b.opacity + 0.25})`);
-            grad.addColorStop(0.5, `hsla(${b.hue}, 50%, 62%, ${b.opacity + 0.12})`);
-            grad.addColorStop(1, `hsla(${b.hue}, 40%, 35%, ${b.opacity * 0.5})`);
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Обводка
-            ctx.strokeStyle = `hsla(${b.hue}, 60%, 75%, ${b.opacity * 0.5 + bass * 0.3})`;
-            ctx.lineWidth = 1.5 + bass;
-            ctx.shadowColor = `hsla(${b.hue}, 70%, 65%, ${b.opacity * 0.4})`;
-            ctx.shadowBlur = 4 + bass * 6;
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-
-            // Блик
-            ctx.fillStyle = `rgba(255,255,255,${b.opacity * 0.6})`;
-            ctx.beginPath();
-            ctx.arc(b.x - b.size*0.2, b.y - b.size*0.2, b.size*0.2, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // Падающие души
-        for (let i = fallingSouls.length - 1; i >= 0; i--) {
-            const s = fallingSouls[i];
-            s.y += (H + 50 - s.y) * 0.06;
-            s.life -= 0.008;
-            if (s.y >= H - 10 || s.life <= 0) {
-                if (window.spawnJellyfish) window.spawnJellyfish(s.x, s.hue, s.size);
-                fallingSouls.splice(i, 1);
-                continue;
-            }
-            const alpha = s.life * 0.7;
-            ctx.fillStyle = `hsla(${s.hue}, 60%, 70%, ${alpha})`;
-            ctx.shadowColor = `hsla(${s.hue}, 70%, 60%, ${alpha})`;
-            ctx.shadowBlur = 12;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.size * s.life * 0.8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-    }
-
-    // Мышка лопает пузыри при движении
-    canvas.addEventListener('mousemove', function(e) {
-        const r = canvas.getBoundingClientRect();
-        const mx = e.clientX - r.left;
-        const my = e.clientY - r.top;
-        mouseX = mx;
-        mouseY = my;
-        for (let i = 0; i < bubbles.length; i++) {
-            if (!bubbles[i].popped && Math.hypot(mx - bubbles[i].x, my - bubbles[i].y) < bubbles[i].size + 5) {
-                popBubble(bubbles[i]);
-            }
-        }
-    });
-
-    function animate() {
-        if (!canvas.isConnected) return;
-        ctx.clearRect(0, 0, W, H);
-        drawBubbles();
-        requestAnimationFrame(animate);
-    }
-    animate();
-}
-
-// ═══════════════════════════════════════════
-// ATOMIC HEART — ПОЛИМЕРНЫЕ МЕДУЗЫ
-// ═══════════════════════════════════════════
-function initJellyfish() {
-    const canvas = document.getElementById('jellyfishCanvas');
+function initDeepRealm() {
+    const canvas = document.getElementById('symphonyCanvasDeep');
     if (!canvas) return;
     const section = document.getElementById('certificates');
     if (!section) return;
     const ctx = canvas.getContext('2d');
     let W, H, time = 0;
-    let mouseX = 0, mouseY = 0;
-
-    // Отслеживаем мышь для глаз
-    canvas.style.pointerEvents = 'auto';
-    canvas.addEventListener('mousemove', e => {
-        const r = canvas.getBoundingClientRect();
-        mouseX = e.clientX - r.left;
-        mouseY = e.clientY - r.top;
-    });
 
     function resize() {
         W = section.offsetWidth;
@@ -840,369 +406,221 @@ function initJellyfish() {
         canvas.style.position = 'absolute';
         canvas.style.top = '0'; canvas.style.left = '0';
         canvas.style.zIndex = '1';
+        canvas.style.pointerEvents = 'auto';
     }
     resize();
     window.addEventListener('resize', resize);
 
-    let jellyfishes = [];
-    const MAX = 6;
-
-    function createJellyfish(x, hue, size) {
-        const j = {
-            x: x || Math.random() * W,
-            y: H + 80,
-            targetY: H * 0.1 + Math.random() * H * 0.5,
-            targetX: x || Math.random() * W,
-            size: Math.max(30, (size || 20) * 2.5),
-            life: 1, born: performance.now(),
-            maxLife: 40 + Math.random() * 60,
-            bellPhase: Math.random() * Math.PI * 2,
-            bellContract: 0,
-            tentacles: [],
-            tentacleCount: 6 + Math.floor(Math.random() * 4),
-            vx: 0, vy: 0,
-            flowOffset: Math.random() * Math.PI * 2,
-            particles: [], trail: [],
-            bassMemory: 0,
-            gears: [], // Шестерни
-            polymerDrops: [],
-            gearAngle: Math.random() * Math.PI * 2,
-            eyePupilX: 0, eyePupilY: 0
-        };
-
-        // Шестерни вокруг купола
-        for (let i = 0; i < 5; i++) {
-            j.gears.push({
-                angle: (Math.PI * 2 / 5) * i,
-                radius: j.size * 0.55,
-                size: j.size * 0.12,
-                teeth: 6 + Math.floor(Math.random() * 4),
-                speed: 0.01 + Math.random() * 0.03,
-                phase: Math.random() * Math.PI * 2
-            });
-        }
-
-        // Полимерные щупальца
-        for (let i = 0; i < j.tentacleCount; i++) {
-            const baseAngle = (Math.PI * 2 / j.tentacleCount) * i;
-            j.tentacles.push({
-                baseAngle: baseAngle, angle: baseAngle,
-                length: j.size * (0.7 + Math.random() * 1.5),
-                segments: 12 + Math.floor(Math.random() * 10),
-                phase: Math.random() * Math.PI * 2,
-                speed: 0.01 + Math.random() * 0.03,
-                amplitude: 1.5 + Math.random() * 4
-            });
-        }
-        return j;
+    // Энергетические сферы
+    let spheres = [];
+    for (let i = 0; i < 18; i++) {
+        spheres.push({
+            x: Math.random() * W, y: Math.random() * H,
+            size: 8 + Math.random() * 20,
+            speed: 0.2 + Math.random() * 0.8,
+            hue: 180 + Math.random() * 50,
+            wobble: Math.random() * Math.PI * 2,
+            wobbleSpeed: 0.005 + Math.random() * 0.015,
+            popped: false, popTime: 0, particles: [],
+            connections: []
+        });
     }
 
-    window.spawnJellyfish = function(x, hue, size) {
-        if (jellyfishes.length >= MAX) jellyfishes.shift();
-        jellyfishes.push(createJellyfish(x, hue, size));
+    // Кристаллы-стражи
+    let crystals = [];
+    let crystalCount = 0;
+    const MAX_CRYSTALS = 6;
+
+    window.spawnCrystal = function(x, hue, size) {
+        if (crystals.length >= MAX_CRYSTALS) crystals.shift();
+        crystals.push({
+            x: x || Math.random() * W,
+            y: H + 50,
+            targetY: H * 0.15 + Math.random() * H * 0.5,
+            size: Math.max(20, (size || 15) * 2),
+            hue: hue || 200 + Math.random() * 40,
+            life: 1, born: performance.now(),
+            maxLife: 30 + Math.random() * 50,
+            phase: Math.random() * Math.PI * 2,
+            bassMemory: 0,
+            rings: [],
+            sparkles: [],
+            trail: []
+        });
+        // Кольца
+        const c = crystals[crystals.length-1];
+        for (let i = 0; i < 3; i++) {
+            c.rings.push({ radius: c.size * (0.3 + i*0.25), speed: 0.01 + i*0.005, angle: i*Math.PI/3, tilt: 0.2 + i*0.1 });
+        }
     };
 
-    function drawJellyfish(j, bass) {
-        const now = performance.now();
-        const elapsed = (now - j.born) / 1000;
-        j.life = Math.max(0, 1 - elapsed / j.maxLife);
-        if (j.life <= 0) return false;
-
-        j.y += (j.targetY - j.y) * 0.015;
-        j.x += (j.targetX - j.x) * 0.008;
-        j.bassMemory = j.bassMemory * 0.85 + bass * 0.15;
-        j.bellPhase += 0.02 + j.bassMemory * 0.08;
-        j.bellContract = Math.abs(Math.sin(j.bellPhase)) * (0.15 + j.bassMemory * 0.7);
-        j.gearAngle += 0.01 + j.bassMemory * 0.04;
-
-        j.x += Math.sin(time * 0.3 + j.flowOffset) * (0.5 + bass * 2);
-        j.y += Math.cos(time * 0.2 + j.flowOffset * 1.3) * (0.3 + bass * 1);
-
-        if (j.x < 90) j.targetX += 0.5;
-        if (j.x > W - 90) j.targetX -= 0.5;
-        if (j.y < 120) j.targetY += 0.5;
-        if (j.y > H - 100) j.targetY -= 0.5;
-
-        const bw = j.size, bh = j.size * 0.5;
-        const cy = -j.bellContract * bh * 0.4;
-        const alpha = j.life * (0.55 + j.bassMemory * 0.45);
-
-        // ═══════════════════════════
-        // КРАСНОЕ СВЕЧЕНИЕ (ПОЛИМЕР)
-        // ═══════════════════════════
-        for (let layer = 4; layer >= 0; layer--) {
-            const lr = bw * (0.3 + layer * 0.35);
-            const la = alpha * (0.1 - layer * 0.015) * (1 + j.bassMemory);
-            const glow = ctx.createRadialGradient(j.x, j.y, lr * 0.1, j.x, j.y, lr);
-            glow.addColorStop(0, `rgba(255, 60, 30, ${la * 2})`);
-            glow.addColorStop(0.5, `rgba(200, 20, 10, ${la})`);
-            glow.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = glow;
-            ctx.beginPath();
-            ctx.arc(j.x, j.y, lr, 0, Math.PI * 2);
-            ctx.fill();
+    // Обработка кликов по сферам
+    canvas.addEventListener('click', e => {
+        const r = canvas.getBoundingClientRect();
+        const mx = e.clientX - r.left, my = e.clientY - r.top;
+        for (let i = spheres.length-1; i >= 0; i--) {
+            const s = spheres[i];
+            if (!s.popped && Math.hypot(mx - s.x, my - s.y) < s.size + 10) {
+                s.popped = true; s.popTime = performance.now();
+                s.particles = [];
+                for (let j = 0; j < 15; j++) {
+                    const a = (Math.PI*2/15)*j;
+                    s.particles.push({ x: s.x, y: s.y, vx: Math.cos(a)*(2+Math.random()*5), vy: Math.sin(a)*(2+Math.random()*5), life: 1, size: 2+Math.random()*3, hue: s.hue });
+                }
+                window.energyCount++;
+                const el = document.getElementById('bubbleCount'); if (el) el.textContent = window.energyCount;
+                if (window.energyCount % 15 === 0 && window.triggerTsunami) { window.triggerTsunami(); const a = document.getElementById('tsunamiAlert'); if (a) { a.classList.add('show'); setTimeout(() => a.classList.remove('show'), 2000); } }
+                // Создаём кристалл
+                window.spawnCrystal(s.x, s.hue, s.size);
+                break;
+            }
         }
+    });
 
-        // ═══════════════════════════
-        // ШЕСТЕРНИ ВОКРУГ КУПОЛА
-        // ═══════════════════════════
-        j.gears.forEach(gear => {
-            gear.phase += gear.speed * (1 + j.bassMemory * 3);
-            const gx = j.x + Math.cos(gear.angle + j.gearAngle) * gear.radius;
-            const gy = j.y + cy + Math.sin(gear.angle + j.gearAngle) * gear.radius * 0.4;
-
-            // Шестерня
-            ctx.strokeStyle = `rgba(255, 200, 150, ${alpha * 0.7})`;
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            for (let t = 0; t < gear.teeth; t++) {
-                const toothAngle = (Math.PI * 2 / gear.teeth) * t + gear.phase;
-                const innerR = gear.size * 0.7;
-                const outerR = gear.size;
-                ctx.moveTo(gx + Math.cos(toothAngle) * innerR, gy + Math.sin(toothAngle) * innerR);
-                ctx.lineTo(gx + Math.cos(toothAngle + 0.1) * outerR, gy + Math.sin(toothAngle + 0.1) * outerR);
-                ctx.arc(gx, gy, outerR, toothAngle + 0.1, toothAngle + (Math.PI*2/gear.teeth) - 0.1);
-                ctx.lineTo(gx + Math.cos(toothAngle + (Math.PI*2/gear.teeth) - 0.1) * innerR, gy + Math.sin(toothAngle + (Math.PI*2/gear.teeth) - 0.1) * innerR);
-            }
-            ctx.stroke();
-
-            // Центр шестерни
-            ctx.fillStyle = `rgba(255, 80, 40, ${alpha * 0.8})`;
-            ctx.beginPath();
-            ctx.arc(gx, gy, 2, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // ═══════════════════════════
-        // МЕХАНИЧЕСКИЙ КУПОЛ
-        // ═══════════════════════════
-        // Основной металлический купол
-        const dome = ctx.createRadialGradient(j.x, j.y + cy - bh*0.1, bw*0.02, j.x, j.y + cy, bw*0.5);
-        dome.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.95})`);
-        dome.addColorStop(0.15, `rgba(240, 230, 220, ${alpha * 0.8})`);
-        dome.addColorStop(0.5, `rgba(180, 40, 30, ${alpha * 0.5})`);
-        dome.addColorStop(0.85, `rgba(100, 10, 5, ${alpha * 0.2})`);
-        dome.addColorStop(1, `rgba(40, 0, 0, 0)`);
-        ctx.fillStyle = dome;
-        ctx.beginPath();
-        ctx.ellipse(j.x, j.y + cy, bw*0.5, bh*0.5, 0, Math.PI, 0);
-        ctx.fill();
-
-        // Металлический обод
-        ctx.strokeStyle = `rgba(220, 200, 180, ${alpha * 0.8})`;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.ellipse(j.x, j.y + cy, bw*0.5, bh*0.5, 0, Math.PI, 0);
-        ctx.stroke();
-
-        // Второй обод
-        ctx.strokeStyle = `rgba(255, 80, 40, ${alpha * 0.5})`;
-        ctx.lineWidth = 1;
-        ctx.shadowColor = `rgba(255, 40, 20, ${alpha * 0.7})`;
-        ctx.shadowBlur = 8;
-        ctx.beginPath();
-        ctx.ellipse(j.x, j.y + cy, bw*0.48, bh*0.48, 0, Math.PI, 0);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // ═══════════════════════════
-        // ГЛАЗ-ОБЪЕКТИВ (СЛЕДИТ ЗА КУРСОРОМ)
-        // ═══════════════════════════
-        const eyeX = j.x;
-        const eyeY = j.y + cy - bh * 0.1;
-        const eyeR = bw * 0.2;
-
-        // Белок
-        const white = ctx.createRadialGradient(eyeX, eyeY, 0, eyeX, eyeY, eyeR);
-        white.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        white.addColorStop(0.7, 'rgba(240, 235, 230, 1)');
-        white.addColorStop(1, 'rgba(200, 180, 170, 0.8)');
-        ctx.fillStyle = white;
-        ctx.beginPath();
-        ctx.arc(eyeX, eyeY, eyeR, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Ободок глаза
-        ctx.strokeStyle = `rgba(180, 40, 30, 1)`;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(eyeX, eyeY, eyeR, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Зрачок (следит за мышкой)
-        const dx = mouseX - eyeX;
-        const dy = mouseY - eyeY;
-        const dist = Math.hypot(dx, dy);
-        const maxPupil = eyeR * 0.4;
-        const pupilX = dist > 0 ? (dx / dist) * Math.min(dist * 0.05, maxPupil) : 0;
-        const pupilY = dist > 0 ? (dy / dist) * Math.min(dist * 0.05, maxPupil) : 0;
-
-        // Красный зрачок
-        const pupil = ctx.createRadialGradient(eyeX + pupilX, eyeY + pupilY, 0, eyeX + pupilX, eyeY + pupilY, eyeR * 0.35);
-        pupil.addColorStop(0, 'rgba(0, 0, 0, 1)');
-        pupil.addColorStop(0.5, 'rgba(180, 20, 10, 1)');
-        pupil.addColorStop(1, 'rgba(255, 60, 30, 0.6)');
-        ctx.fillStyle = pupil;
-        ctx.beginPath();
-        ctx.arc(eyeX + pupilX, eyeY + pupilY, eyeR * 0.35, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Блик в глазу
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.beginPath();
-        ctx.arc(eyeX - eyeR * 0.25, eyeY - eyeR * 0.3, eyeR * 0.12, 0, Math.PI * 2);
-        ctx.fill();
-
-        // ═══════════════════════════
-        // ПОЛИМЕРНЫЕ ЩУПАЛЬЦА
-        // ═══════════════════════════
-        j.tentacles.forEach(t => {
-            t.phase += t.speed * (1 + j.bassMemory * 3);
-            t.angle = t.baseAngle + Math.sin(time * 0.4 + t.phase) * 0.15;
-
-            const bx = j.x + Math.cos(t.angle) * bw * 0.3;
-            const by = j.y + bh * 0.2;
-
-            // Полимерная нить (красная)
-            const grad = ctx.createLinearGradient(bx, by, bx, by + t.length);
-            grad.addColorStop(0, `rgba(255, 80, 40, ${alpha * 0.8})`);
-            grad.addColorStop(0.5, `rgba(200, 30, 20, ${alpha * 0.5})`);
-            grad.addColorStop(1, `rgba(150, 10, 5, 0)`);
-            ctx.strokeStyle = grad;
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.shadowColor = `rgba(255, 40, 20, ${alpha * 0.6})`;
-            ctx.shadowBlur = 6;
-            ctx.beginPath();
-            ctx.moveTo(bx, by);
-
-            for (let s = 1; s <= t.segments; s++) {
-                const prog = s / t.segments;
-                const w1 = Math.sin(t.phase + prog * 4) * t.amplitude * prog;
-                const w2 = Math.cos(t.phase * 0.6 + prog * 3) * t.amplitude * prog * 0.3;
-                ctx.lineTo(bx + w1, by + prog * t.length + w2);
-            }
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-
-            // Тонкая внутренняя нить (золотая)
-            ctx.strokeStyle = `rgba(255, 200, 100, ${alpha * 0.4})`;
-            ctx.lineWidth = 0.6;
-            ctx.beginPath();
-            ctx.moveTo(bx, by);
-            for (let s = 1; s <= t.segments; s++) {
-                const prog = s / t.segments;
-                const w1 = Math.sin(t.phase + prog * 4) * t.amplitude * prog * 0.4;
-                const w2 = Math.cos(t.phase * 0.6 + prog * 3) * t.amplitude * prog * 0.2;
-                ctx.lineTo(bx + w1, by + prog * t.length + w2);
-            }
-            ctx.stroke();
-
-            // Капля полимера на кончике
-            const tipX = bx + Math.sin(t.phase + 4) * t.amplitude;
-            const tipY = by + t.length;
-            const dropGlow = ctx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 3 + j.bassMemory * 6);
-            dropGlow.addColorStop(0, 'rgba(255, 100, 50, 1)');
-            dropGlow.addColorStop(1, 'rgba(255, 0, 0, 0)');
-            ctx.fillStyle = dropGlow;
-            ctx.beginPath();
-            ctx.arc(tipX, tipY, 3 + j.bassMemory * 6, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // ═══════════════════════════
-        // ПОЛИМЕРНЫЕ КАПЛИ
-        // ═══════════════════════════
-        if (Math.random() < 0.3 + j.bassMemory * 0.5) {
-            j.particles.push({
-                x: j.x + (Math.random() - 0.5) * j.size * 0.5,
-                y: j.y + bh * 0.3,
-                vx: (Math.random() - 0.5) * 0.3,
-                vy: 0.3 + Math.random(),
-                life: 1, size: 1 + Math.random() * 3
-            });
-        }
-        j.particles.forEach(p => {
-            p.x += p.vx; p.y += p.vy;
-            p.life -= 0.018;
-            if (p.life > 0) {
-                ctx.fillStyle = `rgba(255, 80, 40, ${p.life * 0.8})`;
-                ctx.shadowColor = `rgba(255, 40, 20, ${p.life * 0.6})`;
-                ctx.shadowBlur = 5;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-        });
-        j.particles = j.particles.filter(p => p.life > 0);
-
-        // Шлейф (красный)
-        j.trail.push({ x: j.x, y: j.y + cy, life: 1 });
-        if (j.trail.length > 10) j.trail.shift();
-        j.trail.forEach((t, i) => {
-            t.life -= 0.03;
-            if (t.life > 0) {
-                ctx.fillStyle = `rgba(255, 60, 30, ${t.life * 0.08})`;
-                ctx.beginPath();
-                ctx.arc(t.x, t.y, j.size * 0.1 * (i/10) * t.life, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
-
-        return true;
-    }
-
-    function animate(ts) {
-        if (!canvas.isConnected) return;
+    function drawDeep(ts) {
         time = ts * 0.001;
-        const bass = smoothBass || 0;
+        const bass = window.symphonyBass || 0;
         ctx.clearRect(0, 0, W, H);
-        jellyfishes = jellyfishes.filter(j => j.life > 0);
-        jellyfishes.forEach(j => drawJellyfish(j, bass));
-        requestAnimationFrame(animate);
+
+        // Фон
+        const bg = ctx.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, 'rgba(5, 20, 50, 0.3)');
+        bg.addColorStop(0.5, 'rgba(2, 10, 30, 0.6)');
+        bg.addColorStop(1, 'rgba(0, 2, 10, 0.9)');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+        // Сферы
+        spheres.forEach(s => {
+            if (s.popped) {
+                const e = (ts - s.popTime) / 1000;
+                if (e > 1.5) { Object.assign(s, { x: Math.random()*W, y: H+50, popped: false, particles: [] }); return; }
+                s.particles.forEach(p => {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.life -= 0.025;
+                    if (p.life > 0) { ctx.fillStyle = `hsla(${p.hue}, 80%, 70%, ${p.life})`; ctx.shadowColor = `hsla(${p.hue}, 90%, 65%, ${p.life*0.8})`; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(p.x, p.y, p.size*p.life, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0; }
+                });
+                const ringR = e * 80, ringA = Math.max(0, 1-e/1.5);
+                ctx.strokeStyle = `rgba(255,255,255,${ringA})`; ctx.lineWidth = 2; ctx.shadowColor = `rgba(200,240,255,${ringA})`; ctx.shadowBlur = 15;
+                ctx.beginPath(); ctx.arc(s.x, s.y, ringR, 0, Math.PI*2); ctx.stroke(); ctx.shadowBlur = 0;
+                return;
+            }
+            s.y -= s.speed * (1+bass*2); s.x += Math.sin(s.wobble)*0.5; s.wobble += s.wobbleSpeed*(1+bass);
+            if (s.y < -50) { s.y = H+50; s.x = Math.random()*W; }
+
+            // Свечение
+            const glow = ctx.createRadialGradient(s.x, s.y, s.size*0.3, s.x, s.y, s.size*1.8);
+            glow.addColorStop(0, `hsla(${s.hue}, 60%, 65%, ${0.15+bass*0.3})`); glow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(s.x, s.y, s.size*1.8, 0, Math.PI*2); ctx.fill();
+
+            // Тело
+            const grad = ctx.createRadialGradient(s.x-s.size*0.2, s.y-s.size*0.2, s.size*0.05, s.x, s.y, s.size);
+            grad.addColorStop(0, `hsla(${s.hue}, 55%, 88%, 0.85)`); grad.addColorStop(0.5, `hsla(${s.hue}, 50%, 62%, 0.55)`); grad.addColorStop(1, `hsla(${s.hue}, 40%, 30%, 0.2)`);
+            ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+
+            // Обводка
+            ctx.strokeStyle = `hsla(${s.hue}, 60%, 75%, ${0.4+bass*0.4})`; ctx.lineWidth = 1.5+bass;
+            ctx.shadowColor = `hsla(${s.hue}, 70%, 65%, ${0.3+bass*0.4})`; ctx.shadowBlur = 4+bass*6;
+            ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.stroke(); ctx.shadowBlur = 0;
+
+            // Блик
+            ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.arc(s.x-s.size*0.2, s.y-s.size*0.2, s.size*0.2, 0, Math.PI*2); ctx.fill();
+        });
+
+        // Кристаллы-стражи
+        crystals.forEach(c => {
+            const elapsed = (ts - c.born) / 1000;
+            c.life = Math.max(0, 1 - elapsed / c.maxLife);
+            if (c.life <= 0) return;
+            
+            c.y += (c.targetY - c.y) * 0.02;
+            c.bassMemory = c.bassMemory * 0.85 + bass * 0.15;
+            c.phase += 0.02 + c.bassMemory * 0.05;
+            c.x += Math.sin(time * 0.3 + c.phase) * (0.5 + bass * 2);
+
+            const alpha = c.life * (0.6 + c.bassMemory * 0.4);
+
+            // Свечение
+            for (let l = 3; l >= 0; l--) {
+                const lr = c.size * (0.3 + l * 0.35);
+                const la = alpha * (0.12 - l * 0.025) * (1 + c.bassMemory);
+                const gl = ctx.createRadialGradient(c.x, c.y, lr*0.1, c.x, c.y, lr);
+                gl.addColorStop(0, `rgba(100, 220, 255, ${la*2})`); gl.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(c.x, c.y, lr, 0, Math.PI*2); ctx.fill();
+            }
+
+            // Кольца
+            c.rings.forEach(ring => {
+                ring.angle += ring.speed * (1 + c.bassMemory * 3);
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                ctx.rotate(ring.tilt * Math.sin(ring.angle));
+                ctx.strokeStyle = `rgba(150, 230, 255, ${alpha * 0.6})`;
+                ctx.lineWidth = 1.5;
+                ctx.shadowColor = `rgba(100, 200, 255, ${alpha*0.5})`; ctx.shadowBlur = 8;
+                ctx.beginPath(); ctx.arc(0, 0, ring.radius, 0, Math.PI*2); ctx.stroke();
+                ctx.shadowBlur = 0; ctx.restore();
+            });
+
+            // Кристаллическое ядро
+            const core = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.size*0.3);
+            core.addColorStop(0, 'rgba(255,255,255,1)'); core.addColorStop(0.3, `rgba(150,220,255,0.8)`); core.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = core; ctx.beginPath(); ctx.arc(c.x, c.y, c.size*0.3, 0, Math.PI*2); ctx.fill();
+
+            // Шлейф
+            c.trail.push({ x: c.x, y: c.y, life: 1 });
+            if (c.trail.length > 8) c.trail.shift();
+            c.trail.forEach((t, i) => { t.life -= 0.04; if (t.life > 0) { ctx.fillStyle = `rgba(100,200,255,${t.life*0.1})`; ctx.beginPath(); ctx.arc(t.x, t.y, c.size*0.15*(i/8)*t.life, 0, Math.PI*2); ctx.fill(); } });
+
+            // Искры
+            if (Math.random() < 0.3 + c.bassMemory*0.5) {
+                c.sparkles.push({ x: c.x+(Math.random()-0.5)*c.size*0.5, y: c.y+(Math.random()-0.5)*c.size*0.3, vx: (Math.random()-0.5)*0.5, vy: -0.5-Math.random()*2, life: 1, size: 0.5+Math.random()*2 });
+            }
+            c.sparkles.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.life-=0.02; if (p.life>0) { ctx.fillStyle=`rgba(200,240,255,${p.life*0.8})`; ctx.beginPath(); ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2); ctx.fill(); } });
+            c.sparkles = c.sparkles.filter(p => p.life > 0);
+        });
+        crystals = crystals.filter(c => c.life > 0);
+
+        // Электрические связи между кристаллами
+        for (let i = 0; i < crystals.length; i++) {
+            for (let j = i+1; j < crystals.length; j++) {
+                const dx = crystals[j].x - crystals[i].x, dy = crystals[j].y - crystals[i].y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < 250 + bass * 200) {
+                    const alpha = (1 - dist/(250+bass*200)) * 0.15;
+                    ctx.strokeStyle = `rgba(150, 230, 255, ${alpha})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.shadowColor = `rgba(100, 200, 255, ${alpha*2})`; ctx.shadowBlur = 6;
+                    ctx.beginPath(); ctx.moveTo(crystals[i].x, crystals[i].y);
+                    // Ломаная молния
+                    const midX = (crystals[i].x + crystals[j].x)/2 + (Math.random()-0.5)*30;
+                    const midY = (crystals[i].y + crystals[j].y)/2 + (Math.random()-0.5)*30;
+                    ctx.quadraticCurveTo(midX, midY, crystals[j].x, crystals[j].y);
+                    ctx.stroke(); ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        requestAnimationFrame(drawDeep);
     }
-    requestAnimationFrame(animate);
+    requestAnimationFrame(drawDeep);
 }
 
-window.addEventListener('load', () => setTimeout(initJellyfish, 1000));
-
 // ═══════════════════════════════════════════
-// ДОП СТИЛИ
+// ЗАПУСК ВСЕЛЕННОЙ
 // ═══════════════════════════════════════════
-const es=document.createElement('style');es.textContent='@keyframes heartFly{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-70px) scale(1.6)}}@keyframes barkUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}';document.head.appendChild(es);
-
-// ═══════════════════════════════════════════
-// ФИЛЬТР СЕРТИФИКАТОВ
-// ═══════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',function(){document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');const c=this.getAttribute('data-course');document.querySelectorAll('.certificate-item').forEach(i=>i.style.display=(c==='all'||i.getAttribute('data-course')===c)?'block':'none');}));});
-
-// ═══════════════════════════════════════════
-// КЛИК ПО СЕРТИФИКАТАМ
-// ═══════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>{const g=document.getElementById('certificatesGrid');if(!g)return;g.addEventListener('click',function(e){const item=e.target.closest('.certificate-item');if(!item)return;const img=item.querySelector('img');if(!img)return;const v=document.getElementById('imageViewer'),vi=document.getElementById('viewerImage'),vc=document.getElementById('viewerCaption');if(!v||!vi)return;vi.src=img.getAttribute('data-full')||img.src;vc.textContent=img.alt||'';v.style.display='block';document.body.style.overflow='hidden';vi.style.transform='translate(-50%,-50%) scale(1)';});});
-
-// ═══════════════════════════════════════════
-// ПРОСМОТРЩИК ФОТО ГАЛЕРЕИ
-// ═══════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>{
-    const viewer=document.getElementById('imageViewer'),vImg=document.getElementById('viewerImage'),vCap=document.getElementById('viewerCaption');
-    if(!viewer||!vImg)return;
-    let allItems=[],curIdx=0,zoomLevel=1;
-    function getVisible(){return Array.from(document.querySelectorAll('#galleryGrid .gallery-item')).filter(i=>window.getComputedStyle(i).display!=='none');}
-    function resetZoom(){zoomLevel=1;vImg.style.transform='translate(-50%,-50%) scale(1)';}
-    function openViewer(imgEl,idx){allItems=getVisible();curIdx=idx;const img=imgEl.querySelector('img')||imgEl;vImg.src=img.getAttribute('data-full')||img.src;vCap.textContent=img.alt||'';viewer.style.display='block';document.body.style.overflow='hidden';resetZoom();}
-    function closeViewer(){viewer.style.display='none';document.body.style.overflow='auto';}
-    function navigate(dir){allItems=getVisible();if(allItems.length===0)return;curIdx=(curIdx+dir+allItems.length)%allItems.length;const item=allItems[curIdx],img=item.querySelector('img');vImg.src=img.getAttribute('data-full')||img.src;vCap.textContent=img.alt||'';resetZoom();}
-    document.getElementById('zoomInBtn')?.addEventListener('click',e=>{e.stopPropagation();if(zoomLevel<3){zoomLevel+=0.2;vImg.style.transform=`translate(-50%,-50%) scale(${zoomLevel})`;}});
-    document.getElementById('zoomOutBtn')?.addEventListener('click',e=>{e.stopPropagation();if(zoomLevel>0.5){zoomLevel-=0.2;vImg.style.transform=`translate(-50%,-50%) scale(${zoomLevel})`;}});
-    document.getElementById('resetZoomBtn')?.addEventListener('click',e=>{e.stopPropagation();resetZoom();});
-    document.getElementById('galleryGrid')?.addEventListener('click',function(e){const item=e.target.closest('.gallery-item');if(item)openViewer(item,Array.from(this.querySelectorAll('.gallery-item')).indexOf(item));});
-    document.getElementById('closeViewer')?.addEventListener('click',closeViewer);
-    viewer.addEventListener('click',e=>{if(e.target===viewer)closeViewer();});
-    document.getElementById('prevBtn')?.addEventListener('click',e=>{e.stopPropagation();navigate(-1);});
-    document.getElementById('nextBtn')?.addEventListener('click',e=>{e.stopPropagation();navigate(1);});
-    document.addEventListener('keydown',e=>{if(viewer.style.display==='block'){if(e.key==='Escape')closeViewer();if(e.key==='ArrowRight')navigate(1);if(e.key==='ArrowLeft')navigate(-1);}});
+window.addEventListener('load', () => {
+    const starCanvas = document.createElement('canvas');
+    starCanvas.id = 'starCanvas';
+    starCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;';
+    const gallery = document.querySelector('.gallery');
+    if (gallery) gallery.appendChild(starCanvas);
+    
+    initStarfield(starCanvas);
+    initWaterfallGame();
+    initDogBoat();
+    initDeepRealm();
+    initTypingEffect();
+    initParticles();
+    setTimeout(loadMusicPlaylist, 1000);
 });
 
 // ═══════════════════════════════════════════
