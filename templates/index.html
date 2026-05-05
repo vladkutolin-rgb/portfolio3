@@ -71,39 +71,47 @@
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- ГАЛЕРЕЯ — ЗВЁЗДЫ + ВОДОПАДЫ + РЕКА -->
+        <!-- ═══════════════════════════════════════════ -->
+    <!-- КРИСТАЛЬНЫЙ ГРОТ — ГАЛЕРЕЯ -->
     <!-- ═══════════════════════════════════════════ -->
     <section class="gallery animate-on-scroll" id="gallery">
-        <canvas id="starCanvas"></canvas>
-        <canvas id="waterfallCanvas"></canvas>
-        <div id="tsunamiWave"></div>
-        <div id="tsunamiAlert">🌊 ЦУНАМИ! 🌊</div>
+        <canvas id="grottoCanvas"></canvas>
+        
+        <!-- Собачка в кристальной лодке -->
         <div id="dogBoat">
-            <div id="boatBack">⛵</div>
+            <div id="boatBack">💎</div>
             <div id="dogEmoji">🐕</div>
         </div>
+        
         <div class="container" style="position:relative;z-index:2;">
-            <h2 class="section-title">Галерея фото</h2>
+            <h2 class="section-title" style="color:#fff;">Галерея фото</h2>
             <div class="gallery-grid" id="galleryGrid">
                 {% for item in gallery %}
-                <div class="gallery-item"><img src="{{ item[1] }}" alt="{{ item[2] }}" data-full="{{ item[1] }}"><p>{{ item[2] }}</p></div>
+                <div class="gallery-item">
+                    <img src="{{ item[1] }}" alt="{{ item[2] }}" data-full="{{ item[1] }}">
+                    <p>{{ item[2] }}</p>
+                </div>
                 {% endfor %}
                 {% if not gallery %}
-                <div class="gallery-item empty-placeholder-card"><div class="empty-card-icon"><i class="fas fa-images"></i></div><p>Фотографии появятся здесь</p></div>
+                <div class="gallery-item empty-placeholder-card">
+                    <div class="empty-card-icon"><i class="fas fa-images"></i></div>
+                    <p>Фотографии появятся здесь</p>
+                </div>
                 {% endif %}
             </div>
         </div>
     </section>
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- СЕРТИФИКАТЫ — ГЛУБИНА -->
+    <!-- БЕЗДНА — СЕРТИФИКАТЫ -->
     <!-- ═══════════════════════════════════════════ -->
     <section id="certificates" class="animate-on-scroll">
-        <canvas id="deepCanvas"></canvas>
-        <div id="bubbleCounter">💫 Энергии: <span id="bubbleCount">0</span></div>
+        <canvas id="abyssCanvas"></canvas>
+        
+        <div id="bubbleCounter">💎 Осколков: <span id="bubbleCount">0</span></div>
+        
         <div class="container" style="position:relative;z-index:2;">
-            <h2 class="section-title">Мои сертификаты</h2>
+            <h2 class="section-title" style="color:#fff;">Мои сертификаты</h2>
             <div class="course-filter">
                 <button class="filter-btn active" data-course="all">Все</button>
                 <button class="filter-btn" data-course="1">1 курс</button>
@@ -115,11 +123,22 @@
                 {% for cert in certificates %}
                 <div class="certificate-item" data-course="{{ cert[6] }}">
                     <img src="{{ cert[1] }}" alt="{{ cert[2] }}" data-full="{{ cert[1] }}">
-                    <div class="certificate-info"><h3>{{ cert[2] }}</h3><p>{{ cert[3] }}</p><p><strong>{{ cert[4] }}</strong> &middot; {{ cert[5] }}</p><span class="course-badge">{{ cert[6] }} курс</span></div>
+                    <div class="certificate-info">
+                        <h3>{{ cert[2] }}</h3>
+                        <p>{{ cert[3] }}</p>
+                        <p><strong>{{ cert[4] }}</strong> &middot; {{ cert[5] }}</p>
+                        <span class="course-badge">{{ cert[6] }} курс</span>
+                    </div>
                 </div>
                 {% endfor %}
                 {% if not certificates %}
-                <div class="certificate-item empty-placeholder-card"><div class="empty-card-icon"><i class="fas fa-award"></i></div><div class="certificate-info"><h3>Пока нет сертификатов</h3><p>Сертификаты появятся здесь</p></div></div>
+                <div class="certificate-item empty-placeholder-card">
+                    <div class="empty-card-icon"><i class="fas fa-award"></i></div>
+                    <div class="certificate-info">
+                        <h3>Пока нет сертификатов</h3>
+                        <p>Сертификаты появятся здесь</p>
+                    </div>
+                </div>
                 {% endif %}
             </div>
         </div>
