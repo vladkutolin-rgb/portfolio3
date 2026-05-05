@@ -337,144 +337,120 @@ function initGrotto() {
         const beat = window.symphonyBeat || 0;
         const energy = bass * 0.5 + mid * 0.3 + high * 0.2;
 
-        // Свод пещеры
-        const ceiling = ctx.createLinearGradient(0, 0, 0, H * 0.4);
+        // Свод
+        const ceiling = ctx.createLinearGradient(0, 0, 0, H * 0.35);
         ceiling.addColorStop(0, 'rgba(10, 10, 20, 0.95)');
-        ceiling.addColorStop(0.5, 'rgba(15, 15, 30, 0.6)');
+        ceiling.addColorStop(0.5, 'rgba(15, 15, 30, 0.5)');
         ceiling.addColorStop(1, 'rgba(20, 20, 40, 0)');
-        ctx.fillStyle = ceiling;
-        ctx.fillRect(0, 0, W, H * 0.4);
+        ctx.fillStyle = ceiling; ctx.fillRect(0, 0, W, H * 0.35);
 
-        // Боковые стены
-        const leftWall = ctx.createLinearGradient(0, 0, W * 0.1, 0);
-        leftWall.addColorStop(0, 'rgba(15, 15, 25, 0.8)');
-        leftWall.addColorStop(1, 'rgba(15, 15, 25, 0)');
-        ctx.fillStyle = leftWall;
-        ctx.fillRect(0, 0, W * 0.1, H);
+        // Стены
+        const lw = ctx.createLinearGradient(0, 0, W * 0.08, 0);
+        lw.addColorStop(0, 'rgba(15,15,25,0.8)'); lw.addColorStop(1, 'rgba(15,15,25,0)');
+        ctx.fillStyle = lw; ctx.fillRect(0, 0, W * 0.08, H);
+        const rw = ctx.createLinearGradient(W, 0, W * 0.92, 0);
+        rw.addColorStop(0, 'rgba(15,15,25,0.8)'); rw.addColorStop(1, 'rgba(15,15,25,0)');
+        ctx.fillStyle = rw; ctx.fillRect(W * 0.92, 0, W * 0.08, H);
 
-        const rightWall = ctx.createLinearGradient(W, 0, W * 0.9, 0);
-        rightWall.addColorStop(0, 'rgba(15, 15, 25, 0.8)');
-        rightWall.addColorStop(1, 'rgba(15, 15, 25, 0)');
-        ctx.fillStyle = rightWall;
-        ctx.fillRect(W * 0.9, 0, W * 0.1, H);
-
-        // ═══════════════════════════════════
-        // ЭНЕРГЕТИЧЕСКАЯ РЕКА — ИДЕАЛЬНЫЙ РИТМ
-        // ═══════════════════════════════════
         const riverY = H * 0.68;
+        const riverSpeed = 1.5 + bass * 4 + beat * 2; // Скорость течения
 
-        // Глубинное свечение
-        const depthGlow = ctx.createLinearGradient(0, riverY - 30, 0, H);
-        depthGlow.addColorStop(0, `rgba(100, 20, 200, ${0.1 + energy * 0.15})`);
-        depthGlow.addColorStop(0.3, `rgba(60, 10, 150, ${0.2 + energy * 0.2})`);
-        depthGlow.addColorStop(0.6, `rgba(0, 180, 220, ${0.15 + energy * 0.1})`);
-        depthGlow.addColorStop(1, `rgba(0, 40, 100, ${0.4 + energy * 0.3})`);
-        ctx.fillStyle = depthGlow;
-        ctx.fillRect(0, riverY - 10, W, H - riverY + 10);
+        // ═══════════════════════════════════
+        // ГЛУБИНА РЕКИ
+        // ═══════════════════════════════════
+        const depth = ctx.createLinearGradient(0, riverY - 20, 0, H);
+        depth.addColorStop(0, `rgba(80, 15, 180, ${0.12 + energy * 0.15})`);
+        depth.addColorStop(0.4, `rgba(0, 160, 200, ${0.2 + energy * 0.15})`);
+        depth.addColorStop(1, `rgba(0, 30, 80, ${0.45 + energy * 0.2})`);
+        ctx.fillStyle = depth; ctx.fillRect(0, riverY - 10, W, H - riverY + 10);
 
-        // Неоновое свечение под поверхностью
-        for (let i = 0; i < 3; i++) {
-            const glowX = W * 0.2 + i * W * 0.3;
-            const glowY = riverY + 20 + i * 15;
-            const glowR = W * 0.2 + Math.sin(time * 0.5 + i) * 30 + beat * 60;
-            const glowAlpha = (0.08 + energy * 0.15) * (0.6 + Math.sin(time * 0.7 + i * 2) * 0.4) + beat * 0.3;
+        // ═══════════════════════════════════
+        // ТЕЧЕНИЕ — ГОРИЗОНТАЛЬНЫЕ ПОЛОСЫ
+        // ═══════════════════════════════════
+        for (let y = riverY; y < H; y += 6) {
+            const depthFactor = (y - riverY) / (H - riverY);
+            const alpha = 0.08 - depthFactor * 0.06;
+            const hue = 260 - depthFactor * 80;
             
-            const glow = ctx.createRadialGradient(glowX, glowY, 10, glowX, glowY, glowR);
-            glow.addColorStop(0, `rgba(160, 80, 255, ${glowAlpha})`);
-            glow.addColorStop(0.5, `rgba(0, 200, 220, ${glowAlpha * 0.5})`);
-            glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = glow;
-            ctx.fillRect(0, riverY - 30, W, H - riverY + 30);
+            for (let x = 0; x < W; x += 2) {
+                const offset = time * riverSpeed * (1 - depthFactor * 0.5);
+                const waveY = y + Math.sin((x + offset) / 80 + y * 0.02) * (2 + bass * 6);
+                const brightness = 0.4 + Math.abs(Math.sin((x + offset) / 60 + y * 0.01)) * 0.6;
+                
+                ctx.fillStyle = `hsla(${hue}, 60%, ${50 + brightness * 20}%, ${alpha * brightness})`;
+                ctx.fillRect(x, waveY, 3, 2);
+            }
         }
 
         // ═══════════════════════════════════
-        // НЕОНОВЫЕ ВОЛНЫ — РЕАГИРУЮТ НА БАС, СРЕДНИЕ, ВЫСОКИЕ
+        // ПОВЕРХНОСТНЫЕ ВОЛНЫ (ВИДИМЫЕ)
         // ═══════════════════════════════════
-        const waveLayers = [
-            { h: 5 + bass * 35 + beat * 20, s: 0.8 + bass * 3, a: 0.25 + beat * 0.3, hue: 270, freq: bass },
-            { h: 7 + mid * 28 + beat * 15, s: 0.6 + mid * 2.5, a: 0.35 + beat * 0.2, hue: 180, freq: mid },
-            { h: 3 + high * 18 + beat * 10, s: 1.2 + high * 4, a: 0.18 + beat * 0.15, hue: 200, freq: high }
-        ];
-
-        waveLayers.forEach((layer, li) => {
-            for (let x = 0; x < W; x += 4) {
-                const y = riverY + 
-                    Math.sin((x + time * layer.s) / 100 + li * 2) * layer.h +
-                    Math.cos((x - time * layer.s * 0.6) / 70 + li) * layer.h * 0.5 +
-                    Math.sin((x * 0.03 + time * 0.3)) * 3;
-                
-                ctx.fillStyle = `hsla(${layer.hue}, 80%, 60%, ${layer.a})`;
-                ctx.fillRect(x, y, 4, 3);
-                
-                // Свечение гребня при ударе
-                if (beat && Math.sin((x + time * layer.s) / 100 + li * 2) > 0.5) {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                    ctx.fillRect(x, y - 1, 4, 1);
-                }
+        for (let x = 0; x < W; x += 2) {
+            const offset = time * riverSpeed;
+            const y1 = riverY + Math.sin((x + offset) / 70) * (4 + bass * 15 + beat * 10) +
+                       Math.cos((x - offset * 0.4) / 45) * (3 + mid * 10) +
+                       Math.sin((x + offset * 0.7) / 120) * (2 + high * 8);
+            
+            const foam = Math.sin((x + offset) / 70) > 0.75 ? 0.5 + beat * 0.5 : 0;
+            
+            // Основная волна
+            ctx.fillStyle = `rgba(100, 180, 255, ${0.3 + bass * 0.4})`;
+            ctx.fillRect(x, y1, 3, 3);
+            
+            // Пена на гребне при ударе
+            if (foam > 0.3) {
+                ctx.fillStyle = `rgba(200, 220, 255, ${foam})`;
+                ctx.fillRect(x, y1 - 1, 3, 1);
             }
-        });
+        }
 
         // ═══════════════════════════════════
-        // ВСПЫШКА НА КАЖДЫЙ УДАР
+        // БЛИКИ НА ВОДЕ
+        // ═══════════════════════════════════
+        const blikCount = Math.floor(20 + energy * 25);
+        for (let i = 0; i < blikCount; i++) {
+            const bx = (time * riverSpeed * 0.5 + i * W / blikCount) % W;
+            const by = riverY + 2 + Math.sin(bx / 30 + time) * (3 + bass * 5);
+            const ba = 0.15 + Math.abs(Math.sin(time * 0.05 + i * 0.3)) * (0.2 + energy * 0.4 + beat * 0.3);
+            
+            ctx.fillStyle = `rgba(200, 200, 255, ${ba})`;
+            ctx.fillRect(bx, by, 2, 1);
+        }
+
+        // ═══════════════════════════════════
+        // ВСПЫШКА НА УДАР
         // ═══════════════════════════════════
         if (beat) {
-            const flashGrad = ctx.createRadialGradient(W/2, riverY, W*0.1, W/2, riverY, W*0.8);
-            flashGrad.addColorStop(0, 'rgba(200, 150, 255, 0.4)');
-            flashGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = flashGrad;
-            ctx.fillRect(0, riverY - 40, W, H - riverY + 40);
+            const flash = ctx.createRadialGradient(W/2, riverY, W*0.05, W/2, riverY, W*0.7);
+            flash.addColorStop(0, 'rgba(180, 130, 255, 0.5)');
+            flash.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = flash; ctx.fillRect(0, riverY - 30, W, H - riverY + 30);
 
-            // Разряды от удара
-            for (let i = 0; i < 6; i++) {
-                const bx = W * 0.1 + Math.random() * W * 0.8;
-                const by = riverY;
-                ctx.strokeStyle = `rgba(220, 180, 255, 0.9)`;
-                ctx.lineWidth = 1.5;
-                ctx.shadowColor = 'rgba(200, 150, 255, 1)';
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.moveTo(bx, by);
-                ctx.lineTo(bx + (Math.random() - 0.5) * 40, by - 15 - Math.random() * 20);
-                ctx.stroke();
+            for (let i = 0; i < 5; i++) {
+                const sx = W * 0.1 + Math.random() * W * 0.8;
+                const sy = riverY - Math.random() * 15;
+                ctx.fillStyle = 'rgba(220, 200, 255, 0.8)';
+                ctx.shadowColor = 'rgba(200, 150, 255, 0.9)'; ctx.shadowBlur = 10;
+                ctx.beginPath(); ctx.arc(sx, sy, 2 + Math.random() * 4, 0, Math.PI * 2); ctx.fill();
                 ctx.shadowBlur = 0;
             }
         }
 
         // ═══════════════════════════════════
-        // ЗВЁЗДНАЯ ПЫЛЬ
+        // ТЕЧЕНИЕ — БЫСТРЫЕ ЛИНИИ
         // ═══════════════════════════════════
-        const dustCount = Math.floor(15 + energy * 30 + beat * 20);
-        for (let i = 0; i < dustCount; i++) {
-            const dx = (time * 0.3 + i * W / dustCount) % W;
-            const dy = riverY + 5 + Math.sin(dx / 40 + time * 0.5) * (3 + energy * 8);
-            const da = 0.3 + Math.abs(Math.sin(time * 0.06 + i * 0.5)) * (0.4 + energy * 0.5) + beat * 0.3;
-            const dh = 250 + Math.sin(i * 0.7 + time * 0.1) * 30;
+        const lineCount = Math.floor(8 + energy * 12);
+        for (let i = 0; i < lineCount; i++) {
+            const lx = (time * riverSpeed * 1.5 + i * W / lineCount) % W;
+            const ly = riverY + 10 + i * (H - riverY - 20) / lineCount;
+            const la = 0.1 + energy * 0.2;
             
-            ctx.fillStyle = `hsla(${dh}, 70%, 70%, ${da})`;
-            ctx.shadowColor = `hsla(${dh}, 80%, 65%, ${da * 0.8})`;
-            ctx.shadowBlur = 3 + energy * 5 + beat * 8;
-            ctx.fillRect(dx, dy, 2 + beat, 2 + beat);
-            ctx.shadowBlur = 0;
-        }
-
-        // ═══════════════════════════════════
-        // БИТ-КРУГИ
-        // ═══════════════════════════════════
-        if (energy > 0.25 || beat) {
-            const circleAlpha = Math.max((energy - 0.25) * 2, beat * 0.8);
-            for (let i = 0; i < 3; i++) {
-                const cx = W * 0.2 + i * W * 0.3;
-                const cr = (energy * 50 + beat * 80) * (0.5 + i * 0.3);
-                
-                ctx.strokeStyle = `rgba(180, 150, 255, ${circleAlpha * 0.5})`;
-                ctx.lineWidth = 1.5 + beat;
-                ctx.shadowColor = `rgba(160, 120, 255, ${circleAlpha * 0.6})`;
-                ctx.shadowBlur = 12 + energy * 15 + beat * 20;
-                ctx.beginPath();
-                ctx.arc(cx, riverY + 8, cr, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-            }
+            ctx.strokeStyle = `rgba(150, 200, 255, ${la})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(lx, ly);
+            ctx.lineTo(lx + 15 + bass * 25, ly + Math.sin(i) * 2);
+            ctx.stroke();
         }
     }
 
