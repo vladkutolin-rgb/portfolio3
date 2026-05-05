@@ -164,7 +164,37 @@ function loadMusicPlaylist() { fetch('/api/music').then(r => r.json()).then(trac
 function loadTrack(i) { if (!musicPlaylist.length) return; currentTrack = i; const t = musicPlaylist[currentTrack]; musicAudio.src = '/' + t.file_path; musicTitle.textContent = t.title; if (isMusicPlaying) musicAudio.play(); }
 function toggleMusic() { if (!musicPlaylist.length) return; if (isMusicPlaying) { musicAudio.pause(); isMusicPlaying = false; musicToggle.textContent = '🔇'; } else { if (!audioCtx) initAudio(); musicAudio.play(); isMusicPlaying = true; musicToggle.textContent = '🔊'; } }
 function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128; analyser.smoothingTimeConstant = 0.85; audioSource = audioCtx.createMediaElementSource(musicAudio); audioSource.connect(analyser); analyser.connect(audioCtx.destination); }
-function updateBass() { if (!analyser || !isMusicPlaying) { window.symphonyBass = window.symphonyBass * 0.9 + 0.2 * 0.1; return; } const d = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(d); let b = 0; for (let i = 0; i < 10; i++) b += d[i]; const raw = b / 10 / 255; window.symphonyBass = window.symphonyBass * 0.7 + raw * 0.3; }
+function updateBass() {
+    if (!analyser || !isMusicPlaying) {
+        window.symphonyBass = window.symphonyBass * 0.85 + 0.2 * 0.15;
+        return;
+    }
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    
+    // Басы (низкие частоты)
+    let rawBass = 0;
+    for (let i = 0; i < 8; i++) rawBass += data[i];
+    rawBass = rawBass / 8 / 255;
+    
+    // Средние частоты (ритм)
+    let rawMid = 0;
+    for (let i = 8; i < 30; i++) rawMid += data[i];
+    rawMid = rawMid / 22 / 255;
+    
+    // Высокие (тарелки)
+    let rawHigh = 0;
+    for (let i = 30; i < 60; i++) rawHigh += data[i];
+    rawHigh = rawHigh / 30 / 255;
+    
+    // Резкая реакция на удар
+    const beat = rawBass > 0.4 ? 1 : 0;
+    
+    window.symphonyBass = window.symphonyBass * 0.6 + rawBass * 0.4;
+    window.symphonyMid = (window.symphonyMid || 0) * 0.6 + rawMid * 0.4;
+    window.symphonyHigh = (window.symphonyHigh || 0) * 0.6 + rawHigh * 0.4;
+    window.symphonyBeat = beat; // 0 или 1 — прямой удар
+}
 setInterval(updateBass, 33);
 if (musicToggle) musicToggle.addEventListener('click', toggleMusic);
 if (musicNext) musicNext.addEventListener('click', () => { if (!musicPlaylist.length) return; loadTrack((currentTrack + 1) % musicPlaylist.length); if (isMusicPlaying) musicAudio.play(); });
@@ -300,9 +330,12 @@ function initGrotto() {
         });
     }
 
-       function drawCavernWalls() {
+        function drawCavernWalls() {
         const bass = window.symphonyBass || 0.15;
-        const energy = bass;
+        const mid = window.symphonyMid || 0.1;
+        const high = window.symphonyHigh || 0.05;
+        const beat = window.symphonyBeat || 0;
+        const energy = bass * 0.5 + mid * 0.3 + high * 0.2;
 
         // Свод пещеры
         const ceiling = ctx.createLinearGradient(0, 0, 0, H * 0.4);
@@ -326,7 +359,7 @@ function initGrotto() {
         ctx.fillRect(W * 0.9, 0, W * 0.1, H);
 
         // ═══════════════════════════════════
-        // ЭНЕРГЕТИЧЕСКАЯ РЕКА БЕЗДНЫ
+        // ЭНЕРГЕТИЧЕСКАЯ РЕКА — ИДЕАЛЬНЫЙ РИТМ
         // ═══════════════════════════════════
         const riverY = H * 0.68;
 
@@ -343,8 +376,8 @@ function initGrotto() {
         for (let i = 0; i < 3; i++) {
             const glowX = W * 0.2 + i * W * 0.3;
             const glowY = riverY + 20 + i * 15;
-            const glowR = W * 0.2 + Math.sin(time * 0.5 + i) * 30;
-            const glowAlpha = (0.08 + energy * 0.15) * (0.6 + Math.sin(time * 0.7 + i * 2) * 0.4);
+            const glowR = W * 0.2 + Math.sin(time * 0.5 + i) * 30 + beat * 60;
+            const glowAlpha = (0.08 + energy * 0.15) * (0.6 + Math.sin(time * 0.7 + i * 2) * 0.4) + beat * 0.3;
             
             const glow = ctx.createRadialGradient(glowX, glowY, 10, glowX, glowY, glowR);
             glow.addColorStop(0, `rgba(160, 80, 255, ${glowAlpha})`);
@@ -355,12 +388,12 @@ function initGrotto() {
         }
 
         // ═══════════════════════════════════
-        // НЕОНОВЫЕ ВОЛНЫ
+        // НЕОНОВЫЕ ВОЛНЫ — РЕАГИРУЮТ НА БАС, СРЕДНИЕ, ВЫСОКИЕ
         // ═══════════════════════════════════
         const waveLayers = [
-            { h: 5 + energy * 30, s: 0.8 + energy * 2.5, a: 0.25, hue: 270 },
-            { h: 7 + energy * 22, s: 0.6 + energy * 1.8, a: 0.35, hue: 180 },
-            { h: 3 + energy * 16, s: 1.2 + energy * 3.5, a: 0.18, hue: 200 }
+            { h: 5 + bass * 35 + beat * 20, s: 0.8 + bass * 3, a: 0.25 + beat * 0.3, hue: 270, freq: bass },
+            { h: 7 + mid * 28 + beat * 15, s: 0.6 + mid * 2.5, a: 0.35 + beat * 0.2, hue: 180, freq: mid },
+            { h: 3 + high * 18 + beat * 10, s: 1.2 + high * 4, a: 0.18 + beat * 0.15, hue: 200, freq: high }
         ];
 
         waveLayers.forEach((layer, li) => {
@@ -370,92 +403,73 @@ function initGrotto() {
                     Math.cos((x - time * layer.s * 0.6) / 70 + li) * layer.h * 0.5 +
                     Math.sin((x * 0.03 + time * 0.3)) * 3;
                 
-                // Неоновая волна
                 ctx.fillStyle = `hsla(${layer.hue}, 80%, 60%, ${layer.a})`;
                 ctx.fillRect(x, y, 4, 3);
                 
-                // Свечение гребня
-                if (Math.sin((x + time * layer.s) / 100 + li * 2) > 0.7) {
-                    ctx.fillStyle = `rgba(200, 180, 255, ${layer.a * 0.8})`;
+                // Свечение гребня при ударе
+                if (beat && Math.sin((x + time * layer.s) / 100 + li * 2) > 0.5) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                     ctx.fillRect(x, y - 1, 4, 1);
                 }
             }
         });
 
         // ═══════════════════════════════════
-        // ЭЛЕКТРИЧЕСКИЕ РАЗРЯДЫ НА ВОДЕ
+        // ВСПЫШКА НА КАЖДЫЙ УДАР
         // ═══════════════════════════════════
-        if (energy > 0.25) {
-            const boltCount = Math.floor(energy * 8);
-            for (let i = 0; i < boltCount; i++) {
-                const bx = Math.random() * W;
-                const by = riverY + Math.random() * 20;
-                const bLen = 10 + Math.random() * 30;
-                
-                ctx.strokeStyle = `rgba(200, 160, 255, ${energy * 0.7})`;
-                ctx.lineWidth = 1;
-                ctx.shadowColor = `rgba(180, 120, 255, ${energy})`;
-                ctx.shadowBlur = 8 + energy * 12;
+        if (beat) {
+            const flashGrad = ctx.createRadialGradient(W/2, riverY, W*0.1, W/2, riverY, W*0.8);
+            flashGrad.addColorStop(0, 'rgba(200, 150, 255, 0.4)');
+            flashGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = flashGrad;
+            ctx.fillRect(0, riverY - 40, W, H - riverY + 40);
+
+            // Разряды от удара
+            for (let i = 0; i < 6; i++) {
+                const bx = W * 0.1 + Math.random() * W * 0.8;
+                const by = riverY;
+                ctx.strokeStyle = `rgba(220, 180, 255, 0.9)`;
+                ctx.lineWidth = 1.5;
+                ctx.shadowColor = 'rgba(200, 150, 255, 1)';
+                ctx.shadowBlur = 15;
                 ctx.beginPath();
                 ctx.moveTo(bx, by);
-                for (let s = 0; s < 3; s++) {
-                    ctx.lineTo(bx + (Math.random() - 0.5) * bLen, by + s * bLen / 3 + (Math.random() - 0.5) * 10);
-                }
+                ctx.lineTo(bx + (Math.random() - 0.5) * 40, by - 15 - Math.random() * 20);
                 ctx.stroke();
                 ctx.shadowBlur = 0;
             }
         }
 
         // ═══════════════════════════════════
-        // ЗВЁЗДНАЯ ПЫЛЬ НА ПОВЕРХНОСТИ
+        // ЗВЁЗДНАЯ ПЫЛЬ
         // ═══════════════════════════════════
-        const dustCount = Math.floor(15 + energy * 30);
+        const dustCount = Math.floor(15 + energy * 30 + beat * 20);
         for (let i = 0; i < dustCount; i++) {
             const dx = (time * 0.3 + i * W / dustCount) % W;
             const dy = riverY + 5 + Math.sin(dx / 40 + time * 0.5) * (3 + energy * 8);
-            const da = 0.3 + Math.abs(Math.sin(time * 0.06 + i * 0.5)) * (0.4 + energy * 0.5);
+            const da = 0.3 + Math.abs(Math.sin(time * 0.06 + i * 0.5)) * (0.4 + energy * 0.5) + beat * 0.3;
             const dh = 250 + Math.sin(i * 0.7 + time * 0.1) * 30;
             
             ctx.fillStyle = `hsla(${dh}, 70%, 70%, ${da})`;
             ctx.shadowColor = `hsla(${dh}, 80%, 65%, ${da * 0.8})`;
-            ctx.shadowBlur = 3 + energy * 5;
-            ctx.fillRect(dx, dy, 2, 2);
+            ctx.shadowBlur = 3 + energy * 5 + beat * 8;
+            ctx.fillRect(dx, dy, 2 + beat, 2 + beat);
             ctx.shadowBlur = 0;
         }
 
         // ═══════════════════════════════════
-        // ВСПЛЕСКИ ПРИ БАСАХ
+        // БИТ-КРУГИ
         // ═══════════════════════════════════
-        if (energy > 0.4) {
-            const splashCount = Math.floor(energy * 5);
-            for (let i = 0; i < splashCount; i++) {
-                const sx = W * 0.15 + Math.random() * W * 0.7;
-                const sy = riverY - 10 - Math.random() * 20;
-                const ss = 2 + Math.random() * 4 * energy;
-                
-                ctx.fillStyle = `rgba(200, 180, 255, ${energy * 0.6})`;
-                ctx.shadowColor = 'rgba(180, 140, 255, 0.8)';
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.arc(sx, sy, ss, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-        }
-
-        // ═══════════════════════════════════
-        // БИТ-КРУГИ НА ВОДЕ
-        // ═══════════════════════════════════
-        if (energy > 0.3) {
-            const circleAlpha = (energy - 0.3) * 2;
+        if (energy > 0.25 || beat) {
+            const circleAlpha = Math.max((energy - 0.25) * 2, beat * 0.8);
             for (let i = 0; i < 3; i++) {
                 const cx = W * 0.2 + i * W * 0.3;
-                const cr = energy * 50 * (0.5 + i * 0.3);
+                const cr = (energy * 50 + beat * 80) * (0.5 + i * 0.3);
                 
-                ctx.strokeStyle = `rgba(180, 150, 255, ${circleAlpha * 0.4})`;
-                ctx.lineWidth = 1.5;
-                ctx.shadowColor = `rgba(160, 120, 255, ${circleAlpha * 0.5})`;
-                ctx.shadowBlur = 12 + energy * 15;
+                ctx.strokeStyle = `rgba(180, 150, 255, ${circleAlpha * 0.5})`;
+                ctx.lineWidth = 1.5 + beat;
+                ctx.shadowColor = `rgba(160, 120, 255, ${circleAlpha * 0.6})`;
+                ctx.shadowBlur = 12 + energy * 15 + beat * 20;
                 ctx.beginPath();
                 ctx.arc(cx, riverY + 8, cr, 0, Math.PI * 2);
                 ctx.stroke();
