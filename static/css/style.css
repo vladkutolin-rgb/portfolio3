@@ -237,7 +237,6 @@ section { padding: 70px 0; position: relative; }
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1; pointer-events: none;
 }
-/* Собачка */
 #dogBoat { position: absolute; bottom: 100px; left: 50%; z-index: 3; cursor: grab; user-select: none; display: flex; flex-direction: column; align-items: center; }
 #dogBoat:active { cursor: grabbing; }
 #dogEmoji { font-size: 50px; position: relative; z-index: 2; transition: transform 0.3s; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); }
