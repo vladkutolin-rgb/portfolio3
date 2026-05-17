@@ -120,7 +120,7 @@ musicAudio.volume = 0.3;
 if (musicVolume) musicVolume.value = 30;
 
 // ═══════════════════════════════════════════
-// БОЖЕСТВЕННОЕ ПИАНИНО (36 КЛАВИШ) + ШАР
+// ПИАНИНО С ЭФФЕКТАМИ + МИНИМАЛИСТИЧНЫЙ ШАР
 // ═══════════════════════════════════════════
 const TOTAL_KEYS = 36;
 let wavePosition = TOTAL_KEYS / 2;
@@ -145,26 +145,54 @@ function createPiano() {
     });
 }
 
-function animatePiano(bass, beat, mid, high) {
+// Эффекты от клавиш
+function spawnKeyEffect(x, y, bass) {
+    const gallery = document.querySelector('.gallery');
+    if (!gallery) return;
+
+    const effect = document.createElement('div');
+    effect.className = 'key-effect';
+    const size = 4 + bass * 8;
+    const hue = 150 + bass * 50;
+    effect.style.cssText = `
+        left: ${x}px;
+        top: ${y}px;
+        width: ${size}px;
+        height: ${size}px;
+        background: hsla(${hue}, 80%, 60%, 0.8);
+        border-radius: 50%;
+        box-shadow: 0 0 ${10 + bass * 15}px hsla(${hue}, 80%, 55%, 0.6);
+    `;
+    gallery.appendChild(effect);
+    setTimeout(() => effect.remove(), 1500);
+}
+
+function animatePiano(bass, beat, mid) {
     const keys = document.querySelectorAll('.piano-key');
     if (keys.length === 0) return;
 
-    // Плавный сброс
+    // Сброс
     keys.forEach(k => {
-        if (!k.classList.contains('active')) return;
         k.classList.remove('active');
         k.style.transform = '';
         k.style.boxShadow = '';
     });
 
     if (beat) {
-        // Волна от центра
+        // Волна от центра + эффекты
         const center = Math.floor(TOTAL_KEYS / 2);
         for (let i = 0; i < TOTAL_KEYS; i++) {
             const dist = Math.abs(i - center);
             setTimeout(() => {
                 if (keys[i]) {
                     keys[i].classList.add('active');
+                    const rect = keys[i].getBoundingClientRect();
+                    const galleryRect = document.querySelector('.gallery').getBoundingClientRect();
+                    spawnKeyEffect(
+                        rect.left - galleryRect.left + rect.width / 2,
+                        rect.top - galleryRect.top,
+                        bass
+                    );
                     setTimeout(() => {
                         if (keys[i]) {
                             keys[i].classList.remove('active');
@@ -178,7 +206,7 @@ function animatePiano(bass, beat, mid, high) {
         return;
     }
 
-    // Плавная волна — скорость от музыки
+    // Плавная волна
     const speed = 0.3 + bass * 3 + mid * 1.8;
     wavePosition += speed;
     if (wavePosition >= TOTAL_KEYS) wavePosition -= TOTAL_KEYS;
@@ -195,6 +223,17 @@ function animatePiano(bass, beat, mid, high) {
             keys[idx].classList.add('active');
             keys[idx].style.transform = `translateY(${2 + brightness * 5}px)`;
             keys[idx].style.boxShadow = `0 0 ${6 + brightness * 22}px rgba(0, 255, 150, ${0.15 + brightness * 0.45})`;
+
+            // Эффекты от пиков волны
+            if (brightness > 0.7 && Math.random() < 0.3) {
+                const rect = keys[idx].getBoundingClientRect();
+                const galleryRect = document.querySelector('.gallery').getBoundingClientRect();
+                spawnKeyEffect(
+                    rect.left - galleryRect.left + rect.width / 2,
+                    rect.top - galleryRect.top,
+                    bass
+                );
+            }
         }
     }
 }
@@ -204,51 +243,47 @@ function animateOrb(bass, beat) {
     const core = orb?.querySelector('.orb-core');
     if (!orb || !core) return;
 
-    const scale = 1 + bass * 0.5 + beat * 0.4;
+    const scale = 1 + bass * 0.4 + beat * 0.3;
     orb.style.transform = `translate(-50%, -50%) scale(${scale})`;
 
-    const hue = 150 + bass * 60;
-    const saturation = 80 + beat * 20;
-    core.style.background = `radial-gradient(circle, hsla(${hue}, ${saturation}%, 65%, 0.95) 0%, hsla(${hue}, 70%, 35%, 0.5) 60%, transparent 100%)`;
+    const hue = 150 + bass * 50;
+    const borderColor = beat ? `rgba(0, 255, 180, 0.9)` : `rgba(0, 255, 180, ${0.4 + bass * 0.4})`;
+    core.style.borderColor = borderColor;
     core.style.boxShadow = `
-        0 0 ${40 + bass * 80}px hsla(${hue}, ${saturation}%, 55%, 0.5),
-        0 0 ${80 + bass * 120}px hsla(${hue}, 70%, 40%, 0.3),
-        0 0 ${120 + bass * 160}px hsla(${hue}, 60%, 30%, 0.12)
+        inset 0 0 ${20 + bass * 40}px rgba(0, 255, 180, ${0.1 + bass * 0.2}),
+        0 0 ${30 + bass * 60}px rgba(0, 255, 180, ${0.2 + bass * 0.4}),
+        0 0 ${60 + bass * 100}px rgba(0, 200, 150, ${0.1 + bass * 0.2})
     `;
 
     if (beat) {
-        for (let i = 0; i < 14; i++) {
+        for (let i = 0; i < 10; i++) {
             const particle = document.createElement('div');
             particle.className = 'orb-particle';
             const angle = Math.random() * Math.PI * 2;
-            const distance = 55 + Math.random() * 100;
+            const distance = 30 + Math.random() * 60;
             particle.style.cssText = `
                 left: 50%; top: 50%;
-                width: ${4 + Math.random() * 8}px;
-                height: ${4 + Math.random() * 8}px;
-                background: hsla(${hue}, ${saturation}%, 65%, 0.85);
+                width: 3px; height: 3px;
+                background: rgba(0, 255, 180, 0.8);
                 --px: ${Math.cos(angle) * distance}px;
                 --py: ${Math.sin(angle) * distance}px;
-                box-shadow: 0 0 ${10 + Math.random() * 15}px hsla(${hue}, 80%, 60%, 0.6);
+                box-shadow: 0 0 8px rgba(0, 255, 180, 0.5);
             `;
             orb.appendChild(particle);
-            setTimeout(() => particle.remove(), 1000);
+            setTimeout(() => particle.remove(), 800);
         }
     }
 }
 
-// Инициализация
 window.addEventListener('load', () => {
     setTimeout(createPiano, 500);
 });
 
-// Главный цикл — 30fps
 setInterval(() => {
     const bass = window.symphonyBass || 0.3;
     const mid = window.symphonyMid || 0.2;
-    const high = window.symphonyHigh || 0.1;
     const beat = window.symphonyBeat || 0;
 
-    animatePiano(bass, beat, mid, high);
+    animatePiano(bass, beat, mid);
     animateOrb(bass, beat);
 }, 33);
