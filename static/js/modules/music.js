@@ -120,29 +120,8 @@ musicAudio.volume = 0.3;
 if (musicVolume) musicVolume.value = 30;
 
 // ═══════════════════════════════════════════
-// ФИНАЛ — ПИАНИНО + УДАРНЫЕ ВОЛНЫ КОЛЕЦ
+// ТРИ ВОЛНЫ + ЧУВСТВИТЕЛЬНЫЕ КОЛЬЦА
 // ═══════════════════════════════════════════
-const TOTAL_KEYS = 36;
-let wavePos = TOTAL_KEYS / 2;
-let activeEffects = 0;
-const MAX_EFFECTS = 10;
-
-function createPiano() {
-    const container = document.getElementById('pianoContainer');
-    if (!container) return;
-    const keys = [];
-    for (let i = 0; i < TOTAL_KEYS; i++) {
-        keys.push([1,3,6,8,10].includes(i%12) ? 'black' : 'white');
-    }
-    container.innerHTML = '';
-    keys.forEach((type, i) => {
-        const key = document.createElement('div');
-        key.className = `piano-key ${type}`;
-        key.dataset.index = i;
-        container.appendChild(key);
-    });
-}
-
 function createOrbRings() {
     const orb = document.getElementById('neonOrb');
     if (!orb || document.querySelector('.orb-ring')) return;
@@ -153,118 +132,90 @@ function createOrbRings() {
     });
 }
 
-// Эффекты от пианино (меньше)
-function spawnEffect(x, y, intensity, type) {
-    if (activeEffects >= MAX_EFFECTS) {
-        const oldest = document.querySelector('.key-effect');
-        if (oldest) { oldest.remove(); activeEffects--; }
-    }
-    const gallery = document.querySelector('.gallery');
-    if (!gallery) return;
-
-    const effect = document.createElement('div');
-    effect.className = 'key-effect';
-    const angle = -Math.PI/2 + (Math.random()-0.5)*1.4;
-    const distance = 60 + intensity * 200;
-    const duration = 0.7 + Math.random() * 1;
-    const size = 2 + intensity * 8;
-    const hue = type === 'circle' ? 150 : type === 'line' ? 200 : 50;
-    
-    effect.style.cssText = `
-        left: ${x}px; top: ${y}px;
-        width: ${type==='line'?size:size}px;
-        height: ${type==='line'?1.5+intensity*2:size}px;
-        background: ${type==='spark'?'rgba(255,255,255,0.9)':`hsla(${hue},90%,60%,0.8)`};
-        border-radius: ${type==='line'?'2px':'50%'};
-        box-shadow: 0 0 ${8+intensity*18}px ${type==='spark'?'rgba(255,255,200,0.6)':`hsla(${hue},90%,55%,0.5)`};
-        animation: keyFly ${duration}s ease-out forwards;
-        --dx: ${Math.cos(angle)*distance}px;
-        --dy: ${Math.sin(angle)*distance}px;
-    `;
-    gallery.appendChild(effect);
-    activeEffects++;
-    setTimeout(() => { effect.remove(); activeEffects--; }, duration*1000+100);
-}
-
-// Ударная волна от кольца
-function ringShockwave(ring, intensity) {
+// Ударная волна кольца
+function ringShockwave(ring, intensity, hue) {
     if (!ring) return;
     ring.style.transition = 'none';
-    ring.style.transform = 'translate(-50%,-50%) scale(1.5)';
+    ring.style.transform = 'translate(-50%,-50%) scale(1.6)';
     ring.style.borderWidth = '3px';
-    ring.style.borderColor = 'rgba(255,255,255,0.9)';
-    ring.style.boxShadow = `0 0 ${30+intensity*60}px rgba(255,255,255,0.7)`;
+    ring.style.borderColor = `hsla(${hue}, 90%, 70%, 0.9)`;
+    ring.style.boxShadow = `0 0 ${30+intensity*60}px hsla(${hue}, 90%, 60%, 0.7)`;
     
-    setTimeout(() => {
-        ring.style.transition = 'transform 0.8s ease-out, border-color 0.8s ease-out, box-shadow 0.8s ease-out, border-width 0.3s ease-out';
+    requestAnimationFrame(() => {
+        ring.style.transition = 'transform 1s ease-out, border-color 1s ease-out, box-shadow 1s ease-out, border-width 0.3s ease-out';
         ring.style.transform = 'translate(-50%,-50%) scale(1)';
         ring.style.borderWidth = '2px';
-        ring.style.borderColor = `rgba(0,255,180,0.3)`;
-        ring.style.boxShadow = `0 0 20px rgba(0,255,180,0.2)`;
-    }, 50);
+    });
 }
 
-function animatePiano(bass, beat, mid, high) {
-    const keys = document.querySelectorAll('.piano-key');
-    if (keys.length === 0) return;
+// ТРИ ВОЛНЫ — бас, мид, хай
+let bassWavePos = 0, midWavePos = 0, highWavePos = 0;
 
-    // Плавный сброс
-    keys.forEach(k => {
-        k.classList.remove('active');
-        k.style.transform = 'translateY(0px)';
-        k.style.boxShadow = '';
-    });
+function drawWaves(bass, mid, high, beat) {
+    const orb = document.getElementById('neonOrb');
+    if (!orb) return;
+    
+    // Удаляем старые волны
+    document.querySelectorAll('.sound-wave').forEach(w => w.remove());
 
-    // Скорость волны — очень чувствительная
-    const speed = 0.2 + bass * 3.5 + mid * 2 + high * 1.2;
-    wavePos += speed;
-    if (wavePos >= TOTAL_KEYS) wavePos -= TOTAL_KEYS;
+    const cx = orb.offsetLeft + orb.offsetWidth/2;
+    const cy = orb.offsetTop + orb.offsetHeight/2;
 
-    // Двойная волна (основная + отражённая)
-    const width = 6 + Math.floor(bass * 2.5);
-    const center = Math.floor(wavePos);
-    const center2 = Math.floor((wavePos + TOTAL_KEYS/2) % TOTAL_KEYS);
+    const waves = [
+        { freq: bass, pos: bassWavePos, color: 'rgba(0,255,180,__A__)', radius: 120, speed: 0.5 + bass*3, width: 3 },
+        { freq: mid, pos: midWavePos, color: 'rgba(100,200,255,__A__)', radius: 90, speed: 0.7 + mid*3, width: 2 },
+        { freq: high, pos: highWavePos, color: 'rgba(255,255,255,__A__)', radius: 60, speed: 1 + high*3, width: 1.5 }
+    ];
 
-    [center, center2].forEach((c, waveIdx) => {
-        const w = waveIdx === 0 ? width : Math.floor(width * 0.6);
-        for (let i = -w; i <= w; i++) {
-            const idx = ((c+i)%TOTAL_KEYS+TOTAL_KEYS)%TOTAL_KEYS;
-            const dist = Math.abs(i);
-            const brightness = Math.max(0, 1-dist/(w+1)) * (waveIdx === 0 ? 1 : 0.5);
-            if (brightness>0.02 && keys[idx]) {
-                keys[idx].classList.add('active');
-                keys[idx].style.transform = `translateY(${2+brightness*5}px)`;
-                keys[idx].style.boxShadow = `0 0 ${6+brightness*20}px rgba(0,255,150,${0.15+brightness*0.4})`;
-            }
+    waves.forEach((w, i) => {
+        w.pos += w.speed;
+        if (w.pos >= Math.PI*2) w.pos -= Math.PI*2;
+        
+        const canvas = document.createElement('canvas');
+        canvas.className = 'sound-wave';
+        canvas.width = w.radius*2;
+        canvas.height = w.radius*2;
+        canvas.style.cssText = `
+            position: absolute;
+            left: ${cx - w.radius}px;
+            top: ${cy - w.radius}px;
+            width: ${w.radius*2}px;
+            height: ${w.radius*2}px;
+            pointer-events: none;
+            z-index: 0;
+        `;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = w.color.replace('__A__', String(0.3 + w.freq*0.5));
+        ctx.lineWidth = w.width + beat*2;
+        ctx.shadowColor = w.color.replace('__A__', String(0.4 + beat*0.4));
+        ctx.shadowBlur = 10 + w.freq*20 + beat*15;
+        
+        ctx.beginPath();
+        const points = 120;
+        for (let p = 0; p <= points; p++) {
+            const angle = (p/points) * Math.PI*2;
+            const amplitude = 8 + w.freq*25 + beat*15;
+            const r = w.radius + Math.sin(angle*5 + w.pos)*amplitude + Math.cos(angle*3 - w.pos*0.7)*amplitude*0.5;
+            const x = w.radius + Math.cos(angle)*r;
+            const y = w.radius + Math.sin(angle)*r;
+            p === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
         }
+        ctx.closePath();
+        ctx.stroke();
+        
+        orb.appendChild(canvas);
+        setTimeout(() => canvas.remove(), 50);
     });
 
-    const gr = document.querySelector('.gallery').getBoundingClientRect();
-
-    // Удар — залп (меньше)
-    if (beat) {
-        for (let i=0;i<6;i++) setTimeout(()=>{
-            const k=keys[Math.floor(Math.random()*TOTAL_KEYS)];
-            if(k){const r=k.getBoundingClientRect();spawnEffect(r.left-gr.left+r.width/2,r.top-gr.top,0.7,'spark');}
-        },i*35);
-    }
-
-    // Эффекты реже
-    if (bass>0.3 && Math.random()<bass*0.35) {
-        const k=keys[Math.floor(Math.random()*8)];
-        if(k){const r=k.getBoundingClientRect();spawnEffect(r.left-gr.left+r.width/2,r.top-gr.top,bass,'circle');}
-    }
-    if (high>0.25 && Math.random()<high*0.35) {
-        const k=keys[26+Math.floor(Math.random()*10)];
-        if(k){const r=k.getBoundingClientRect();spawnEffect(r.left-gr.left+r.width/2,r.top-gr.top,high,'spark');}
-    }
+    bassWavePos = waves[0].pos;
+    midWavePos = waves[1].pos;
+    highWavePos = waves[2].pos;
 }
 
-// Кольца с ударными волнами
+// Кольца
 let orbPhase = 0;
-let lastBass = 0;
-let lastMid = 0;
-let lastHigh = 0;
+let prevBass = 0, prevMid = 0, prevHigh = 0;
 
 function animateOrb(bass, beat, mid, high) {
     const orb = document.getElementById('neonOrb');
@@ -278,50 +229,46 @@ function animateOrb(bass, beat, mid, high) {
 
     // Бас-кольцо
     if (rings[0]) {
-        const s = 1 + Math.sin(orbPhase)*0.25 + bass*0.35;
+        const s = 1 + bass*0.5 + beat*0.3;
         rings[0].style.transform = `translate(-50%,-50%) scale(${s})`;
-        rings[0].style.borderColor = `rgba(0,255,180,${0.25+bass*0.65})`;
-        rings[0].style.boxShadow = `0 0 ${15+bass*50}px rgba(0,255,180,${0.15+bass*0.4})`;
-        
-        // Ударная волна при резком скачке баса
-        if (bass - lastBass > 0.2) ringShockwave(rings[0], bass);
+        rings[0].style.borderColor = `rgba(0,255,180,${0.3+bass*0.7})`;
+        rings[0].style.boxShadow = `0 0 ${15+bass*60}px rgba(0,255,180,${0.15+bass*0.5})`;
+        if (bass - prevBass > 0.15) ringShockwave(rings[0], bass, 150);
     }
 
     // Мид-кольцо
     if (rings[1]) {
-        const s = 1 + Math.cos(orbPhase*1.3)*0.2 + mid*0.3;
+        const s = 1 + mid*0.45 + beat*0.25;
         rings[1].style.transform = `translate(-50%,-50%) scale(${s})`;
-        rings[1].style.borderColor = `rgba(100,200,255,${0.25+mid*0.65})`;
-        rings[1].style.boxShadow = `0 0 ${12+mid*40}px rgba(100,200,255,${0.15+mid*0.4})`;
-        
-        if (mid - lastMid > 0.18) ringShockwave(rings[1], mid);
+        rings[1].style.borderColor = `rgba(100,200,255,${0.3+mid*0.7})`;
+        rings[1].style.boxShadow = `0 0 ${12+mid*50}px rgba(100,200,255,${0.15+mid*0.5})`;
+        if (mid - prevMid > 0.12) ringShockwave(rings[1], mid, 200);
     }
 
     // Хай-кольцо
     if (rings[2]) {
-        const s = 1 + Math.sin(orbPhase*1.7)*0.15 + high*0.25;
+        const s = 1 + high*0.4 + beat*0.2;
         rings[2].style.transform = `translate(-50%,-50%) scale(${s})`;
-        rings[2].style.borderColor = `rgba(255,255,255,${0.25+high*0.65})`;
-        rings[2].style.boxShadow = `0 0 ${8+high*35}px rgba(255,255,255,${0.15+high*0.4})`;
-        
-        if (high - lastHigh > 0.15) ringShockwave(rings[2], high);
+        rings[2].style.borderColor = `rgba(255,255,255,${0.3+high*0.7})`;
+        rings[2].style.boxShadow = `0 0 ${8+high*40}px rgba(255,255,255,${0.15+high*0.5})`;
+        if (high - prevHigh > 0.1) ringShockwave(rings[2], high, 280);
     }
 
-    lastBass = bass; lastMid = mid; lastHigh = high;
+    prevBass = bass; prevMid = mid; prevHigh = high;
 
     // Ядро
     if (core) {
-        core.style.transform = `translate(-50%,-50%) scale(${1+beat*0.5})`;
-        core.style.boxShadow = `0 0 ${12+bass*35}px rgba(0,255,180,${0.5+bass*0.5})`;
+        core.style.transform = `translate(-50%,-50%) scale(${1+beat*0.6})`;
+        core.style.boxShadow = `0 0 ${12+bass*40}px rgba(0,255,180,${0.5+bass*0.5})`;
     }
 
-    // Частицы при ударе
+    // Частицы
     if (beat) {
-        for (let i=0;i<6;i++) {
+        for (let i=0;i<8;i++) {
             const p=document.createElement('div');
             p.className='orb-particle';
-            const a=Math.random()*Math.PI*2,d=25+Math.random()*50;
-            p.style.cssText=`left:50%;top:50%;width:${2+Math.random()*3}px;height:${2+Math.random()*3}px;background:rgba(0,255,180,0.8);--px:${Math.cos(a)*d}px;--py:${Math.sin(a)*d}px;box-shadow:0 0 ${5+Math.random()*6}px rgba(0,255,180,0.5);animation:particleFly 0.6s ease-out forwards;`;
+            const a=Math.random()*Math.PI*2,d=30+Math.random()*60;
+            p.style.cssText=`left:50%;top:50%;width:${2+Math.random()*4}px;height:${2+Math.random()*4}px;background:rgba(0,255,180,0.8);--px:${Math.cos(a)*d}px;--py:${Math.sin(a)*d}px;box-shadow:0 0 ${6+Math.random()*8}px rgba(0,255,180,0.5);animation:particleFly 0.6s ease-out forwards;`;
             orb.appendChild(p);
             setTimeout(()=>p.remove(),700);
         }
@@ -329,15 +276,12 @@ function animateOrb(bass, beat, mid, high) {
 }
 
 const styles = document.createElement('style');
-styles.textContent = `
-    @keyframes keyFly{0%{opacity:.9;transform:translateY(0)translateX(0)scale(1)}100%{opacity:0;transform:translateY(var(--dy))translateX(var(--dx))scale(.06)}}
-    @keyframes particleFly{0%{opacity:.8;transform:translate(0,0)scale(1)}100%{opacity:0;transform:translate(var(--px),var(--py))scale(0)}}
-`;
+styles.textContent = `@keyframes particleFly{0%{opacity:.8;transform:translate(0,0)scale(1)}100%{opacity:0;transform:translate(var(--px),var(--py))scale(0)}}`;
 document.head.appendChild(styles);
 
-window.addEventListener('load',()=>{setTimeout(createPiano,500);setTimeout(createOrbRings,600);});
+window.addEventListener('load',()=>{setTimeout(createOrbRings,600);});
 setInterval(()=>{
     const bass=window.symphonyBass||.3,mid=window.symphonyMid||.2,high=window.symphonyHigh||.1,beat=window.symphonyBeat||0;
-    animatePiano(bass,beat,mid,high);
+    drawWaves(bass,mid,high,beat);
     animateOrb(bass,beat,mid,high);
 },33);
