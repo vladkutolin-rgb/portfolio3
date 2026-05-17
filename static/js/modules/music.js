@@ -74,6 +74,33 @@ function updateBass() {
 
 setInterval(updateBass, 33);
 
+// Синхронизация галереи с музыкой
+setInterval(() => {
+    const items = document.querySelectorAll('.gallery-item.music-reactive');
+    if (items.length === 0) return;
+
+    const bass = window.symphonyBass || 0.3;
+    const beat = window.symphonyBeat || 0;
+
+    items.forEach((item, i) => {
+        const delay = i * 0.05;
+        const pulse = bass * 0.02;
+        const scale = 1 + pulse;
+        const glow = beat * 0.4 + bass * 0.1;
+
+        item.style.transform = `scale(${scale})`;
+        item.style.boxShadow = `0 ${8 + bass * 15}px ${20 + bass * 30}px rgba(0, 163, 54, ${0.1 + glow})`;
+        item.style.borderColor = `rgba(0, 200, 150, ${glow})`;
+
+        if (beat) {
+            setTimeout(() => {
+                item.classList.add('beat-active');
+                setTimeout(() => item.classList.remove('beat-active'), 300);
+            }, delay * 1000);
+        }
+    });
+}, 50);
+
 if (musicToggle) musicToggle.addEventListener('click', toggleMusic);
 if (musicNext) musicNext.addEventListener('click', () => {
     if (musicPlaylist.length === 0) return;
