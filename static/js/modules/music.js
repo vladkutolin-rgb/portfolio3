@@ -120,11 +120,11 @@ musicAudio.volume = 0.3;
 if (musicVolume) musicVolume.value = 30;
 
 // ═══════════════════════════════════════════
-// ПИАНИНО (ПЛАВНАЯ ВОЛНА) + ЭФФЕКТЫ ПОД МУЗЫКУ + ШАР
+// ПИАНИНО + ДЫШАЩИЙ ШАР + ЭФФЕКТЫ ВВЕРХ
 // ═══════════════════════════════════════════
 const TOTAL_KEYS = 36;
 let wavePosition = TOTAL_KEYS / 2;
-const WAVE_BASE_SPEED = 0.6; // Постоянная скорость волны
+const WAVE_BASE_SPEED = 0.6;
 
 function createPiano() {
     const container = document.getElementById('pianoContainer');
@@ -146,15 +146,22 @@ function createPiano() {
     });
 }
 
-// Эффект от клавиши (как в ритм-играх)
-function spawnKeyEffect(x, y, intensity) {
+// Эффект от клавиши — летит ВВЕРХ и в сторону
+function spawnKeyEffect(x, y, intensity, side) {
     const gallery = document.querySelector('.gallery');
     if (!gallery) return;
 
     const effect = document.createElement('div');
     effect.className = 'key-effect';
-    const size = 3 + intensity * 10;
+    const size = 4 + intensity * 12;
     const hue = 150 + intensity * 50;
+
+    // Случайный угол вверх
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.2; // от -90° ± 35°
+    const distance = 80 + intensity * 180;
+    const dx = Math.cos(angle) * distance;
+    const dy = Math.sin(angle) * distance;
+
     effect.style.cssText = `
         left: ${x}px;
         top: ${y}px;
@@ -162,24 +169,27 @@ function spawnKeyEffect(x, y, intensity) {
         height: ${size}px;
         background: hsla(${hue}, 90%, 60%, 0.9);
         border-radius: 50%;
-        box-shadow: 0 0 ${8 + intensity * 20}px hsla(${hue}, 90%, 55%, 0.7);
+        box-shadow: 0 0 ${10 + intensity * 25}px hsla(${hue}, 90%, 55%, 0.8);
+        --dx: ${dx}px;
+        --dy: ${dy}px;
+        animation: keyEffectFly ${1 + Math.random() * 1.5}s ease-out forwards;
     `;
     gallery.appendChild(effect);
-    setTimeout(() => effect.remove(), 1400);
+    setTimeout(() => effect.remove(), 2500);
 }
 
 function animatePiano(bass, beat, mid) {
     const keys = document.querySelectorAll('.piano-key');
     if (keys.length === 0) return;
 
-    // Сброс всех клавиш
+    // Сброс
     keys.forEach(k => {
         k.classList.remove('active');
         k.style.transform = '';
         k.style.boxShadow = '';
     });
 
-    // === ПЛАВНАЯ ВОЛНА (постоянная скорость, не зависит от музыки) ===
+    // Плавная волна
     wavePosition += WAVE_BASE_SPEED;
     if (wavePosition >= TOTAL_KEYS) wavePosition -= TOTAL_KEYS;
 
@@ -198,90 +208,127 @@ function animatePiano(bass, beat, mid) {
         }
     }
 
-    // === ЭФФЕКТЫ ПОД МУЗЫКУ (ритм-игра) ===
-    // На каждый удар — залп эффектов
+    // === ЭФФЕКТЫ ПОД МУЗЫКУ ===
+    const galleryRect = document.querySelector('.gallery').getBoundingClientRect();
+
+    // Удар — залп эффектов по всем клавишам
     if (beat) {
-        for (let i = 0; i < 8; i++) {
+        const activeCount = 10 + Math.floor(Math.random() * 8);
+        for (let i = 0; i < activeCount; i++) {
             setTimeout(() => {
-                const randomKey = keys[Math.floor(Math.random() * TOTAL_KEYS)];
-                if (randomKey) {
-                    const rect = randomKey.getBoundingClientRect();
-                    const galleryRect = document.querySelector('.gallery').getBoundingClientRect();
+                const idx = Math.floor(Math.random() * TOTAL_KEYS);
+                const key = keys[idx];
+                if (key) {
+                    const rect = key.getBoundingClientRect();
                     spawnKeyEffect(
                         rect.left - galleryRect.left + rect.width / 2,
                         rect.top - galleryRect.top,
-                        0.8
+                        0.7 + Math.random() * 0.3,
+                        idx < TOTAL_KEYS / 2 ? 'left' : 'right'
                     );
                 }
-            }, i * 40);
+            }, i * 25);
         }
     }
 
-    // На басы — левые клавиши дают эффекты
-    if (bass > 0.3 && Math.random() < bass * 0.8) {
-        const leftKey = keys[Math.floor(Math.random() * 10)];
-        if (leftKey) {
-            const rect = leftKey.getBoundingClientRect();
-            const galleryRect = document.querySelector('.gallery').getBoundingClientRect();
+    // Басы — левая часть клавиатуры
+    if (bass > 0.25 && Math.random() < bass * 0.6) {
+        const idx = Math.floor(Math.random() * 12);
+        const key = keys[idx];
+        if (key) {
+            const rect = key.getBoundingClientRect();
             spawnKeyEffect(
                 rect.left - galleryRect.left + rect.width / 2,
                 rect.top - galleryRect.top,
-                bass
+                bass,
+                'left'
             );
         }
     }
 
-    // На высокие — правые клавиши
+    // Высокие — правая часть
     const high = window.symphonyHigh || 0;
-    if (high > 0.25 && Math.random() < high * 0.7) {
-        const rightKey = keys[26 + Math.floor(Math.random() * 10)];
-        if (rightKey) {
-            const rect = rightKey.getBoundingClientRect();
-            const galleryRect = document.querySelector('.gallery').getBoundingClientRect();
+    if (high > 0.2 && Math.random() < high * 0.6) {
+        const idx = 24 + Math.floor(Math.random() * 12);
+        const key = keys[idx];
+        if (key) {
+            const rect = key.getBoundingClientRect();
             spawnKeyEffect(
                 rect.left - galleryRect.left + rect.width / 2,
                 rect.top - galleryRect.top,
-                high
+                high,
+                'right'
+            );
+        }
+    }
+
+    // Середина
+    if (mid > 0.2 && Math.random() < mid * 0.5) {
+        const idx = 12 + Math.floor(Math.random() * 12);
+        const key = keys[idx];
+        if (key) {
+            const rect = key.getBoundingClientRect();
+            spawnKeyEffect(
+                rect.left - galleryRect.left + rect.width / 2,
+                rect.top - galleryRect.top,
+                mid,
+                'center'
             );
         }
     }
 }
 
+// ДЫШАЩИЙ ШАР
+let orbBreathPhase = 0;
 function animateOrb(bass, beat) {
     const orb = document.getElementById('neonOrb');
     const core = orb?.querySelector('.orb-core');
     if (!orb || !core) return;
 
-    const scale = 1 + bass * 0.4 + beat * 0.3;
+    // Плавное дыхание
+    orbBreathPhase += 0.03 + bass * 0.05;
+    const breath = 1 + Math.sin(orbBreathPhase) * 0.3;
+    const scale = breath + beat * 0.3;
     orb.style.transform = `translate(-50%, -50%) scale(${scale})`;
 
-    const borderAlpha = 0.4 + bass * 0.4 + beat * 0.5;
+    const borderAlpha = 0.3 + bass * 0.4 + Math.abs(Math.sin(orbBreathPhase)) * 0.3;
     core.style.borderColor = `rgba(0, 255, 180, ${Math.min(1, borderAlpha)})`;
     core.style.boxShadow = `
-        inset 0 0 ${20 + bass * 40}px rgba(0, 255, 180, ${0.1 + bass * 0.2}),
-        0 0 ${30 + bass * 60}px rgba(0, 255, 180, ${0.2 + bass * 0.4}),
-        0 0 ${60 + bass * 100}px rgba(0, 200, 150, ${0.1 + bass * 0.2})
+        inset 0 0 ${20 + bass * 40}px rgba(0, 255, 180, ${0.08 + bass * 0.15}),
+        0 0 ${30 + bass * 60}px rgba(0, 255, 180, ${0.15 + bass * 0.3}),
+        0 0 ${60 + bass * 100}px rgba(0, 200, 150, ${0.08 + bass * 0.15})
     `;
 
     if (beat) {
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 12; i++) {
             const particle = document.createElement('div');
             particle.className = 'orb-particle';
             const angle = Math.random() * Math.PI * 2;
-            const distance = 30 + Math.random() * 60;
+            const distance = 35 + Math.random() * 70;
             particle.style.cssText = `
                 left: 50%; top: 50%;
-                width: 3px; height: 3px;
+                width: ${2 + Math.random() * 5}px;
+                height: ${2 + Math.random() * 5}px;
                 background: rgba(0, 255, 180, 0.8);
                 --px: ${Math.cos(angle) * distance}px;
                 --py: ${Math.sin(angle) * distance}px;
-                box-shadow: 0 0 8px rgba(0, 255, 180, 0.5);
+                box-shadow: 0 0 ${6 + Math.random() * 10}px rgba(0, 255, 180, 0.6);
             `;
             orb.appendChild(particle);
-            setTimeout(() => particle.remove(), 800);
+            setTimeout(() => particle.remove(), 900);
         }
     }
 }
+
+// Обновляем анимацию key-effect
+const effectStyle = document.createElement('style');
+effectStyle.textContent = `
+    @keyframes keyEffectFly {
+        0% { opacity: 0.9; transform: translateY(0) translateX(0) scale(1); }
+        100% { opacity: 0; transform: translateY(var(--dy)) translateX(var(--dx)) scale(0.2); }
+    }
+`;
+document.head.appendChild(effectStyle);
 
 window.addEventListener('load', () => {
     setTimeout(createPiano, 500);
