@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════ */
-/* ГАЛЕРЕЯ — КОСМОС + ПИАНИНО + ШАР */
+/* ГАЛЕРЕЯ — СИМФОНИЯ СВЕТА */
 /* ═══════════════════════════════════════════ */
 .gallery {
     background: #000010;
@@ -29,15 +29,10 @@
         radial-gradient(2px 2px at 20% 40%, rgba(200,200,255,0.6), transparent),
         radial-gradient(2px 2px at 75% 75%, rgba(180,200,255,0.7), transparent);
     z-index: 0;
-    animation: twinkle 4s ease-in-out infinite alternate;
+    transition: opacity 0.3s ease;
 }
 
-@keyframes twinkle {
-    0% { opacity: 0.7; }
-    100% { opacity: 1; }
-}
-
-/* Пианино — БЕЗ ЧЁРНОЙ ПОЛОСЫ */
+/* Пианино */
 #pianoContainer {
     position: absolute;
     bottom: 0;
@@ -58,7 +53,7 @@
     cursor: pointer;
     position: relative;
     flex-shrink: 0;
-    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, background 0.1s ease-out;
+    transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, background 0.08s ease-out;
 }
 
 .piano-key.white {
@@ -80,63 +75,60 @@
 .piano-key.active {
     transform: translateY(6px);
 }
-
 .piano-key.white.active {
     background: linear-gradient(180deg, rgba(200,255,220,0.9) 0%, rgba(80,220,130,0.7) 100%);
     box-shadow: 0 0 25px rgba(0, 255, 150, 0.7);
 }
-
 .piano-key.black.active {
     background: linear-gradient(180deg, rgba(80,80,80,0.9) 0%, rgba(40,40,40,0.8) 100%);
     box-shadow: 0 0 30px rgba(0, 255, 150, 0.8);
 }
 
 /* Эффекты */
-.key-effect {
-    position: absolute;
-    pointer-events: none;
-    z-index: 2;
-}
+.key-effect { position: absolute; pointer-events: none; z-index: 2; }
+.key-effect.circle { border-radius: 50%; }
+.key-effect.line { border-radius: 2px; }
+.key-effect.star { border-radius: 0; }
 
-/* Шар */
+/* Шар с тройным кольцом */
 #neonOrb {
     position: absolute;
     top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 140px;
     border-radius: 50%;
     z-index: 1;
     pointer-events: none;
 }
 
+.orb-ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.orb-ring.bass { width: 100%; height: 100%; }
+.orb-ring.mid { width: 70%; height: 70%; }
+.orb-ring.high { width: 40%; height: 40%; }
+
 #neonOrb .orb-core {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 100%;
-    height: 100%;
+    width: 15%;
+    height: 15%;
     border-radius: 50%;
-    background: transparent;
-    border: 2px solid rgba(0, 255, 180, 0.5);
-    box-shadow: 
-        inset 0 0 30px rgba(0, 255, 180, 0.1),
-        0 0 40px rgba(0, 255, 180, 0.2),
-        0 0 80px rgba(0, 200, 150, 0.1);
-    transition: all 0.2s ease;
+    background: rgba(0, 255, 180, 0.9);
+    box-shadow: 0 0 20px rgba(0, 255, 180, 0.8);
+    transition: all 0.15s ease;
 }
 
-#neonOrb .orb-glow {
-    display: none;
-}
-
-.orb-particle {
-    position: absolute;
-    pointer-events: none;
-    z-index: 0;
-    border-radius: 50%;
-}
+.orb-particle { position: absolute; pointer-events: none; z-index: 0; border-radius: 50%; }
 
 /* Фото */
 .gallery-grid {
@@ -147,18 +139,14 @@
     z-index: 4;
     margin-top: 110px;
 }
-
 .gallery-item {
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border-radius: 12px; overflow: hidden; cursor: pointer;
+    background: rgba(255,255,255,0.05); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.gallery-item:hover { transform: translateY(-6px); box-shadow: 0 15px 40px rgba(0, 200, 150, 0.25); border-color: rgba(0, 200, 150, 0.2); }
+.gallery-item:hover { transform: translateY(-6px); box-shadow: 0 15px 40px rgba(0,200,150,0.25); border-color: rgba(0,200,150,0.2); }
 .gallery-item img { width: 100%; height: 160px; object-fit: cover; display: block; }
 .gallery-item p { padding: 10px 14px; font-weight: 500; color: #bbb; font-size: 13px; }
 
@@ -166,14 +154,13 @@
 .empty-placeholder-card {
     text-align: center; padding: 60px 20px !important;
     animation: emptyFloat 4s ease-in-out infinite;
-    cursor: default !important;
-    grid-column: 1 / -1;
-    background: rgba(255, 255, 255, 0.02) !important;
-    border: 1px dashed rgba(255, 255, 255, 0.08) !important;
+    cursor: default !important; grid-column: 1 / -1;
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px dashed rgba(255,255,255,0.08) !important;
 }
-.empty-placeholder-card:hover { transform: translateY(-8px) !important; box-shadow: 0 20px 40px rgba(0, 200, 150, 0.15) !important; }
+.empty-placeholder-card:hover { transform: translateY(-8px) !important; box-shadow: 0 20px 40px rgba(0,200,150,0.15) !important; }
 .empty-placeholder-card .empty-card-icon { font-size: 70px; margin-bottom: 15px; }
-.empty-placeholder-card:hover .empty-card-icon { transform: scale(1.2); text-shadow: 0 0 25px rgba(0, 200, 150, 0.5); }
+.empty-placeholder-card:hover .empty-card-icon { transform: scale(1.2); text-shadow: 0 0 25px rgba(0,200,150,0.5); }
 .empty-card-icon i { color: #444; }
 .empty-placeholder-card:hover .empty-card-icon i { color: #00d4a0 !important; }
 @keyframes emptyFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)} }
@@ -181,6 +168,6 @@
 @media (max-width: 768px) {
     .piano-key { width: 26px; height: 70px; }
     .piano-key.black { width: 18px; height: 42px; margin-left: -9px; margin-right: -9px; }
-    #neonOrb { width: 90px; height: 90px; }
+    #neonOrb { width: 100px; height: 100px; }
     #pianoContainer { gap: 1px; padding: 10px 5px; }
 }
