@@ -37,19 +37,17 @@
     100% { opacity: 1; }
 }
 
-/* Пианино */
+/* Пианино — БЕЗ ЧЁРНОЙ ПОЛОСЫ */
 #pianoContainer {
     position: absolute;
     bottom: 0;
-    left: 0;
-    width: 100%;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     z-index: 3;
     gap: 2px;
-    padding: 15px 8px;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(15px);
-    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.6);
+    padding: 15px 10px;
+    background: transparent;
     justify-content: center;
 }
 
@@ -64,17 +62,19 @@
 }
 
 .piano-key.white {
-    background: linear-gradient(180deg, #fafafa 0%, #e8e8e8 40%, #d5d5d5 100%);
+    background: linear-gradient(180deg, rgba(250,250,250,0.7) 0%, rgba(220,220,220,0.5) 40%, rgba(180,180,180,0.3) 100%);
     z-index: 1;
+    backdrop-filter: blur(3px);
 }
 
 .piano-key.black {
-    background: linear-gradient(180deg, #3a3a3a 0%, #111 100%);
+    background: linear-gradient(180deg, rgba(60,60,60,0.7) 0%, rgba(20,20,20,0.6) 100%);
     width: 28px;
     height: 68px;
     margin-left: -14px;
     margin-right: -14px;
     z-index: 2;
+    backdrop-filter: blur(3px);
 }
 
 .piano-key.active {
@@ -82,29 +82,23 @@
 }
 
 .piano-key.white.active {
-    background: linear-gradient(180deg, #e0ffe8 0%, #70e890 100%);
+    background: linear-gradient(180deg, rgba(200,255,220,0.9) 0%, rgba(80,220,130,0.7) 100%);
     box-shadow: 0 0 25px rgba(0, 255, 150, 0.7);
 }
 
 .piano-key.black.active {
-    background: linear-gradient(180deg, #555 0%, #2a2a2a 100%);
+    background: linear-gradient(180deg, rgba(80,80,80,0.9) 0%, rgba(40,40,40,0.8) 100%);
     box-shadow: 0 0 30px rgba(0, 255, 150, 0.8);
 }
 
-/* Эффекты от клавиш */
+/* Эффекты */
 .key-effect {
     position: absolute;
     pointer-events: none;
     z-index: 2;
-    animation: keyEffectFly 1.5s ease-out forwards;
 }
 
-@keyframes keyEffectFly {
-    0% { opacity: 0.9; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-120px) scale(0.3); }
-}
-
-/* Минималистичный шар */
+/* Шар */
 #neonOrb {
     position: absolute;
     top: 40%;
@@ -127,10 +121,10 @@
     background: transparent;
     border: 2px solid rgba(0, 255, 180, 0.5);
     box-shadow: 
-        inset 0 0 30px rgba(0, 255, 180, 0.15),
-        0 0 40px rgba(0, 255, 180, 0.3),
-        0 0 80px rgba(0, 200, 150, 0.15);
-    transition: all 0.15s ease;
+        inset 0 0 30px rgba(0, 255, 180, 0.1),
+        0 0 40px rgba(0, 255, 180, 0.2),
+        0 0 80px rgba(0, 200, 150, 0.1);
+    transition: all 0.2s ease;
 }
 
 #neonOrb .orb-glow {
@@ -142,12 +136,6 @@
     pointer-events: none;
     z-index: 0;
     border-radius: 50%;
-    animation: particleFly 0.8s ease-out forwards;
-}
-
-@keyframes particleFly {
-    0% { opacity: 0.8; transform: translate(0, 0) scale(1); }
-    100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0); }
 }
 
 /* Фото */
@@ -170,11 +158,7 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.gallery-item:hover { 
-    transform: translateY(-6px); 
-    box-shadow: 0 15px 40px rgba(0, 200, 150, 0.25);
-    border-color: rgba(0, 200, 150, 0.2);
-}
+.gallery-item:hover { transform: translateY(-6px); box-shadow: 0 15px 40px rgba(0, 200, 150, 0.25); border-color: rgba(0, 200, 150, 0.2); }
 .gallery-item img { width: 100%; height: 160px; object-fit: cover; display: block; }
 .gallery-item p { padding: 10px 14px; font-weight: 500; color: #bbb; font-size: 13px; }
 
