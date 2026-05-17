@@ -139,65 +139,51 @@ function initWaves() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Плавные значения (сглаживание)
-    let smoothBass = 0.3, smoothMid = 0.2, smoothHigh = 0.1, smoothBeat = 0;
+    // Три независимых "потока" с инерцией
+    const streams = [
+        { smooth: 0.3, amp: 0, speed: 0, color: [0, 255, 180], y: 0.62, baseAmp: 8, ampScale: 40, speedScale: 3 },
+        { smooth: 0.2, amp: 0, speed: 0, color: [80, 200, 255], y: 0.72, baseAmp: 5, ampScale: 30, speedScale: 2.5 },
+        { smooth: 0.1, amp: 0, speed: 0, color: [220, 240, 255], y: 0.82, baseAmp: 3, ampScale: 22, speedScale: 2 }
+    ];
+
+    let smoothBeat = 0;
 
     function draw(ts) {
         time = ts * 0.001;
+        const beat = window.symphonyBeat || 0;
 
-        // Сглаживаем частоты (инерция)
-        const targetBass = window.symphonyBass || 0.3;
-        const targetMid = window.symphonyMid || 0.2;
-        const targetHigh = window.symphonyHigh || 0.1;
-        const targetBeat = window.symphonyBeat || 0;
+        // Плавный бит (быстрое нарастание, медленный спад)
+        smoothBeat += (beat - smoothBeat) * (beat > smoothBeat ? 0.4 : 0.05);
 
-        smoothBass += (targetBass - smoothBass) * 0.08;
-        smoothMid += (targetMid - smoothMid) * 0.08;
-        smoothHigh += (targetHigh - smoothHigh) * 0.08;
-        smoothBeat += (targetBeat - smoothBeat) * 0.15;
+        // Обновляем потоки
+        streams.forEach((s, i) => {
+            const target = i === 0 ? (window.symphonyBass || 0.3) :
+                          i === 1 ? (window.symphonyMid || 0.2) :
+                                    (window.symphonyHigh || 0.1);
+            s.smooth += (target - s.smooth) * 0.06;
+            s.amp = s.baseAmp + s.smooth * s.ampScale + smoothBeat * 25;
+            s.speed = 1 + s.smooth * s.speedScale;
+        });
 
         ctx.clearRect(0, 0, W, H);
 
-        // Три волны — разные высота, цвет, чувствительность
-        const waves = [
-            {
-                y: H * 0.62,
-                amp: 8 + smoothBass * 35 + smoothBeat * 20,
-                speed: 1.2 + smoothBass * 3,
-                color: `rgba(0, 255, 180, ${0.2 + smoothBass * 0.5 + smoothBeat * 0.3})`,
-                width: 2 + smoothBass * 2 + smoothBeat,
-                phase: 0
-            },
-            {
-                y: H * 0.72,
-                amp: 5 + smoothMid * 28 + smoothBeat * 14,
-                speed: 1.5 + smoothMid * 2.5,
-                color: `rgba(80, 200, 255, ${0.18 + smoothMid * 0.45 + smoothBeat * 0.2})`,
-                width: 1.8 + smoothMid * 1.5 + smoothBeat * 0.5,
-                phase: 1.5
-            },
-            {
-                y: H * 0.82,
-                amp: 3 + smoothHigh * 20 + smoothBeat * 10,
-                speed: 1.8 + smoothHigh * 2,
-                color: `rgba(220, 240, 255, ${0.15 + smoothHigh * 0.4 + smoothBeat * 0.15})`,
-                width: 1.5 + smoothHigh * 1.2 + smoothBeat * 0.3,
-                phase: 3
-            }
-        ];
+        streams.forEach(s => {
+            const [r, g, b] = s.color;
+            const alpha = 0.15 + s.smooth * 0.5 + smoothBeat * 0.3;
+            const lineWidth = 1.5 + s.smooth * 2 + smoothBeat;
 
-        waves.forEach(w => {
-            ctx.strokeStyle = w.color;
-            ctx.lineWidth = w.width;
-            ctx.shadowColor = w.color.replace(/[^,]+(?=\))/, String(Math.min(1, parseFloat(w.color.match(/[\d.]+(?=\))/)?.[0] || 0.3) + 0.3)));
-            ctx.shadowBlur = 8 + w.amp * 0.6;
+            ctx.strokeStyle = `rgba(${r},${g},${b},${Math.min(1, alpha)})`;
+            ctx.lineWidth = lineWidth;
+            ctx.shadowColor = `rgba(${r},${g},${b},${Math.min(1, alpha + 0.2)})`;
+            ctx.shadowBlur = 10 + s.amp * 0.5;
+
             ctx.beginPath();
-
             for (let x = 0; x <= W; x += 2) {
-                const y = w.y +
-                    Math.sin(x * 0.006 + time * w.speed + w.phase) * w.amp +
-                    Math.cos(x * 0.012 + time * w.speed * 0.6) * w.amp * 0.5 +
-                    Math.sin(x * 0.025 + time * 0.4) * w.amp * 0.2;
+                const baseY = H * s.y;
+                const y = baseY +
+                    Math.sin(x * 0.005 + time * s.speed) * s.amp +
+                    Math.cos(x * 0.013 + time * s.speed * 0.55) * s.amp * 0.45 +
+                    Math.sin(x * 0.022 + time * 0.35) * s.amp * 0.2;
                 x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
             }
             ctx.stroke();
