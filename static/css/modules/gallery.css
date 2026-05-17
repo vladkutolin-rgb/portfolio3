@@ -1,55 +1,54 @@
 /* ═══════════════════════════════════════════ */
-/* ГАЛЕРЕЯ — ДЛИННОЕ ПИАНИНО + ШАР */
+/* ГАЛЕРЕЯ — БОЖЕСТВЕННОЕ ПИАНИНО + ШАР */
 /* ═══════════════════════════════════════════ */
 .gallery {
-    background: var(--bg-color);
+    background: linear-gradient(180deg, #0a0a12 0%, #111122 50%, #0d0d18 100%);
     position: relative;
     overflow: hidden;
     min-height: 750px;
 }
 
-/* Пианино — 36 КЛАВИШ (3 октавы) */
+/* Пианино */
 #pianoContainer {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
     display: flex;
-    z-index: 2;
+    z-index: 3;
     gap: 2px;
-    padding: 12px 5px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.4);
+    padding: 15px 8px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
     justify-content: center;
     flex-wrap: nowrap;
-    overflow-x: auto;
 }
 
 .piano-key {
-    width: 38px;
-    height: 100px;
-    border-radius: 0 0 6px 6px;
+    width: 40px;
+    height: 110px;
+    border-radius: 0 0 8px 8px;
     cursor: pointer;
-    transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.05s ease;
     position: relative;
     flex-shrink: 0;
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, background 0.12s ease-out;
 }
 
 .piano-key.white {
-    background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 30%, #e0e0e0 100%);
+    background: linear-gradient(180deg, #fafafa 0%, #e8e8e8 40%, #d5d5d5 100%);
     z-index: 1;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .piano-key.black {
-    background: linear-gradient(180deg, #444 0%, #111 100%);
-    width: 26px;
-    height: 62px;
-    margin-left: -13px;
-    margin-right: -13px;
+    background: linear-gradient(180deg, #3a3a3a 0%, #111 100%);
+    width: 28px;
+    height: 68px;
+    margin-left: -14px;
+    margin-right: -14px;
     z-index: 2;
-    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
 }
 
 .piano-key.active {
@@ -57,23 +56,23 @@
 }
 
 .piano-key.white.active {
-    background: linear-gradient(180deg, #d8ffe0 0%, #60d880 100%);
-    box-shadow: 0 0 25px rgba(0, 255, 150, 0.7);
+    background: linear-gradient(180deg, #e0ffe8 0%, #70e890 100%);
+    box-shadow: 0 0 20px rgba(0, 255, 150, 0.6);
 }
 
 .piano-key.black.active {
-    background: linear-gradient(180deg, #666 0%, #333 100%);
-    box-shadow: 0 0 30px rgba(0, 255, 150, 0.8);
+    background: linear-gradient(180deg, #555 0%, #2a2a2a 100%);
+    box-shadow: 0 0 25px rgba(0, 255, 150, 0.7);
 }
 
 /* Неоновый шар */
 #neonOrb {
     position: absolute;
-    top: 45%;
+    top: 42%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 180px;
-    height: 180px;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
     z-index: 1;
     pointer-events: none;
@@ -83,11 +82,15 @@
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
-    height: 50%;
+    width: 45%;
+    height: 45%;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(0, 255, 180, 0.9), rgba(0, 200, 150, 0.4));
-    box-shadow: 0 0 60px rgba(0, 255, 180, 0.6);
+    background: radial-gradient(circle, rgba(0, 255, 180, 0.95) 0%, rgba(0, 200, 140, 0.5) 50%, transparent 100%);
+    box-shadow: 
+        0 0 50px rgba(0, 255, 180, 0.5),
+        0 0 100px rgba(0, 200, 140, 0.3),
+        0 0 150px rgba(0, 150, 100, 0.15);
+    transition: all 0.15s ease;
 }
 
 #neonOrb .orb-glow {
@@ -97,13 +100,13 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(0, 255, 180, 0.25), transparent 70%);
-    animation: orbPulse 2s ease-in-out infinite;
+    background: radial-gradient(circle, rgba(0, 255, 180, 0.2) 0%, transparent 60%);
+    animation: orbPulse 3s ease-in-out infinite;
 }
 
 @keyframes orbPulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-    50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.1; }
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
+    50% { transform: translate(-50%, -50%) scale(1.6); opacity: 0.08; }
 }
 
 .orb-particle {
@@ -111,6 +114,7 @@
     pointer-events: none;
     z-index: 0;
     animation: particleFly 1s ease-out forwards;
+    border-radius: 50%;
 }
 
 @keyframes particleFly {
@@ -122,41 +126,49 @@
 .gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
+    gap: 18px;
     position: relative;
-    z-index: 3;
-    margin-top: 100px;
+    z-index: 4;
+    margin-top: 110px;
 }
 
 .gallery-item {
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
-    background: var(--card-bg);
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.gallery-item:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0, 163, 54, 0.35); }
+.gallery-item:hover { 
+    transform: translateY(-8px); 
+    box-shadow: 0 15px 40px rgba(0, 200, 150, 0.3);
+    border-color: rgba(0, 200, 150, 0.3);
+}
 .gallery-item img { width: 100%; height: 160px; object-fit: cover; display: block; }
-.gallery-item p { padding: 10px 12px; font-weight: 500; color: var(--text-color); font-size: 12px; }
+.gallery-item p { padding: 10px 14px; font-weight: 500; color: #ccc; font-size: 13px; }
 
 /* Заглушка */
 .empty-placeholder-card {
-    text-align: center; padding: 50px 20px !important;
+    text-align: center; padding: 60px 20px !important;
     animation: emptyFloat 4s ease-in-out infinite;
-    cursor: default !important; border: 1px solid transparent !important;
+    cursor: default !important;
     grid-column: 1 / -1;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px dashed rgba(255, 255, 255, 0.1) !important;
 }
-.empty-placeholder-card:hover { transform: translateY(-8px) !important; box-shadow: 0 20px 40px rgba(0,163,54,0.35) !important; }
-.empty-placeholder-card .empty-card-icon { font-size: 60px; margin-bottom: 15px; }
-.empty-placeholder-card:hover .empty-card-icon { transform: scale(1.2); text-shadow: 0 0 20px rgba(0,163,54,0.5); }
-.empty-card-icon i { color: #bbb; } body.dark-theme .empty-card-icon i { color: #555; }
-.empty-placeholder-card:hover .empty-card-icon i { color: var(--primary-color) !important; text-shadow: 0 0 25px rgba(0,163,54,0.6); }
+.empty-placeholder-card:hover { transform: translateY(-8px) !important; box-shadow: 0 20px 40px rgba(0, 200, 150, 0.2) !important; }
+.empty-placeholder-card .empty-card-icon { font-size: 70px; margin-bottom: 15px; }
+.empty-placeholder-card:hover .empty-card-icon { transform: scale(1.2); text-shadow: 0 0 25px rgba(0, 200, 150, 0.6); }
+.empty-card-icon i { color: #555; }
+.empty-placeholder-card:hover .empty-card-icon i { color: #00d4a0 !important; }
 @keyframes emptyFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)} }
 
 @media (max-width: 768px) {
-    .piano-key { width: 24px; height: 65px; }
-    .piano-key.black { width: 18px; height: 40px; margin-left: -9px; margin-right: -9px; }
-    #neonOrb { width: 120px; height: 120px; }
-    #pianoContainer { gap: 1px; padding: 8px 3px; }
+    .piano-key { width: 26px; height: 70px; }
+    .piano-key.black { width: 18px; height: 42px; margin-left: -9px; margin-right: -9px; }
+    #neonOrb { width: 130px; height: 130px; }
+    #pianoContainer { gap: 1px; padding: 10px 5px; }
 }

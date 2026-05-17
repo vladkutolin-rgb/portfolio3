@@ -120,9 +120,10 @@ musicAudio.volume = 0.3;
 if (musicVolume) musicVolume.value = 30;
 
 // ═══════════════════════════════════════════
-// ДЛИННОЕ ПИАНИНО (36 КЛАВИШ) + ШАР
+// БОЖЕСТВЕННОЕ ПИАНИНО (36 КЛАВИШ) + ШАР
 // ═══════════════════════════════════════════
 const TOTAL_KEYS = 36;
+let wavePosition = TOTAL_KEYS / 2;
 
 function createPiano() {
     const container = document.getElementById('pianoContainer');
@@ -144,22 +145,20 @@ function createPiano() {
     });
 }
 
-let wavePos = TOTAL_KEYS / 2;
-let waveSpeed = 0.3;
-
-function animatePiano(bass, beat, mid) {
+function animatePiano(bass, beat, mid, high) {
     const keys = document.querySelectorAll('.piano-key');
     if (keys.length === 0) return;
 
-    // Сброс всех клавиш
+    // Плавный сброс
     keys.forEach(k => {
+        if (!k.classList.contains('active')) return;
         k.classList.remove('active');
         k.style.transform = '';
         k.style.boxShadow = '';
     });
 
     if (beat) {
-        // Волна от центра при ударе
+        // Волна от центра
         const center = Math.floor(TOTAL_KEYS / 2);
         for (let i = 0; i < TOTAL_KEYS; i++) {
             const dist = Math.abs(i - center);
@@ -167,32 +166,35 @@ function animatePiano(bass, beat, mid) {
                 if (keys[i]) {
                     keys[i].classList.add('active');
                     setTimeout(() => {
-                        if (keys[i]) keys[i].classList.remove('active');
-                    }, 150);
+                        if (keys[i]) {
+                            keys[i].classList.remove('active');
+                            keys[i].style.transform = '';
+                            keys[i].style.boxShadow = '';
+                        }
+                    }, 180);
                 }
-            }, dist * 15);
+            }, dist * 18);
         }
         return;
     }
 
-    // Плавная волна
-    waveSpeed = 0.4 + bass * 2.5 + mid * 1.5;
-    wavePos += waveSpeed;
-    if (wavePos >= TOTAL_KEYS) wavePos -= TOTAL_KEYS;
-    if (wavePos < 0) wavePos += TOTAL_KEYS;
+    // Плавная волна — скорость от музыки
+    const speed = 0.3 + bass * 3 + mid * 1.8;
+    wavePosition += speed;
+    if (wavePosition >= TOTAL_KEYS) wavePosition -= TOTAL_KEYS;
 
-    const waveWidth = 4 + Math.floor(bass * 4 + mid * 2);
-    const center = Math.floor(wavePos);
+    const waveWidth = 5 + Math.floor(bass * 4 + mid * 2);
+    const center = Math.floor(wavePosition);
 
     for (let i = -waveWidth; i <= waveWidth; i++) {
         const idx = ((center + i) % TOTAL_KEYS + TOTAL_KEYS) % TOTAL_KEYS;
         const dist = Math.abs(i);
-        const brightness = 1 - dist / (waveWidth + 1);
+        const brightness = Math.max(0, 1 - dist / (waveWidth + 1));
 
-        if (brightness > 0.05 && keys[idx]) {
+        if (brightness > 0.03 && keys[idx]) {
             keys[idx].classList.add('active');
-            keys[idx].style.transform = `translateY(${3 + brightness * 5}px)`;
-            keys[idx].style.boxShadow = `0 0 ${8 + brightness * 20}px rgba(0, 255, 150, ${0.2 + brightness * 0.5})`;
+            keys[idx].style.transform = `translateY(${2 + brightness * 5}px)`;
+            keys[idx].style.boxShadow = `0 0 ${6 + brightness * 22}px rgba(0, 255, 150, ${0.15 + brightness * 0.45})`;
         }
     }
 }
@@ -202,27 +204,32 @@ function animateOrb(bass, beat) {
     const core = orb?.querySelector('.orb-core');
     if (!orb || !core) return;
 
-    const scale = 1 + bass * 0.6 + beat * 0.5;
+    const scale = 1 + bass * 0.5 + beat * 0.4;
     orb.style.transform = `translate(-50%, -50%) scale(${scale})`;
 
-    const hue = 155 + bass * 55;
-    core.style.background = `radial-gradient(circle, hsla(${hue}, 85%, 65%, 0.9), hsla(${hue}, 70%, 40%, 0.4))`;
-    core.style.boxShadow = `0 0 ${35 + bass * 70}px hsla(${hue}, 85%, 55%, 0.7)`;
+    const hue = 150 + bass * 60;
+    const saturation = 80 + beat * 20;
+    core.style.background = `radial-gradient(circle, hsla(${hue}, ${saturation}%, 65%, 0.95) 0%, hsla(${hue}, 70%, 35%, 0.5) 60%, transparent 100%)`;
+    core.style.boxShadow = `
+        0 0 ${40 + bass * 80}px hsla(${hue}, ${saturation}%, 55%, 0.5),
+        0 0 ${80 + bass * 120}px hsla(${hue}, 70%, 40%, 0.3),
+        0 0 ${120 + bass * 160}px hsla(${hue}, 60%, 30%, 0.12)
+    `;
 
     if (beat) {
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 14; i++) {
             const particle = document.createElement('div');
             particle.className = 'orb-particle';
             const angle = Math.random() * Math.PI * 2;
-            const distance = 50 + Math.random() * 90;
+            const distance = 55 + Math.random() * 100;
             particle.style.cssText = `
                 left: 50%; top: 50%;
-                width: 8px; height: 8px;
-                background: hsla(${hue}, 85%, 65%, 0.9);
-                border-radius: 50%;
+                width: ${4 + Math.random() * 8}px;
+                height: ${4 + Math.random() * 8}px;
+                background: hsla(${hue}, ${saturation}%, 65%, 0.85);
                 --px: ${Math.cos(angle) * distance}px;
                 --py: ${Math.sin(angle) * distance}px;
-                box-shadow: 0 0 15px hsla(${hue}, 85%, 60%, 0.7);
+                box-shadow: 0 0 ${10 + Math.random() * 15}px hsla(${hue}, 80%, 60%, 0.6);
             `;
             orb.appendChild(particle);
             setTimeout(() => particle.remove(), 1000);
@@ -230,16 +237,18 @@ function animateOrb(bass, beat) {
     }
 }
 
+// Инициализация
 window.addEventListener('load', () => {
     setTimeout(createPiano, 500);
 });
 
-// Плавный цикл
+// Главный цикл — 30fps
 setInterval(() => {
     const bass = window.symphonyBass || 0.3;
     const mid = window.symphonyMid || 0.2;
+    const high = window.symphonyHigh || 0.1;
     const beat = window.symphonyBeat || 0;
 
-    animatePiano(bass, beat, mid);
+    animatePiano(bass, beat, mid, high);
     animateOrb(bass, beat);
 }, 33);
