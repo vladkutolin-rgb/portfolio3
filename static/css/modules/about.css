@@ -1,0 +1,147 @@
+/* ═══════════════════════════════════════════ */
+/* ОБО МНЕ */
+/* ═══════════════════════════════════════════ */
+#about {
+    position: relative;
+    overflow: hidden;
+}
+
+.about-content {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.about-text { flex: 2; }
+.about-text p { color: var(--text-color); margin-bottom: 15px; }
+
+.about-stats {
+    flex: 1;
+    padding: 25px;
+    border-radius: 10px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    text-align: center;
+}
+.about-stats:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,163,54,0.3); }
+.about-stats h3 { color: var(--secondary-color); margin-bottom: 15px; font-size: 22px; }
+
+#skillsChart { width: 100%; max-width: 300px; height: auto; }
+
+#chartLegend {
+    margin-top: 15px;
+    text-align: left;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Частицы */
+#particles-js {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+#about > .container { position: relative; z-index: 2; }
+
+/* Счётчики */
+.achievement-counter {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 35px 0;
+    flex-wrap: wrap;
+}
+
+.counter-item {
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    min-width: 140px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    animation: counterFloat 6s ease-in-out infinite;
+}
+.counter-item:nth-child(2) { animation-delay: 1s; }
+.counter-item:nth-child(3) { animation-delay: 2s; }
+
+@keyframes counterFloat {
+    0%,100%{transform:translateY(0)}
+    20%{transform:translateY(-8px)}
+    40%{transform:translateY(2px)}
+    60%{transform:translateY(-5px)}
+    80%{transform:translateY(3px)}
+}
+
+.counter-item:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,163,54,0.3); }
+.counter-item i { font-size: 32px; color: var(--primary-color); margin-bottom: 10px; }
+.counter-item .counter { display: block; font-size: 32px; font-weight: 700; color: var(--primary-color); margin: 8px 0; }
+.counter-item p { color: var(--text-color); font-size: 15px; }
+
+/* Тех-стек */
+.tech-stack { margin-top: 40px; }
+.tech-stack h3 { font-size: 24px; color: var(--secondary-color); margin-bottom: 25px; text-align: center; }
+.tech-category { margin-bottom: 35px; }
+.tech-category h4 {
+    color: var(--secondary-color);
+    margin-bottom: 18px;
+    font-size: 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary-color);
+    display: inline-block;
+}
+.tech-icons { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
+
+.tech-item {
+    text-align: center;
+    padding: 18px 12px;
+    border-radius: 10px;
+    width: 140px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    animation: techFloat 4s ease-in-out infinite;
+}
+.tech-item:nth-child(odd) { animation-duration: 3.5s; }
+.tech-item:nth-child(2n) { animation-duration: 4s; animation-delay: 0.5s; }
+.tech-item:nth-child(3n) { animation-duration: 4.5s; animation-delay: 1s; }
+
+@keyframes techFloat {
+    0%,100%{transform:translateY(0)rotateX(0)rotateY(0)}
+    15%{transform:translateY(-6px)rotateX(2deg)rotateY(1deg)}
+    30%{transform:translateY(1px)rotateX(0)rotateY(-1deg)}
+    45%{transform:translateY(-3px)rotateX(-1deg)rotateY(2deg)}
+    60%{transform:translateY(4px)rotateX(1deg)rotateY(0)}
+    75%{transform:translateY(-1px)rotateX(-2deg)rotateY(-1deg)}
+    90%{transform:translateY(2px)rotateX(0)rotateY(1deg)}
+}
+
+.tech-item:hover {
+    transform: translateY(-8px) scale(1.08) !important;
+    box-shadow: 0 20px 40px rgba(0,163,54,0.4) !important;
+    animation-play-state: paused !important;
+    border-color: transparent !important;
+}
+.tech-item i { font-size: 36px; margin-bottom: 10px; display: block; color: var(--primary-color); }
+.tech-item span { font-size: 14px; color: var(--text-color); font-weight: 600; display: block; margin-bottom: 2px; line-height: 1.3; }
+.software-subtitle { display: block; font-size: 11px !important; color: var(--text-light) !important; margin-top: 3px; font-weight: 400 !important; }
+.skill-percentage { font-size: 20px; font-weight: 700; color: var(--primary-color); margin: 8px 0; }
+.percentage-bar { height: 6px; background-color: var(--gray-color); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+.percentage-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), #00d44c);
+    border-radius: 3px;
+    width: 0;
+    transition: width 1.5s ease-out;
+}
+
+@media (max-width: 992px) { .about-content { flex-direction: column; } .tech-item { width: 130px; } }
+@media (max-width: 768px) { .tech-item { width: 120px; padding: 15px 8px; } .achievement-counter { gap: 15px; } .counter-item { min-width: 120px; padding: 15px; } }

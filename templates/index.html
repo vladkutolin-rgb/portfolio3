@@ -4,11 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Моё Портфолио | Владислав</title>
+
+    <!-- Иконки Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Основной CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- CSS-модули -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/hero.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/about.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/gallery.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/certificates.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/works.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/viewer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/player.css') }}">
 </head>
 <body>
 
+    <!-- HTML-компоненты -->
     {% include 'components/header.html' %}
     {% include 'components/hero.html' %}
     {% include 'components/about.html' %}
@@ -19,16 +35,17 @@
     {% include 'components/viewer.html' %}
     {% include 'components/player.html' %}
 
+    <!-- JS-модули -->
+    <script src="{{ url_for('static', filename='js/modules/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/typing.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/scroll.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/particles.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/chart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/music.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/viewer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/filter.js') }}"></script>
 
-<script src="{{ url_for('static', filename='js/modules/theme.js') }}"></script>
-<script src="{{ url_for('static', filename='js/modules/typing.js') }}"></script>
-<script src="{{ url_for('static', filename='js/modules/scroll.js') }}"></script>
-<script src="{{ url_for('static', filename='js/modules/particles.js') }}"></script>
-<script src="{{ url_for('static', filename='js/modules/chart.js') }}"></script>
-<script src="{{ url_for('static', filename='js/modules/music.js') }}"></script>
-<script src="{{ url_for('static', filename='js/modules/viewer.js') }}"></script>
-<script src="{{ url_for('static', filename='js/modules/filter.js') }}"></script>
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
+    <!-- Главный скрипт -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,122 @@
+/* ═══════════════════════════════════════════ */
+/* ШАПКА */
+/* ═══════════════════════════════════════════ */
+header {
+    background-color: #111 !important;
+    color: white !important;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-theme header {
+    background-color: var(--light-color) !important;
+}
+
+body.dark-theme .logo,
+body.dark-theme nav ul li a,
+body.dark-theme .theme-toggle,
+body.dark-theme .mobile-menu-btn {
+    color: var(--dark-color) !important;
+}
+
+body.dark-theme nav ul li a:hover {
+    color: var(--primary-color) !important;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 700;
+    color: white !important;
+    text-decoration: none;
+}
+
+.logo span {
+    color: var(--primary-color);
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.theme-toggle {
+    background: none;
+    border: none;
+    color: white !important;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+}
+
+nav ul li {
+    margin-left: 25px;
+}
+
+nav ul li a {
+    color: white !important;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 18px;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+nav ul li a:hover {
+    color: var(--primary-color) !important;
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: white !important;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    nav ul {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: #111;
+        flex-direction: column;
+        padding: 15px;
+    }
+    nav ul.active {
+        display: flex;
+    }
+    nav ul li {
+        margin: 8px 0;
+    }
+    .mobile-menu-btn {
+        display: block;
+    }
+}
