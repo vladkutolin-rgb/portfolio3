@@ -120,12 +120,12 @@ musicAudio.volume = 0.3;
 if (musicVolume) musicVolume.value = 30;
 
 // ═══════════════════════════════════════════
-// ГАРМОНИЯ — ПИАНИНО ВОЛНОЙ + КОЛЬЦА ДЫШАТ
+// ФИНАЛ — ПИАНИНО + УДАРНЫЕ ВОЛНЫ КОЛЕЦ
 // ═══════════════════════════════════════════
 const TOTAL_KEYS = 36;
 let wavePos = TOTAL_KEYS / 2;
 let activeEffects = 0;
-const MAX_EFFECTS = 12;
+const MAX_EFFECTS = 10;
 
 function createPiano() {
     const container = document.getElementById('pianoContainer');
@@ -153,6 +153,7 @@ function createOrbRings() {
     });
 }
 
+// Эффекты от пианино (меньше)
 function spawnEffect(x, y, intensity, type) {
     if (activeEffects >= MAX_EFFECTS) {
         const oldest = document.querySelector('.key-effect');
@@ -163,19 +164,19 @@ function spawnEffect(x, y, intensity, type) {
 
     const effect = document.createElement('div');
     effect.className = 'key-effect';
-    const angle = -Math.PI/2 + (Math.random()-0.5)*1.6;
-    const distance = 80 + intensity * 220;
-    const duration = 0.8 + Math.random() * 1.2;
-    const size = 3 + intensity * 10;
-    const hue = type === 'circle' ? 150 : type === 'line' ? 200 : 60;
+    const angle = -Math.PI/2 + (Math.random()-0.5)*1.4;
+    const distance = 60 + intensity * 200;
+    const duration = 0.7 + Math.random() * 1;
+    const size = 2 + intensity * 8;
+    const hue = type === 'circle' ? 150 : type === 'line' ? 200 : 50;
     
     effect.style.cssText = `
         left: ${x}px; top: ${y}px;
         width: ${type==='line'?size:size}px;
-        height: ${type==='line'?2+intensity*3:size}px;
-        background: ${type==='spark'?'rgba(255,255,255,0.9)':`hsla(${hue},90%,60%,0.85)`};
+        height: ${type==='line'?1.5+intensity*2:size}px;
+        background: ${type==='spark'?'rgba(255,255,255,0.9)':`hsla(${hue},90%,60%,0.8)`};
         border-radius: ${type==='line'?'2px':'50%'};
-        box-shadow: 0 0 ${10+intensity*20}px ${type==='spark'?'rgba(255,255,200,0.7)':`hsla(${hue},90%,55%,0.6)`};
+        box-shadow: 0 0 ${8+intensity*18}px ${type==='spark'?'rgba(255,255,200,0.6)':`hsla(${hue},90%,55%,0.5)`};
         animation: keyFly ${duration}s ease-out forwards;
         --dx: ${Math.cos(angle)*distance}px;
         --dy: ${Math.sin(angle)*distance}px;
@@ -185,71 +186,86 @@ function spawnEffect(x, y, intensity, type) {
     setTimeout(() => { effect.remove(); activeEffects--; }, duration*1000+100);
 }
 
+// Ударная волна от кольца
+function ringShockwave(ring, intensity) {
+    if (!ring) return;
+    ring.style.transition = 'none';
+    ring.style.transform = 'translate(-50%,-50%) scale(1.5)';
+    ring.style.borderWidth = '3px';
+    ring.style.borderColor = 'rgba(255,255,255,0.9)';
+    ring.style.boxShadow = `0 0 ${30+intensity*60}px rgba(255,255,255,0.7)`;
+    
+    setTimeout(() => {
+        ring.style.transition = 'transform 0.8s ease-out, border-color 0.8s ease-out, box-shadow 0.8s ease-out, border-width 0.3s ease-out';
+        ring.style.transform = 'translate(-50%,-50%) scale(1)';
+        ring.style.borderWidth = '2px';
+        ring.style.borderColor = `rgba(0,255,180,0.3)`;
+        ring.style.boxShadow = `0 0 20px rgba(0,255,180,0.2)`;
+    }, 50);
+}
+
 function animatePiano(bass, beat, mid, high) {
     const keys = document.querySelectorAll('.piano-key');
     if (keys.length === 0) return;
 
     // Плавный сброс
     keys.forEach(k => {
-        if (k.classList.contains('active')) {
-            k.classList.remove('active');
-            k.style.transform = 'translateY(0px)';
-            k.style.boxShadow = '';
-        }
+        k.classList.remove('active');
+        k.style.transform = 'translateY(0px)';
+        k.style.boxShadow = '';
     });
 
-    // Скорость волны от басов + мидов
-    const speed = 0.3 + bass * 2.5 + mid * 1.5;
+    // Скорость волны — очень чувствительная
+    const speed = 0.2 + bass * 3.5 + mid * 2 + high * 1.2;
     wavePos += speed;
     if (wavePos >= TOTAL_KEYS) wavePos -= TOTAL_KEYS;
 
-    // ОДНА плавная волна
-    const width = 5 + Math.floor(bass * 2);
+    // Двойная волна (основная + отражённая)
+    const width = 6 + Math.floor(bass * 2.5);
     const center = Math.floor(wavePos);
+    const center2 = Math.floor((wavePos + TOTAL_KEYS/2) % TOTAL_KEYS);
 
-    for (let i = -width; i <= width; i++) {
-        const idx = ((center+i)%TOTAL_KEYS+TOTAL_KEYS)%TOTAL_KEYS;
-        const dist = Math.abs(i);
-        const brightness = Math.max(0, 1-dist/(width+1));
-        if (brightness>0.02 && keys[idx]) {
-            const pushDown = 2 + brightness * 5;
-            keys[idx].classList.add('active');
-            keys[idx].style.transform = `translateY(${pushDown}px)`;
-            keys[idx].style.boxShadow = `0 0 ${6+brightness*20}px rgba(0,255,150,${0.15+brightness*0.4})`;
+    [center, center2].forEach((c, waveIdx) => {
+        const w = waveIdx === 0 ? width : Math.floor(width * 0.6);
+        for (let i = -w; i <= w; i++) {
+            const idx = ((c+i)%TOTAL_KEYS+TOTAL_KEYS)%TOTAL_KEYS;
+            const dist = Math.abs(i);
+            const brightness = Math.max(0, 1-dist/(w+1)) * (waveIdx === 0 ? 1 : 0.5);
+            if (brightness>0.02 && keys[idx]) {
+                keys[idx].classList.add('active');
+                keys[idx].style.transform = `translateY(${2+brightness*5}px)`;
+                keys[idx].style.boxShadow = `0 0 ${6+brightness*20}px rgba(0,255,150,${0.15+brightness*0.4})`;
+            }
         }
-    }
+    });
 
     const gr = document.querySelector('.gallery').getBoundingClientRect();
 
-    // Удар — залп искр
+    // Удар — залп (меньше)
     if (beat) {
-        for (let i=0;i<8;i++) setTimeout(()=>{
+        for (let i=0;i<6;i++) setTimeout(()=>{
             const k=keys[Math.floor(Math.random()*TOTAL_KEYS)];
-            if(k){const r=k.getBoundingClientRect();spawnEffect(r.left-gr.left+r.width/2,r.top-gr.top,0.8,'spark');}
-        },i*30);
+            if(k){const r=k.getBoundingClientRect();spawnEffect(r.left-gr.left+r.width/2,r.top-gr.top,0.7,'spark');}
+        },i*35);
     }
 
-    // Басы — круги (левая часть)
-    if (bass>0.2 && Math.random()<bass*0.45) {
-        const k=keys[Math.floor(Math.random()*10)];
+    // Эффекты реже
+    if (bass>0.3 && Math.random()<bass*0.35) {
+        const k=keys[Math.floor(Math.random()*8)];
         if(k){const r=k.getBoundingClientRect();spawnEffect(r.left-gr.left+r.width/2,r.top-gr.top,bass,'circle');}
     }
-
-    // Миды — линии (центр)
-    if (mid>0.18 && Math.random()<mid*0.4) {
-        const k=keys[12+Math.floor(Math.random()*12)];
-        if(k){const r=k.getBoundingClientRect();spawnEffect(r.left-gr.left+r.width/2,r.top-gr.top,mid,'line');}
-    }
-
-    // Хаи — искры (правая часть)
-    if (high>0.18 && Math.random()<high*0.45) {
-        const k=keys[24+Math.floor(Math.random()*12)];
+    if (high>0.25 && Math.random()<high*0.35) {
+        const k=keys[26+Math.floor(Math.random()*10)];
         if(k){const r=k.getBoundingClientRect();spawnEffect(r.left-gr.left+r.width/2,r.top-gr.top,high,'spark');}
     }
 }
 
-// Кольца дышат
+// Кольца с ударными волнами
 let orbPhase = 0;
+let lastBass = 0;
+let lastMid = 0;
+let lastHigh = 0;
+
 function animateOrb(bass, beat, mid, high) {
     const orb = document.getElementById('neonOrb');
     if (!orb) return;
@@ -260,25 +276,38 @@ function animateOrb(bass, beat, mid, high) {
     const breath = 1 + Math.sin(orbPhase)*0.35;
     orb.style.transform = `translate(-50%,-50%) scale(${breath+beat*0.3})`;
 
-    // Каждое кольцо дышит в своём ритме
+    // Бас-кольцо
     if (rings[0]) {
         const s = 1 + Math.sin(orbPhase)*0.25 + bass*0.35;
         rings[0].style.transform = `translate(-50%,-50%) scale(${s})`;
         rings[0].style.borderColor = `rgba(0,255,180,${0.25+bass*0.65})`;
         rings[0].style.boxShadow = `0 0 ${15+bass*50}px rgba(0,255,180,${0.15+bass*0.4})`;
+        
+        // Ударная волна при резком скачке баса
+        if (bass - lastBass > 0.2) ringShockwave(rings[0], bass);
     }
+
+    // Мид-кольцо
     if (rings[1]) {
         const s = 1 + Math.cos(orbPhase*1.3)*0.2 + mid*0.3;
         rings[1].style.transform = `translate(-50%,-50%) scale(${s})`;
         rings[1].style.borderColor = `rgba(100,200,255,${0.25+mid*0.65})`;
         rings[1].style.boxShadow = `0 0 ${12+mid*40}px rgba(100,200,255,${0.15+mid*0.4})`;
+        
+        if (mid - lastMid > 0.18) ringShockwave(rings[1], mid);
     }
+
+    // Хай-кольцо
     if (rings[2]) {
         const s = 1 + Math.sin(orbPhase*1.7)*0.15 + high*0.25;
         rings[2].style.transform = `translate(-50%,-50%) scale(${s})`;
         rings[2].style.borderColor = `rgba(255,255,255,${0.25+high*0.65})`;
         rings[2].style.boxShadow = `0 0 ${8+high*35}px rgba(255,255,255,${0.15+high*0.4})`;
+        
+        if (high - lastHigh > 0.15) ringShockwave(rings[2], high);
     }
+
+    lastBass = bass; lastMid = mid; lastHigh = high;
 
     // Ядро
     if (core) {
