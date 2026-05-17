@@ -2,11 +2,7 @@
 /* ГАЛЕРЕЯ */
 /* ═══════════════════════════════════════════ */
 .gallery {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-body.dark-theme .gallery {
-    background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+    background: var(--bg-color);
 }
 
 .gallery-grid {
@@ -42,39 +38,9 @@ body.dark-theme .gallery {
     color: var(--text-color);
 }
 
-/* Реакция на музыку */
-.gallery-item.music-reactive {
-    position: relative;
-    overflow: visible;
-}
-
-.gallery-item .gallery-glow {
-    position: absolute;
-    top: -5px; left: -5px; right: -5px; bottom: -5px;
-    border-radius: 12px;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.1s ease;
-    pointer-events: none;
-}
-
-.gallery-item.beat-active {
-    transform: scale(1.03) !important;
-    box-shadow: 0 0 25px rgba(0, 200, 150, 0.6) !important;
-}
-
-.gallery-item.beat-active .gallery-glow {
-    opacity: 0.6;
-    background: radial-gradient(circle, rgba(0, 255, 180, 0.3), transparent);
-    animation: glowPulse 0.5s ease-out;
-}
-
-@keyframes glowPulse {
-    0% { opacity: 0.8; transform: scale(1.05); }
-    100% { opacity: 0; transform: scale(1); }
-}
-
-/* Реакция на музыку */
+/* ═══════════════════════════════════════════ */
+/* РЕАКЦИЯ НА МУЗЫКУ */
+/* ═══════════════════════════════════════════ */
 .gallery-item.music-reactive {
     position: relative;
     overflow: visible;
@@ -107,3 +73,50 @@ body.dark-theme .gallery {
     0% { opacity: 0.9; transform: scale(1.06); }
     100% { opacity: 0; transform: scale(1); }
 }
+
+/* Заглушка */
+.empty-placeholder-card {
+    text-align: center;
+    padding: 40px 20px !important;
+    animation: emptyFloat 4s ease-in-out infinite;
+    cursor: default !important;
+    border: 1px solid transparent !important;
+    transition: all 0.5s ease !important;
+    grid-column: 1 / -1;
+}
+
+.empty-placeholder-card:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 20px 40px rgba(0, 163, 54, 0.35) !important;
+}
+
+.empty-placeholder-card .empty-card-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+    transition: all 0.5s ease;
+}
+
+.empty-placeholder-card:hover .empty-card-icon {
+    transform: scale(1.2);
+    text-shadow: 0 0 20px rgba(0, 163, 54, 0.5);
+}
+
+.empty-card-icon i {
+    color: #bbb;
+    transition: all 0.5s ease;
+}
+
+body.dark-theme .empty-card-icon i {
+    color: #555;
+}
+
+.empty-placeholder-card:hover .empty-card-icon i {
+    color: var(--primary-color) !important;
+    text-shadow: 0 0 25px rgba(0, 163, 54, 0.6);
+}
+
+@keyframes emptyFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
