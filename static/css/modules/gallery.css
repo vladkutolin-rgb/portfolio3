@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════ */
-/* ГАЛЕРЕЯ — ТРИ ВОЛНЫ + КОЛЬЦА */
+/* ГАЛЕРЕЯ — ТРИ ВОЛНЫ */
 /* ═══════════════════════════════════════════ */
 .gallery {
     background: #000010;
@@ -8,64 +8,33 @@
     min-height: 750px;
 }
 
-/* Звёзды */
 .gallery::before {
     content: '';
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
     background-image: 
-        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6), transparent),
-        radial-gradient(1px 1px at 25% 30%, rgba(255,255,255,0.5), transparent),
-        radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.7), transparent),
-        radial-gradient(1px 1px at 55% 45%, rgba(255,255,255,0.4), transparent),
-        radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.6), transparent),
-        radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 25% 30%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 55% 45%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.4), transparent),
         radial-gradient(1px 1px at 15% 55%, rgba(255,255,255,0.3), transparent),
-        radial-gradient(1px 1px at 35% 70%, rgba(255,255,255,0.5), transparent),
-        radial-gradient(1px 1px at 60% 65%, rgba(255,255,255,0.4), transparent),
-        radial-gradient(1px 1px at 80% 55%, rgba(255,255,255,0.6), transparent),
-        radial-gradient(2px 2px at 50% 50%, rgba(180,220,255,0.8), transparent),
-        radial-gradient(2px 2px at 20% 40%, rgba(200,200,255,0.6), transparent),
-        radial-gradient(2px 2px at 75% 75%, rgba(180,200,255,0.7), transparent);
+        radial-gradient(1px 1px at 35% 70%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 60% 65%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 80% 55%, rgba(255,255,255,0.5), transparent);
     z-index: 0;
-    animation: twinkle 4s ease-in-out infinite alternate;
 }
-@keyframes twinkle { 0% { opacity: 0.7; } 100% { opacity: 1; } }
 
-/* Шар с кольцами */
-#neonOrb {
+/* Волны */
+#waveCanvas {
     position: absolute;
-    top: 40%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 160px; height: 160px;
-    border-radius: 50%;
-    z-index: 1; pointer-events: none;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
 }
-
-.orb-ring {
-    position: absolute;
-    top: 50%; left: 50%;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    transition: transform 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out;
-}
-.orb-ring.bass { width: 100%; height: 100%; }
-.orb-ring.mid { width: 70%; height: 70%; }
-.orb-ring.high { width: 40%; height: 40%; }
-
-#neonOrb .orb-core {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 12%; height: 12%;
-    border-radius: 50%;
-    background: rgba(0, 255, 180, 0.9);
-    box-shadow: 0 0 20px rgba(0, 255, 180, 0.8);
-    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-}
-
-.orb-particle { position: absolute; pointer-events: none; z-index: 0; border-radius: 50%; }
 
 /* Фото */
 .gallery-grid {
@@ -73,7 +42,7 @@
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 18px;
     position: relative; z-index: 4;
-    margin-top: 80px;
+    margin-top: 60px;
 }
 .gallery-item {
     border-radius: 12px; overflow: hidden; cursor: pointer;
@@ -100,7 +69,3 @@
 .empty-card-icon i { color: #444; }
 .empty-placeholder-card:hover .empty-card-icon i { color: #00d4a0 !important; }
 @keyframes emptyFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)} }
-
-@media (max-width: 768px) {
-    #neonOrb { width: 110px; height: 110px; }
-}

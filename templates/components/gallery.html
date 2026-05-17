@@ -1,16 +1,7 @@
 <section class="gallery animate-on-scroll" id="gallery">
-    <!-- Неоновый шар -->
-    <div id="neonOrb">
-        <div class="orb-glow"></div>
-        <div class="orb-core"></div>
-    </div>
-
-    <!-- Пианино -->
-    <div id="pianoContainer"></div>
-
-    <!-- Фото -->
+    <canvas id="waveCanvas"></canvas>
     <div class="container" style="position:relative;z-index:2;">
-        <h2 class="section-title">Галерея фото</h2>
+        <h2 class="section-title" style="color:#fff;">Галерея фото</h2>
         <div class="gallery-grid" id="galleryGrid">
             {% for item in gallery %}
             <div class="gallery-item">
