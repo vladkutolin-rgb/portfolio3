@@ -120,77 +120,68 @@ musicAudio.volume = 0.3;
 if (musicVolume) musicVolume.value = 30;
 
 // ═══════════════════════════════════════════
-// ПИАНИНО + ШАР + ТЕКСТ ПЕСНИ
+// ДЛИННОЕ ПИАНИНО + ШАР + ТЕКСТ ПЕСНИ
 // ═══════════════════════════════════════════
-const pianoNotes = [
-    'C', 'C#', 'D', 'D#', 'E', 'F',
-    'F#', 'G', 'G#', 'A', 'A#', 'B'
-];
-
 function createPiano() {
     const container = document.getElementById('pianoContainer');
     if (!container) return;
 
-    const keys = [
-        'white', 'black', 'white', 'black', 'white',
-        'white', 'black', 'white', 'black', 'white', 'black', 'white'
-    ];
+    // 24 клавиши (2 октавы)
+    const keys = [];
+    for (let i = 0; i < 24; i++) {
+        const isBlack = [1, 3, 6, 8, 10, 13, 15, 18, 20, 22].includes(i);
+        keys.push(isBlack ? 'black' : 'white');
+    }
 
     container.innerHTML = '';
     keys.forEach((type, i) => {
         const key = document.createElement('div');
         key.className = `piano-key ${type}`;
-        key.dataset.note = pianoNotes[i];
         key.dataset.index = i;
-        key.title = pianoNotes[i];
         container.appendChild(key);
     });
 }
 
-let lastActiveKeys = [];
+let wavePosition = 0;
+let waveSpeed = 0;
 
 function animatePiano(bass, beat, mid, high) {
     const keys = document.querySelectorAll('.piano-key');
     if (keys.length === 0) return;
 
-    // Сбрасываем старые
+    // Сбрасываем
     keys.forEach(k => k.classList.remove('active'));
-    lastActiveKeys = [];
 
     if (beat) {
-        // Волна ВСЕХ клавиш на удар
+        // Волна ВСЕХ клавиш от центра
+        const center = Math.floor(keys.length / 2);
         keys.forEach((key, i) => {
+            const dist = Math.abs(i - center);
             setTimeout(() => {
                 key.classList.add('active');
-                setTimeout(() => key.classList.remove('active'), 200);
-            }, i * 25);
+                setTimeout(() => key.classList.remove('active'), 180);
+            }, dist * 20);
         });
         return;
     }
 
-    // Выбираем клавиши на основе частот
-    const activeCount = Math.floor(bass * 6 + mid * 3 + 1);
-    const usedIndexes = new Set();
+    // Плавная волна
+    waveSpeed = 0.3 + bass * 2 + mid * 1.2;
+    wavePosition = (wavePosition + waveSpeed) % keys.length;
 
-    for (let i = 0; i < activeCount; i++) {
-        let idx;
-        if (i < bass * 4) {
-            // Басы — левые клавиши
-            idx = Math.floor(Math.random() * 4);
-        } else if (i < bass * 4 + mid * 3) {
-            // Середина
-            idx = 4 + Math.floor(Math.random() * 4);
-        } else {
-            // Высокие — правые
-            idx = 8 + Math.floor(Math.random() * 4);
-        }
-        if (!usedIndexes.has(idx) && keys[idx]) {
-            usedIndexes.add(idx);
+    // Подсвечиваем 5-7 клавиш вокруг позиции волны
+    const waveWidth = 3 + Math.floor(bass * 3 + mid * 2);
+    const center = Math.floor(wavePosition);
+
+    for (let i = -waveWidth; i <= waveWidth; i++) {
+        const idx = ((center + i) % keys.length + keys.length) % keys.length;
+        const dist = Math.abs(i);
+        const brightness = 1 - dist / (waveWidth + 1);
+
+        if (brightness > 0 && keys[idx]) {
             keys[idx].classList.add('active');
-            lastActiveKeys.push(idx);
-            setTimeout(() => {
-                if (keys[idx]) keys[idx].classList.remove('active');
-            }, 150 + Math.random() * 200);
+            keys[idx].style.transform = `translateY(${4 + brightness * 6}px)`;
+            keys[idx].style.boxShadow = `0 0 ${10 + brightness * 25}px rgba(0, 255, 150, ${0.3 + brightness * 0.5})`;
         }
     }
 }
@@ -200,27 +191,27 @@ function animateOrb(bass, beat) {
     const core = orb?.querySelector('.orb-core');
     if (!orb || !core) return;
 
-    const scale = 1 + bass * 0.7 + beat * 0.6;
+    const scale = 1 + bass * 0.6 + beat * 0.5;
     orb.style.transform = `translate(-50%, -50%) scale(${scale})`;
 
-    const hue = 160 + bass * 50;
-    core.style.background = `radial-gradient(circle, hsla(${hue}, 80%, 60%, 0.9), hsla(${hue}, 70%, 40%, 0.4))`;
-    core.style.boxShadow = `0 0 ${30 + bass * 60}px hsla(${hue}, 80%, 55%, 0.7)`;
+    const hue = 155 + bass * 55;
+    core.style.background = `radial-gradient(circle, hsla(${hue}, 85%, 65%, 0.9), hsla(${hue}, 70%, 40%, 0.4))`;
+    core.style.boxShadow = `0 0 ${35 + bass * 70}px hsla(${hue}, 85%, 55%, 0.7)`;
 
     if (beat) {
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 12; i++) {
             const particle = document.createElement('div');
             particle.className = 'orb-particle';
             const angle = Math.random() * Math.PI * 2;
-            const distance = 50 + Math.random() * 80;
+            const distance = 50 + Math.random() * 90;
             particle.style.cssText = `
                 left: 50%; top: 50%;
                 width: 8px; height: 8px;
-                background: hsla(${hue}, 80%, 65%, 0.9);
+                background: hsla(${hue}, 85%, 65%, 0.9);
                 border-radius: 50%;
                 --px: ${Math.cos(angle) * distance}px;
                 --py: ${Math.sin(angle) * distance}px;
-                box-shadow: 0 0 15px hsla(${hue}, 80%, 60%, 0.7);
+                box-shadow: 0 0 15px hsla(${hue}, 85%, 60%, 0.7);
             `;
             orb.appendChild(particle);
             setTimeout(() => particle.remove(), 1200);
@@ -240,20 +231,19 @@ function updateLyrics() {
         lyricsEl.textContent = '🎵 ' + title + ' 🎵';
         lyricsEl.classList.add('show');
         if (beat) {
-            lyricsEl.style.transform = 'translateX(-50%) scale(1.1)';
-            setTimeout(() => lyricsEl.style.transform = 'translateX(-50%) scale(1)', 200);
+            lyricsEl.classList.add('beat-pop');
+            setTimeout(() => lyricsEl.classList.remove('beat-pop'), 250);
         }
     } else {
         lyricsEl.classList.remove('show');
     }
 }
 
-// Создаём пианино
 window.addEventListener('load', () => {
     setTimeout(createPiano, 500);
 });
 
-// Главный цикл анимации — 30 раз в секунду (плавно)
+// Плавный цикл — 33ms = 30fps
 setInterval(() => {
     const bass = window.symphonyBass || 0.3;
     const mid = window.symphonyMid || 0.2;
