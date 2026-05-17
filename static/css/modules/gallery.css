@@ -1,14 +1,14 @@
 /* ═══════════════════════════════════════════ */
-/* ГАЛЕРЕЯ — ПИАНИНО + ШАР + ФОТО */
+/* ГАЛЕРЕЯ — ПИАНИНО + ШАР + ТЕКСТ + ФОТО */
 /* ═══════════════════════════════════════════ */
 .gallery {
     background: var(--bg-color);
     position: relative;
     overflow: hidden;
-    min-height: 600px;
+    min-height: 700px;
 }
 
-/* Пианино */
+/* Пианино — БОЛЬШОЕ */
 #pianoContainer {
     position: absolute;
     bottom: 0;
@@ -16,74 +16,102 @@
     transform: translateX(-50%);
     display: flex;
     z-index: 2;
-    gap: 2px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 15px 15px 0 0;
-    backdrop-filter: blur(5px);
+    gap: 3px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px 20px 0 0;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.4);
 }
 
 .piano-key {
-    width: 40px;
-    height: 80px;
-    border-radius: 0 0 8px 8px;
+    width: 55px;
+    height: 130px;
+    border-radius: 0 0 10px 10px;
     cursor: pointer;
-    transition: all 0.1s ease;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
     position: relative;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .piano-key.white {
-    background: linear-gradient(180deg, #fff 0%, #e8e8e8 100%);
+    background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 40%, #e0e0e0 100%);
     z-index: 1;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .piano-key.black {
-    background: linear-gradient(180deg, #333 0%, #111 100%);
-    width: 28px;
-    height: 50px;
-    margin-left: -14px;
-    margin-right: -14px;
+    background: linear-gradient(180deg, #444 0%, #111 100%);
+    width: 38px;
+    height: 85px;
+    margin-left: -19px;
+    margin-right: -19px;
     z-index: 2;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .piano-key.active {
-    transform: translateY(8px);
-    box-shadow: 0 0 20px rgba(0, 200, 150, 0.7);
+    transform: translateY(10px);
+    box-shadow: 0 0 25px rgba(0, 255, 180, 0.8);
 }
 
 .piano-key.white.active {
-    background: linear-gradient(180deg, #c8ffc8 0%, #a0e8a0 100%);
+    background: linear-gradient(180deg, #d0ffd0 0%, #80e880 100%);
 }
 
 .piano-key.black.active {
-    background: linear-gradient(180deg, #555 0%, #333 100%);
-    box-shadow: 0 0 30px rgba(0, 255, 180, 0.8);
+    background: linear-gradient(180deg, #666 0%, #333 100%);
+    box-shadow: 0 0 35px rgba(0, 255, 180, 0.9);
+}
+
+/* Текст песни */
+#songLyrics {
+    position: absolute;
+    bottom: 170px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 0 15px rgba(0, 200, 150, 0.8);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    max-width: 80%;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 10px 25px;
+    border-radius: 20px;
+    backdrop-filter: blur(3px);
+}
+
+#songLyrics.show {
+    opacity: 1;
 }
 
 /* Неоновый шар */
 #neonOrb {
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     border-radius: 50%;
     z-index: 1;
     pointer-events: none;
-    transition: all 0.1s ease;
 }
 
 #neonOrb .orb-core {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 60%;
-    height: 60%;
+    width: 55%;
+    height: 55%;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(0, 255, 180, 0.9), rgba(0, 200, 150, 0.4));
-    box-shadow: 0 0 40px rgba(0, 255, 180, 0.6);
+    box-shadow: 0 0 50px rgba(0, 255, 180, 0.6);
+    transition: background 0.1s ease, box-shadow 0.1s ease;
 }
 
 #neonOrb .orb-glow {
@@ -98,16 +126,16 @@
 }
 
 @keyframes orbPulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-    50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.2; }
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1.4); opacity: 0.15; }
 }
 
-/* Частицы шара */
+/* Частицы */
 .orb-particle {
     position: absolute;
     pointer-events: none;
     z-index: 0;
-    animation: particleFly 1s ease-out forwards;
+    animation: particleFly 1.2s ease-out forwards;
 }
 
 @keyframes particleFly {
@@ -115,14 +143,14 @@
     100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0); }
 }
 
-/* Сетка фото */
+/* Фото */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
     position: relative;
     z-index: 3;
-    margin-top: 60px;
+    margin-top: 80px;
 }
 
 .gallery-item {
@@ -141,16 +169,16 @@
 
 .gallery-item img {
     width: 100%;
-    height: 180px;
+    height: 170px;
     object-fit: cover;
     display: block;
 }
 
 .gallery-item p {
-    padding: 12px 15px;
+    padding: 10px 14px;
     font-weight: 500;
     color: var(--text-color);
-    font-size: 14px;
+    font-size: 13px;
 }
 
 /* Заглушка */
@@ -171,8 +199,9 @@ body.dark-theme .empty-card-icon i { color: #555; }
 @keyframes emptyFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)} }
 
 @media (max-width: 768px) {
-    .piano-key { width: 28px; height: 55px; }
-    .piano-key.black { width: 20px; height: 35px; margin-left: -10px; margin-right: -10px; }
-    #neonOrb { width: 80px; height: 80px; }
-    #pianoContainer { gap: 1px; padding: 6px; }
+    .piano-key { width: 36px; height: 90px; }
+    .piano-key.black { width: 24px; height: 55px; margin-left: -12px; margin-right: -12px; }
+    #neonOrb { width: 100px; height: 100px; }
+    #pianoContainer { gap: 2px; padding: 10px; }
+    #songLyrics { bottom: 120px; font-size: 16px; padding: 8px 18px; }
 }
