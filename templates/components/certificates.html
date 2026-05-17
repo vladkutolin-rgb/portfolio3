@@ -1,0 +1,34 @@
+<section id="certificates" class="animate-on-scroll">
+    <div class="container">
+        <h2 class="section-title">Мои сертификаты</h2>
+        <div class="course-filter">
+            <button class="filter-btn active" data-course="all">Все</button>
+            <button class="filter-btn" data-course="1">1 курс</button>
+            <button class="filter-btn" data-course="2">2 курс</button>
+            <button class="filter-btn" data-course="3">3 курс</button>
+            <button class="filter-btn" data-course="4">4 курс</button>
+        </div>
+        <div class="certificates-grid" id="certificatesGrid">
+            {% for cert in certificates %}
+            <div class="certificate-item" data-course="{{ cert[6] }}">
+                <img src="{{ cert[1] }}" alt="{{ cert[2] }}" data-full="{{ cert[1] }}">
+                <div class="certificate-info">
+                    <h3>{{ cert[2] }}</h3>
+                    <p>{{ cert[3] }}</p>
+                    <p><strong>{{ cert[4] }}</strong> &middot; {{ cert[5] }}</p>
+                    <span class="course-badge">{{ cert[6] }} курс</span>
+                </div>
+            </div>
+            {% endfor %}
+            {% if not certificates %}
+            <div class="certificate-item empty-placeholder-card">
+                <div class="empty-card-icon"><i class="fas fa-award"></i></div>
+                <div class="certificate-info">
+                    <h3>Пока нет сертификатов</h3>
+                    <p>Сертификаты появятся здесь</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>

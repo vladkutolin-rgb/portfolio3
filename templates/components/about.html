@@ -1,0 +1,61 @@
+<section id="about" class="animate-on-scroll">
+    <div id="particles-js"></div>
+    <div class="container">
+        <h2 class="section-title">Обо мне</h2>
+        <div class="about-content">
+            <div class="about-text">
+                <p>Я студент IT-направления, увлечённый программированием.</p>
+                <p>Мои сильные стороны: внимание к деталям, способность быстро осваивать новые технологии.</p>
+                <p>В будущем планирую стать full-stack разработчиком.</p>
+                
+                <div class="achievement-counter">
+                    <div class="counter-item">
+                        <i class="fas fa-certificate"></i>
+                        <span class="counter" data-target="{{ certificates|length }}">0</span>
+                        <p>Сертификатов</p>
+                    </div>
+                    <div class="counter-item">
+                        <i class="fas fa-project-diagram"></i>
+                        <span class="counter" data-target="{{ works|length }}">0</span>
+                        <p>Проектов</p>
+                    </div>
+                    <div class="counter-item">
+                        <i class="fas fa-code"></i>
+                        <span class="counter" data-target="{{ techstack|length }}">0</span>
+                        <p>Технологий</p>
+                    </div>
+                </div>
+
+                <div class="tech-stack">
+                    <h3>Мой технологический стек</h3>
+                    {% for cat in categories %}
+                    <div class="tech-category">
+                        <h4>{{ cat[1] }}</h4>
+                        <div class="tech-icons">
+                            {% for t in techstack %}
+                            {% if t[1] == cat[1] %}
+                            <div class="tech-item">
+                                <i class="{{ t[3] }}"></i>
+                                <span>{{ t[2] }}</span>
+                                {% if t[5] %}<span class="software-subtitle">{{ t[5] }}</span>{% endif %}
+                                <div class="skill-percentage">{{ t[4] }}%</div>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" data-width="{{ t[4] }}"></div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="about-stats">
+                <h3>Распределение навыков</h3>
+                <canvas id="skillsChart"></canvas>
+                <div id="chartLegend"></div>
+            </div>
+        </div>
+    </div>
+</section>
