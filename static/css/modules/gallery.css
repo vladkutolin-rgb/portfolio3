@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════ */
-/* ГАЛЕРЕЯ — ДЛИННОЕ ПИАНИНО + ШАР + ТЕКСТ */
+/* ГАЛЕРЕЯ — ДЛИННОЕ ПИАНИНО + ШАР */
 /* ═══════════════════════════════════════════ */
 .gallery {
     background: var(--bg-color);
@@ -8,7 +8,7 @@
     min-height: 750px;
 }
 
-/* Пианино — ДЛИННОЕ */
+/* Пианино — 36 КЛАВИШ (3 октавы) */
 #pianoContainer {
     position: absolute;
     bottom: 0;
@@ -16,21 +16,22 @@
     width: 100%;
     display: flex;
     z-index: 2;
-    gap: 3px;
-    padding: 15px 10px;
+    gap: 2px;
+    padding: 12px 5px;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
     box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.4);
     justify-content: center;
     flex-wrap: nowrap;
+    overflow-x: auto;
 }
 
 .piano-key {
-    width: 50px;
-    height: 120px;
-    border-radius: 0 0 8px 8px;
+    width: 38px;
+    height: 100px;
+    border-radius: 0 0 6px 6px;
     cursor: pointer;
-    transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease;
+    transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.05s ease;
     position: relative;
     flex-shrink: 0;
 }
@@ -38,75 +39,37 @@
 .piano-key.white {
     background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 30%, #e0e0e0 100%);
     z-index: 1;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .piano-key.black {
     background: linear-gradient(180deg, #444 0%, #111 100%);
-    width: 34px;
-    height: 78px;
-    margin-left: -17px;
-    margin-right: -17px;
+    width: 26px;
+    height: 62px;
+    margin-left: -13px;
+    margin-right: -13px;
     z-index: 2;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
 }
 
 .piano-key.active {
-    transform: translateY(8px);
+    transform: translateY(6px);
 }
 
 .piano-key.white.active {
     background: linear-gradient(180deg, #d8ffe0 0%, #60d880 100%);
-    box-shadow: 0 0 30px rgba(0, 255, 150, 0.7);
+    box-shadow: 0 0 25px rgba(0, 255, 150, 0.7);
 }
 
 .piano-key.black.active {
     background: linear-gradient(180deg, #666 0%, #333 100%);
-    box-shadow: 0 0 35px rgba(0, 255, 150, 0.8);
-}
-
-/* Текст песни на экране */
-#songLyrics {
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 3;
-    text-align: center;
-    font-size: 28px;
-    font-weight: 800;
-    color: white;
-    text-shadow: 0 0 20px rgba(0, 200, 150, 0.9), 0 0 40px rgba(0, 150, 100, 0.5);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.5s ease, transform 0.3s ease;
-    max-width: 85%;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 15px 35px;
-    border-radius: 25px;
-    backdrop-filter: blur(5px);
-    letter-spacing: 2px;
-}
-
-#songLyrics.show {
-    opacity: 1;
-    animation: lyricsFloat 3s ease-in-out infinite;
-}
-
-@keyframes lyricsFloat {
-    0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-    50% { transform: translate(-50%, -50%) translateY(-8px); }
-}
-
-#songLyrics.beat-pop {
-    transform: translate(-50%, -50%) scale(1.15) !important;
-    text-shadow: 0 0 35px rgba(0, 255, 180, 1), 0 0 70px rgba(0, 200, 100, 0.7);
+    box-shadow: 0 0 30px rgba(0, 255, 150, 0.8);
 }
 
 /* Неоновый шар */
 #neonOrb {
     position: absolute;
-    top: 55%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 180px;
@@ -125,7 +88,6 @@
     border-radius: 50%;
     background: radial-gradient(circle, rgba(0, 255, 180, 0.9), rgba(0, 200, 150, 0.4));
     box-shadow: 0 0 60px rgba(0, 255, 180, 0.6);
-    transition: background 0.1s ease, box-shadow 0.1s ease;
 }
 
 #neonOrb .orb-glow {
@@ -148,7 +110,7 @@
     position: absolute;
     pointer-events: none;
     z-index: 0;
-    animation: particleFly 1.2s ease-out forwards;
+    animation: particleFly 1s ease-out forwards;
 }
 
 @keyframes particleFly {
@@ -193,8 +155,8 @@
 @keyframes emptyFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)} }
 
 @media (max-width: 768px) {
-    .piano-key { width: 32px; height: 80px; }
-    .piano-key.black { width: 22px; height: 50px; margin-left: -11px; margin-right: -11px; }
+    .piano-key { width: 24px; height: 65px; }
+    .piano-key.black { width: 18px; height: 40px; margin-left: -9px; margin-right: -9px; }
     #neonOrb { width: 120px; height: 120px; }
-    #songLyrics { font-size: 20px; padding: 10px 20px; top: 30%; }
+    #pianoContainer { gap: 1px; padding: 8px 3px; }
 }

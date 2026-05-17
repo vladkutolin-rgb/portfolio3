@@ -120,16 +120,18 @@ musicAudio.volume = 0.3;
 if (musicVolume) musicVolume.value = 30;
 
 // ═══════════════════════════════════════════
-// ДЛИННОЕ ПИАНИНО + ШАР + ТЕКСТ ПЕСНИ
+// ДЛИННОЕ ПИАНИНО (36 КЛАВИШ) + ШАР
 // ═══════════════════════════════════════════
+const TOTAL_KEYS = 36;
+
 function createPiano() {
     const container = document.getElementById('pianoContainer');
     if (!container) return;
 
-    // 24 клавиши (2 октавы)
     const keys = [];
-    for (let i = 0; i < 24; i++) {
-        const isBlack = [1, 3, 6, 8, 10, 13, 15, 18, 20, 22].includes(i);
+    for (let i = 0; i < TOTAL_KEYS; i++) {
+        const pos = i % 12;
+        const isBlack = [1, 3, 6, 8, 10].includes(pos);
         keys.push(isBlack ? 'black' : 'white');
     }
 
@@ -142,46 +144,55 @@ function createPiano() {
     });
 }
 
-let wavePosition = 0;
-let waveSpeed = 0;
+let wavePos = TOTAL_KEYS / 2;
+let waveSpeed = 0.3;
 
-function animatePiano(bass, beat, mid, high) {
+function animatePiano(bass, beat, mid) {
     const keys = document.querySelectorAll('.piano-key');
     if (keys.length === 0) return;
 
-    // Сбрасываем
-    keys.forEach(k => k.classList.remove('active'));
+    // Сброс всех клавиш
+    keys.forEach(k => {
+        k.classList.remove('active');
+        k.style.transform = '';
+        k.style.boxShadow = '';
+    });
 
     if (beat) {
-        // Волна ВСЕХ клавиш от центра
-        const center = Math.floor(keys.length / 2);
-        keys.forEach((key, i) => {
+        // Волна от центра при ударе
+        const center = Math.floor(TOTAL_KEYS / 2);
+        for (let i = 0; i < TOTAL_KEYS; i++) {
             const dist = Math.abs(i - center);
             setTimeout(() => {
-                key.classList.add('active');
-                setTimeout(() => key.classList.remove('active'), 180);
-            }, dist * 20);
-        });
+                if (keys[i]) {
+                    keys[i].classList.add('active');
+                    setTimeout(() => {
+                        if (keys[i]) keys[i].classList.remove('active');
+                    }, 150);
+                }
+            }, dist * 15);
+        }
         return;
     }
 
     // Плавная волна
-    waveSpeed = 0.3 + bass * 2 + mid * 1.2;
-    wavePosition = (wavePosition + waveSpeed) % keys.length;
+    waveSpeed = 0.4 + bass * 2.5 + mid * 1.5;
+    wavePos += waveSpeed;
+    if (wavePos >= TOTAL_KEYS) wavePos -= TOTAL_KEYS;
+    if (wavePos < 0) wavePos += TOTAL_KEYS;
 
-    // Подсвечиваем 5-7 клавиш вокруг позиции волны
-    const waveWidth = 3 + Math.floor(bass * 3 + mid * 2);
-    const center = Math.floor(wavePosition);
+    const waveWidth = 4 + Math.floor(bass * 4 + mid * 2);
+    const center = Math.floor(wavePos);
 
     for (let i = -waveWidth; i <= waveWidth; i++) {
-        const idx = ((center + i) % keys.length + keys.length) % keys.length;
+        const idx = ((center + i) % TOTAL_KEYS + TOTAL_KEYS) % TOTAL_KEYS;
         const dist = Math.abs(i);
         const brightness = 1 - dist / (waveWidth + 1);
 
-        if (brightness > 0 && keys[idx]) {
+        if (brightness > 0.05 && keys[idx]) {
             keys[idx].classList.add('active');
-            keys[idx].style.transform = `translateY(${4 + brightness * 6}px)`;
-            keys[idx].style.boxShadow = `0 0 ${10 + brightness * 25}px rgba(0, 255, 150, ${0.3 + brightness * 0.5})`;
+            keys[idx].style.transform = `translateY(${3 + brightness * 5}px)`;
+            keys[idx].style.boxShadow = `0 0 ${8 + brightness * 20}px rgba(0, 255, 150, ${0.2 + brightness * 0.5})`;
         }
     }
 }
@@ -214,28 +225,8 @@ function animateOrb(bass, beat) {
                 box-shadow: 0 0 15px hsla(${hue}, 85%, 60%, 0.7);
             `;
             orb.appendChild(particle);
-            setTimeout(() => particle.remove(), 1200);
+            setTimeout(() => particle.remove(), 1000);
         }
-    }
-}
-
-// Текст песни
-function updateLyrics() {
-    const lyricsEl = document.getElementById('songLyrics');
-    if (!lyricsEl) return;
-
-    const title = document.getElementById('musicTitle')?.textContent || '';
-    const beat = window.symphonyBeat || 0;
-
-    if (title && title !== 'Нет трека') {
-        lyricsEl.textContent = '🎵 ' + title + ' 🎵';
-        lyricsEl.classList.add('show');
-        if (beat) {
-            lyricsEl.classList.add('beat-pop');
-            setTimeout(() => lyricsEl.classList.remove('beat-pop'), 250);
-        }
-    } else {
-        lyricsEl.classList.remove('show');
     }
 }
 
@@ -243,14 +234,12 @@ window.addEventListener('load', () => {
     setTimeout(createPiano, 500);
 });
 
-// Плавный цикл — 33ms = 30fps
+// Плавный цикл
 setInterval(() => {
     const bass = window.symphonyBass || 0.3;
     const mid = window.symphonyMid || 0.2;
-    const high = window.symphonyHigh || 0.1;
     const beat = window.symphonyBeat || 0;
 
-    animatePiano(bass, beat, mid, high);
+    animatePiano(bass, beat, mid);
     animateOrb(bass, beat);
-    updateLyrics();
 }, 33);
