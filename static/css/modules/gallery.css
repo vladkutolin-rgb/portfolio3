@@ -1,33 +1,9 @@
-/* ═══════════════════════════════════════════ */
-/* ГАЛЕРЕЯ — ТРИ ВОЛНЫ */
-/* ═══════════════════════════════════════════ */
 .gallery {
-    background: #000010;
+    background: #000008;
     position: relative;
     overflow: hidden;
     min-height: 750px;
 }
-
-.gallery::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-image: 
-        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.5), transparent),
-        radial-gradient(1px 1px at 25% 30%, rgba(255,255,255,0.4), transparent),
-        radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.6), transparent),
-        radial-gradient(1px 1px at 55% 45%, rgba(255,255,255,0.3), transparent),
-        radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.5), transparent),
-        radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.4), transparent),
-        radial-gradient(1px 1px at 15% 55%, rgba(255,255,255,0.3), transparent),
-        radial-gradient(1px 1px at 35% 70%, rgba(255,255,255,0.4), transparent),
-        radial-gradient(1px 1px at 60% 65%, rgba(255,255,255,0.3), transparent),
-        radial-gradient(1px 1px at 80% 55%, rgba(255,255,255,0.5), transparent);
-    z-index: 0;
-}
-
-/* Волны */
 #waveCanvas {
     position: absolute;
     top: 0; left: 0;
@@ -35,8 +11,6 @@
     z-index: 1;
     pointer-events: none;
 }
-
-/* Фото */
 .gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -46,16 +20,14 @@
 }
 .gallery-item {
     border-radius: 12px; overflow: hidden; cursor: pointer;
-    background: rgba(255,255,255,0.05); backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.05);
     box-shadow: 0 8px 24px rgba(0,0,0,0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.gallery-item:hover { transform: translateY(-6px); box-shadow: 0 15px 40px rgba(0,200,150,0.25); border-color: rgba(0,200,150,0.2); }
+.gallery-item:hover { transform: translateY(-6px); box-shadow: 0 15px 40px rgba(0,200,150,0.2); }
 .gallery-item img { width: 100%; height: 160px; object-fit: cover; display: block; }
 .gallery-item p { padding: 10px 14px; font-weight: 500; color: #bbb; font-size: 13px; }
-
-/* Заглушка */
 .empty-placeholder-card {
     text-align: center; padding: 60px 20px !important;
     animation: emptyFloat 4s ease-in-out infinite;
@@ -63,9 +35,7 @@
     background: rgba(255,255,255,0.02) !important;
     border: 1px dashed rgba(255,255,255,0.08) !important;
 }
-.empty-placeholder-card:hover { transform: translateY(-8px) !important; box-shadow: 0 20px 40px rgba(0,200,150,0.15) !important; }
+.empty-placeholder-card:hover { transform: translateY(-8px) !important; }
 .empty-placeholder-card .empty-card-icon { font-size: 70px; margin-bottom: 15px; }
-.empty-placeholder-card:hover .empty-card-icon { transform: scale(1.2); text-shadow: 0 0 25px rgba(0,200,150,0.5); }
 .empty-card-icon i { color: #444; }
-.empty-placeholder-card:hover .empty-card-icon i { color: #00d4a0 !important; }
 @keyframes emptyFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)} }
