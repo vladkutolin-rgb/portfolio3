@@ -118,3 +118,100 @@ musicAudio.addEventListener('ended', () => {
 });
 musicAudio.volume = 0.3;
 if (musicVolume) musicVolume.value = 30;
+
+// ═══════════════════════════════════════════
+// ПИАНИНО + НЕОНОВЫЙ ШАР
+// ═══════════════════════════════════════════
+function createPiano() {
+    const container = document.getElementById('pianoContainer');
+    if (!container) return;
+
+    const keys = [
+        'white', 'black', 'white', 'black', 'white',
+        'white', 'black', 'white', 'black', 'white', 'black', 'white'
+    ];
+
+    keys.forEach((type, i) => {
+        const key = document.createElement('div');
+        key.className = `piano-key ${type}`;
+        key.dataset.index = i;
+        container.appendChild(key);
+    });
+}
+
+// Активация клавиш под музыку
+function animatePiano() {
+    const keys = document.querySelectorAll('.piano-key');
+    if (keys.length === 0) return;
+
+    const bass = window.symphonyBass || 0.3;
+    const beat = window.symphonyBeat || 0;
+
+    // Случайная клавиша активируется на басах
+    if (bass > 0.25 && Math.random() < bass) {
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        randomKey.classList.add('active');
+        setTimeout(() => randomKey.classList.remove('active'), 200 + Math.random() * 300);
+    }
+
+    // При ударе — волна клавиш
+    if (beat) {
+        keys.forEach((key, i) => {
+            setTimeout(() => {
+                key.classList.add('active');
+                setTimeout(() => key.classList.remove('active'), 250);
+            }, i * 30);
+        });
+    }
+}
+
+// Анимация неонового шара
+function animateOrb() {
+    const orb = document.getElementById('neonOrb');
+    const core = orb?.querySelector('.orb-core');
+    if (!orb || !core) return;
+
+    const bass = window.symphonyBass || 0.3;
+    const beat = window.symphonyBeat || 0;
+
+    // Пульсация
+    const scale = 1 + bass * 0.8 + beat * 0.5;
+    orb.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+    // Цвет меняется от баса
+    const hue = 160 + bass * 40;
+    core.style.background = `radial-gradient(circle, hsla(${hue}, 80%, 60%, 0.9), hsla(${hue}, 70%, 40%, 0.4))`;
+    core.style.boxShadow = `0 0 ${30 + bass * 50}px hsla(${hue}, 80%, 55%, 0.7)`;
+
+    // Частицы при ударе
+    if (beat) {
+        for (let i = 0; i < 8; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'orb-particle';
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 40 + Math.random() * 60;
+            particle.style.cssText = `
+                left: 50%; top: 50%;
+                width: 6px; height: 6px;
+                background: hsla(${hue}, 80%, 60%, 0.8);
+                border-radius: 50%;
+                --px: ${Math.cos(angle) * distance}px;
+                --py: ${Math.sin(angle) * distance}px;
+                box-shadow: 0 0 10px hsla(${hue}, 80%, 60%, 0.6);
+            `;
+            orb.appendChild(particle);
+            setTimeout(() => particle.remove(), 1000);
+        }
+    }
+}
+
+// Запуск пианино
+window.addEventListener('load', () => {
+    setTimeout(createPiano, 500);
+});
+
+// Анимация пианино и шара каждые 50мс
+setInterval(() => {
+    animatePiano();
+    animateOrb();
+}, 50);
