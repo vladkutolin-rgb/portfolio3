@@ -67,3 +67,45 @@ function initScrollAnimations() {
     });
     if (sb) sb.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 }
+
+// ═══════════════════════════════════════════
+// ЭФФЕКТ ЖИДКОГО СТЕКЛА
+// ═══════════════════════════════════════════
+function initGlassEffect() {
+    const gallery = document.querySelector('.gallery');
+    if (!gallery) return;
+
+    // Создаём курсор
+    const cursor = document.createElement('div');
+    cursor.className = 'glass-cursor';
+    document.body.appendChild(cursor);
+
+    let mouseX = -200, mouseY = -200;
+    let targetX = -200, targetY = -200;
+
+    gallery.addEventListener('mousemove', (e) => {
+        targetX = e.clientX;
+        targetY = e.clientY;
+        cursor.classList.add('active');
+    });
+
+    gallery.addEventListener('mouseleave', () => {
+        targetX = -200;
+        targetY = -200;
+        cursor.classList.remove('active');
+    });
+
+    // Плавное следование
+    function animate() {
+        mouseX += (targetX - mouseX) * 0.15;
+        mouseY += (targetY - mouseY) * 0.15;
+        cursor.style.left = mouseX + 'px';
+        cursor.style.top = mouseY + 'px';
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+window.addEventListener('load', () => {
+    setTimeout(initGlassEffect, 500);
+});

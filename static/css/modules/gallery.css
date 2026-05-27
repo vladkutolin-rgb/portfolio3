@@ -1,22 +1,65 @@
 /* ═══════════════════════════════════════════ */
-/* ГАЛЕРЕЯ */
+/* ГАЛЕРЕЯ — ЖИДКОЕ СТЕКЛО */
 /* ═══════════════════════════════════════════ */
 .gallery {
     background: var(--bg-color);
-    padding: 70px 0;
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+}
+
+/* Эффект жидкого стекла */
+.glass-cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+        rgba(0, 200, 150, 0.15) 0%, 
+        rgba(0, 180, 130, 0.08) 30%, 
+        rgba(0, 150, 100, 0.03) 60%, 
+        transparent 100%);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease, background 0.3s ease;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-cursor.active {
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, 
+        rgba(0, 255, 180, 0.25) 0%, 
+        rgba(0, 200, 150, 0.12) 30%, 
+        rgba(0, 150, 100, 0.05) 60%, 
+        transparent 100%);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .glass-cursor {
+    background: radial-gradient(circle, 
+        rgba(0, 255, 180, 0.2) 0%, 
+        rgba(0, 200, 150, 0.1) 30%, 
+        rgba(0, 150, 100, 0.04) 60%, 
+        transparent 100%);
 }
 
 .gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 25px;
+    position: relative;
+    z-index: 1;
 }
 
 .gallery-item {
     position: relative;
     border-radius: 16px;
     overflow: hidden;
-    cursor: pointer;
+    cursor: none;
     background: var(--card-bg);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
@@ -81,18 +124,9 @@
     transform: scale(1.15);
 }
 
-.empty-card-icon i {
-    color: #bbb;
-    transition: color 0.4s ease;
-}
-
-body.dark-theme .empty-card-icon i {
-    color: #555;
-}
-
-.empty-placeholder-card:hover .empty-card-icon i {
-    color: var(--primary-color);
-}
+.empty-card-icon i { color: #bbb; transition: color 0.4s ease; }
+body.dark-theme .empty-card-icon i { color: #555; }
+.empty-placeholder-card:hover .empty-card-icon i { color: var(--primary-color); }
 
 .empty-placeholder-card p {
     font-size: 16px;
