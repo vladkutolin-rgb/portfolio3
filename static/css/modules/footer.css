@@ -8,18 +8,8 @@ footer {
 }
 
 body.dark-theme footer {
-    background-color: var(--light-color) !important;
-}
-
-body.dark-theme footer .footer-column h3,
-body.dark-theme footer .footer-links li,
-body.dark-theme footer .copyright,
-body.dark-theme footer .footer-links a {
-    color: var(--dark-color) !important;
-}
-
-body.dark-theme footer .footer-column p {
-    color: var(--dark-color) !important;
+    background-color: #ffffff !important;
+    color: #111 !important;
 }
 
 .footer-content {
@@ -44,7 +34,7 @@ body.dark-theme footer .footer-column p {
 }
 
 body.dark-theme .footer-column h3 {
-    color: var(--dark-color) !important;
+    color: #111 !important;
 }
 
 .footer-column h3::after {
@@ -62,7 +52,7 @@ body.dark-theme .footer-column h3 {
 }
 
 body.dark-theme .footer-column p {
-    color: var(--dark-color) !important;
+    color: #555 !important;
 }
 
 .footer-links {
@@ -75,7 +65,7 @@ body.dark-theme .footer-column p {
 }
 
 body.dark-theme .footer-links li {
-    color: var(--dark-color) !important;
+    color: #555 !important;
 }
 
 .footer-links a {
@@ -86,12 +76,16 @@ body.dark-theme .footer-links li {
 }
 
 body.dark-theme .footer-links a {
-    color: var(--dark-color) !important;
+    color: #555 !important;
 }
 
 .footer-links a:hover {
     color: var(--primary-color) !important;
     transform: translateX(5px);
+}
+
+body.dark-theme .footer-links a:hover {
+    color: var(--primary-color) !important;
 }
 
 .social-icons {
@@ -114,8 +108,8 @@ body.dark-theme .footer-links a {
 }
 
 body.dark-theme .social-icons a {
-    background-color: rgba(0, 0, 0, 0.2);
-    color: var(--dark-color);
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #111;
 }
 
 .social-icons a:hover {
@@ -133,8 +127,8 @@ body.dark-theme .social-icons a {
 }
 
 body.dark-theme .copyright {
-    color: var(--dark-color) !important;
-    border-top-color: rgba(0, 0, 0, 0.2);
+    color: #888 !important;
+    border-top-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Кнопка вверх */
