@@ -69,41 +69,45 @@ function initScrollAnimations() {
 }
 
 // ═══════════════════════════════════════════
-// ЭФФЕКТ ЖИДКОГО СТЕКЛА
+// ЖИДКОЕ СТЕКЛО
 // ═══════════════════════════════════════════
 function initGlassEffect() {
     const gallery = document.querySelector('.gallery');
+    const glass = gallery?.querySelector('::after');
     if (!gallery) return;
 
-    // Создаём курсор
-    const cursor = document.createElement('div');
-    cursor.className = 'glass-cursor';
-    document.body.appendChild(cursor);
-
-    let mouseX = -200, mouseY = -200;
-    let targetX = -200, targetY = -200;
+    // Используем псевдоэлемент через CSS переменные
+    let mouseX = -500, mouseY = -500;
+    let targetX = -500, targetY = -500;
 
     gallery.addEventListener('mousemove', (e) => {
         targetX = e.clientX;
         targetY = e.clientY;
-        cursor.classList.add('active');
     });
 
     gallery.addEventListener('mouseleave', () => {
-        targetX = -200;
-        targetY = -200;
-        cursor.classList.remove('active');
+        targetX = -500;
+        targetY = -500;
     });
 
-    // Плавное следование
     function animate() {
-        mouseX += (targetX - mouseX) * 0.15;
-        mouseY += (targetY - mouseY) * 0.15;
-        cursor.style.left = mouseX + 'px';
-        cursor.style.top = mouseY + 'px';
+        mouseX += (targetX - mouseX) * 0.12;
+        mouseY += (targetY - mouseY) * 0.12;
+        gallery.style.setProperty('--glass-x', mouseX + 'px');
+        gallery.style.setProperty('--glass-y', mouseY + 'px');
         requestAnimationFrame(animate);
     }
     animate();
+
+    // Добавляем стиль для псевдоэлемента
+    const style = document.createElement('style');
+    style.textContent = `
+        .gallery::after {
+            left: var(--glass-x, -500px) !important;
+            top: var(--glass-y, -500px) !important;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 window.addEventListener('load', () => {
