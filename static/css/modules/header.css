@@ -22,9 +22,12 @@ body.dark-theme header {
 .logo {
     font-size: 28px; font-weight: 700;
     color: #111 !important; text-decoration: none;
+    transition: color 0.3s ease;
 }
 body.dark-theme .logo { color: #ddd !important; }
 .logo span { color: var(--primary-color); }
+.logo:hover { color: var(--primary-color) !important; }
+body.dark-theme .logo:hover { color: var(--primary-color) !important; }
 
 .header-controls { display: flex; align-items: center; gap: 15px; }
 
@@ -45,10 +48,15 @@ nav ul li a {
     color: #111 !important; text-decoration: none;
     font-weight: 600; font-size: 18px;
     padding: 5px 10px; border-radius: 4px;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.2s ease;
+    display: inline-block;
 }
 body.dark-theme nav ul li a { color: #ddd !important; }
-nav ul li a:hover { color: var(--primary-color) !important; }
+nav ul li a:hover { 
+    color: var(--primary-color) !important;
+    transform: translateY(-2px);
+}
+body.dark-theme nav ul li a:hover { color: var(--primary-color) !important; }
 
 .mobile-menu-btn {
     display: none; background: none; border: none;
